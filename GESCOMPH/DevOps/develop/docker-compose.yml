@@ -21,7 +21,7 @@ services:
   gescomph-api-develop:
     container_name: gescomph-api-develop
     build:
-      context: ../../GESCOMPH
+      context: .
       dockerfile: WebGESCOMPH/Dockerfile
     restart: always
     env_file:
