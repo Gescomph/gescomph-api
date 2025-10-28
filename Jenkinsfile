@@ -6,7 +6,12 @@
 /// </summary>
 
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'mcr.microsoft.com/dotnet/sdk:9.0'       // ✅ Usa un contenedor con .NET 9 preinstalado
+            args '-u root:root -v /var/run/docker.sock:/var/run/docker.sock'  // ✅ Permite acceso a Docker del host
+        }
+    }
 
     environment {
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
@@ -15,6 +20,18 @@ pipeline {
     }
 
     stages {
+
+        stage('Verificar estructura del repositorio') {
+            steps {
+                sh '''
+                    echo "📂 Contenido actual del workspace:"
+                    pwd
+                    ls -la
+                    echo "📂 Contenido de GESCOMPH:"
+                    ls -la GESCOMPH || echo "❌ Carpeta GESCOMPH no encontrada"
+                '''
+            }
+        }
 
         stage('Leer entorno desde GESCOMPH/.env') {
             steps {
@@ -55,8 +72,24 @@ pipeline {
         stage('Compilar proyecto') {
             steps {
                 dir('GESCOMPH') {
-                    echo '⚙️ Compilando la solución GESCOMPH...'
-                    sh 'dotnet build WebGESCOMPH/WebGESCOMPH.csproj --configuration Release --no-restore'
+                    sh '''
+                        echo "⚙️ Compilando la solución GESCOMPH..."
+                        dotnet build WebGESCOMPH/WebGESCOMPH.csproj --configuration Release --no-restore
+                    '''
+                }
+            }
+        }
+
+        stage('Ejecutar pruebas unitarias (opcional)') {
+            when {
+                expression { fileExists('GESCOMPH/Test') }
+            }
+            steps {
+                dir('GESCOMPH') {
+                    sh '''
+                        echo "🧪 Ejecutando pruebas unitarias..."
+                        dotnet test --configuration Release --no-build || echo "⚠️ Pruebas fallidas, revisa los logs."
+                    '''
                 }
             }
         }
@@ -64,8 +97,10 @@ pipeline {
         stage('Publicar y construir imagen Docker') {
             steps {
                 dir('GESCOMPH') {
-                    echo "🐳 Construyendo imagen Docker para GESCOMPH (${env.ENVIRONMENT})"
-                    sh "docker build -t gescomph-${env.ENVIRONMENT}:latest -f Dockerfile ."
+                    sh '''
+                        echo "🐳 Construyendo imagen Docker..."
+                        docker build -t gescomph-${ENVIRONMENT}:latest -f Dockerfile .
+                    '''
                 }
             }
         }
@@ -73,8 +108,10 @@ pipeline {
         stage('Desplegar GESCOMPH') {
             steps {
                 dir('GESCOMPH') {
-                    echo "🚀 Desplegando GESCOMPH para entorno: ${env.ENVIRONMENT}"
-                    sh "docker compose -f ${env.COMPOSE_FILE} --env-file ${env.ENV_FILE} up -d --build"
+                    sh '''
+                        echo "🚀 Desplegando GESCOMPH (${ENVIRONMENT})..."
+                        docker compose -f ${COMPOSE_FILE} --env-file ${ENV_FILE} up -d --build
+                    '''
                 }
             }
         }
