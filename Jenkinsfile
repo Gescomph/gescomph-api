@@ -69,7 +69,7 @@ pipeline {
                 dir('.') { // 🔁 ejecutar desde raíz del repo
                     sh """
                         echo "🚀 Desplegando GESCOMPH para entorno: ${env.ENVIRONMENT}"
-                        docker compose -f GESCOMPH/${env.COMPOSE_FILE} --env-file GESCOMPH/${env.ENV_FILE} up -d --build
+                        docker compose -f ${env.COMPOSE_FILE} --env-file ${env.ENV_FILE} up -d --build
                     """
                 }
             }
