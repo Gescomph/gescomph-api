@@ -20,9 +20,9 @@ services:
   # 🌐 API principal - QA
   gescomph-api-qa:
     container_name: gescomph-api-qa
-  build:
-    context: ../..
-    dockerfile: GESCOMPH/WebGESCOMPH/Dockerfile
+    build:
+      context: ../..
+      dockerfile: GESCOMPH/WebGESCOMPH/Dockerfile
     restart: always
     env_file:
       - .env
