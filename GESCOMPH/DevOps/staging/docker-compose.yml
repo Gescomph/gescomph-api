@@ -20,9 +20,9 @@ services:
   # 🌐 API principal - STAGING
   gescomph-api-staging:
     container_name: gescomph-api-staging
-    build:
-      context: .
-      dockerfile: WebGESCOMPH/Dockerfile
+  build:
+    context: ../..
+    dockerfile: GESCOMPH/WebGESCOMPH/Dockerfile
     restart: always
     env_file:
       - .env
