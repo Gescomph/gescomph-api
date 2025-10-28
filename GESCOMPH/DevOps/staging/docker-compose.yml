@@ -21,8 +21,8 @@ services:
   gescomph-api-staging:
     container_name: gescomph-api-staging
     build:
-      context: ../..
-      dockerfile: Dockerfile
+      context: ../../GESCOMPH
+      dockerfile: WebGESCOMPH/Dockerfile
     restart: always
     env_file:
       - .env
