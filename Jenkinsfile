@@ -55,7 +55,7 @@ pipeline {
 
         stage('Construir imagen Docker') {
             steps {
-                dir('GESCOMPH') {
+                dir('GESCOMPH/WebGESCOMPH') {
                     sh """
                         echo "🐳 Construyendo imagen Docker para GESCOMPH (${env.ENVIRONMENT})"
                         docker build -t gescomph-${env.ENVIRONMENT}:latest -f Dockerfile .
