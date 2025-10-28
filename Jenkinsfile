@@ -22,7 +22,6 @@ pipeline {
                         error "❌ No se encontró ENVIRONMENT en GESCOMPH/.env"
                     }
 
-                    // Solo definimos rutas relativas a GESCOMPH (sin duplicar)
                     env.ENVIRONMENT = envValue
                     env.ENV_DIR = "DevOps/${env.ENVIRONMENT}"
                     env.COMPOSE_FILE = "${env.ENV_DIR}/docker-compose.yml"
@@ -56,10 +55,10 @@ pipeline {
 
         stage('Construir imagen Docker') {
             steps {
-                dir('GESCOMPH') {
+                dir('GESCOMPH/WebGESCOMPH') {
                     sh """
                         echo "🐳 Construyendo imagen Docker para GESCOMPH (${env.ENVIRONMENT})"
-                        docker build -t gescomph-${env.ENVIRONMENT}:latest -f WebGESCOMPH/Dockerfile .
+                        docker build -t gescomph-${env.ENVIRONMENT}:latest -f Dockerfile .
                     """
                 }
             }
