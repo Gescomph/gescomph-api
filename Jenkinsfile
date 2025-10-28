@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'mcr.microsoft.com/dotnet/sdk:9.0'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
+            args '-v /var/run/docker.sock:/var/run/docker.sock -u root:root'
         }
     }
 
@@ -10,11 +10,12 @@ pipeline {
         DOTNET_CLI_HOME = '/var/jenkins_home/.dotnet'
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
         DOTNET_NOLOGO = '1'
+        PROJECT_PATH = 'GESCOMPH/WebGESCOMPH/WebGESCOMPH.csproj'
     }
 
     stages {
 
-        stage('Leer entorno desde GESCOMPH/.env') {
+        stage('Detectar entorno desde GESCOMPH/.env') {
             steps {
                 script {
                     def envValue = sh(
@@ -31,14 +32,16 @@ pipeline {
                     env.COMPOSE_FILE = "${env.ENV_DIR}/docker-compose.yml"
                     env.ENV_FILE = "${env.ENV_DIR}/.env"
 
-                    echo "✅ Entorno detectado: ${env.ENVIRONMENT}"
-                    echo "📄 Archivo compose: ${env.COMPOSE_FILE}"
-                    echo "📁 Archivo de entorno: ${env.ENV_FILE}"
+                    echo """
+                    ✅ Entorno detectado: ${env.ENVIRONMENT}
+                    📄 Archivo compose: ${env.COMPOSE_FILE}
+                    📁 Archivo de entorno: ${env.ENV_FILE}
+                    """
                 }
             }
         }
 
-        stage('Restaurar dependencias') {
+        stage('Restaurar dependencias .NET') {
             steps {
                 dir('GESCOMPH') {
                     sh '''
@@ -57,7 +60,18 @@ pipeline {
             }
         }
 
-        stage('Publicar y construir imagen Docker') {
+        stage('Publicar artefactos .NET') {
+            steps {
+                dir('GESCOMPH') {
+                    sh '''
+                        echo "📦 Publicando binarios..."
+                        dotnet publish WebGESCOMPH/WebGESCOMPH.csproj -c Release -o ./publish
+                    '''
+                }
+            }
+        }
+
+        stage('Construir imagen Docker') {
             steps {
                 dir('GESCOMPH') {
                     sh """
