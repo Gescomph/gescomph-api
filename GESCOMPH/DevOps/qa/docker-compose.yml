@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # 🗄️ Base de datos PostgreSQL - QA
+  gescomph-postgres-qa:
+    image: postgres:16
+    container_name: gescomph-postgres-qa
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gescomph_qa
+    ports:
+      - "5433:5432"      # mapeamos distinto al host
+    volumes:
+      - pgdata_qa:/var/lib/postgresql/data
+    networks:
+      - network_qa
+
+  # 🌐 API principal - QA
+  gescomph-api-qa:
+    container_name: gescomph-api-qa
+    build:
+      context: ../..      
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - gescomph-postgres-qa
+    ports:
+      - "5101:8080"
+    networks:
+      - network_qa
+    labels:
+      - com.gescomph.environment=qa
+
+volumes:
+  pgdata_qa:
+
+networks:
+  network_qa:
+    driver: bridge

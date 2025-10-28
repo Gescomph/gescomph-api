@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  # 🗄️ Base de datos PostgreSQL - STAGING
+  gescomph-postgres-staging:
+    image: postgres:16
+    container_name: gescomph-postgres-staging
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gescomph_staging
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata_staging:/var/lib/postgresql/data
+    networks:
+      - network_staging
+
+  # 🌐 API principal - STAGING
+  gescomph-api-staging:
+    container_name: gescomph-api-staging
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - gescomph-postgres-staging
+    ports:
+      - "5102:8080"
+    networks:
+      - network_staging
+    labels:
+      - com.gescomph.environment=staging
+
+volumes:
+  pgdata_staging:
+
+networks:
+  network_staging:
+    driver: bridge
