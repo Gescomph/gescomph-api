@@ -6,17 +6,12 @@
 /// </summary>
 
 pipeline {
-    agent {
-        docker {
-            image 'mcr.microsoft.com/dotnet/sdk:9.0'       // ✅ Usa un contenedor con .NET 9 preinstalado
-            args '-u root:root -v /var/run/docker.sock:/var/run/docker.sock'  // ✅ Permite acceso a Docker del host
-        }
-    }
+    agent any
 
     environment {
+        DOTNET_CLI_HOME = 'C:\\jenkins\\.dotnet'
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
         DOTNET_NOLOGO = '1'
-        CONFIGURATION = 'Release'
     }
 
     stages {
