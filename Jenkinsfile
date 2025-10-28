@@ -10,44 +10,60 @@ pipeline {
 
     stages {
 
+        // =======================================================
+        // 1️⃣ CHECKOUT
+        // =======================================================
         stage('Checkout código fuente') {
             steps {
                 echo "📥 Clonando repositorio desde GitHub..."
                 checkout scm
-                sh 'ls -R GESCOMPH/DevOps'
+                sh 'ls -R GESCOMPH/DevOps || true'
             }
         }
 
-        stage('Detectar entorno desde GESCOMPH/.env') {
+        // =======================================================
+        // 2️⃣ DETECTAR ENTORNO SEGÚN LA RAMA
+        // =======================================================
+        stage('Detectar entorno') {
             steps {
                 script {
-                    def envValue = sh(
-                        script: "grep '^ENVIRONMENT=' GESCOMPH/.env | cut -d '=' -f2 | tr -d '\\r\\n'",
-                        returnStdout: true
-                    ).trim()
-
-                    if (!envValue) {
-                        error "❌ No se encontró ENVIRONMENT en GESCOMPH/.env"
+                    // Mapear ramas con entornos
+                    switch (env.BRANCH_NAME) {
+                        case 'main':
+                            env.ENVIRONMENT = 'prod'
+                            break
+                        case 'staging':
+                            env.ENVIRONMENT = 'staging'
+                            break
+                        case 'qa':
+                            env.ENVIRONMENT = 'qa'
+                            break
+                        default:
+                            env.ENVIRONMENT = 'develop'
+                            break
                     }
 
-                    env.ENVIRONMENT = envValue
                     env.ENV_DIR = "GESCOMPH/DevOps/${env.ENVIRONMENT}"
                     env.COMPOSE_FILE = "${env.ENV_DIR}/docker-compose.yml"
                     env.ENV_FILE = "${env.ENV_DIR}/.env"
 
                     echo """
-                    ✅ Entorno detectado: ${env.ENVIRONMENT}
-                    📄 Archivo compose: ${env.COMPOSE_FILE}
-                    📁 Archivo de entorno: ${env.ENV_FILE}
+                    ✅ Rama detectada: ${env.BRANCH_NAME}
+                    🌎 Entorno asignado: ${env.ENVIRONMENT}
+                    📄 Compose file: ${env.COMPOSE_FILE}
+                    📁 Env file: ${env.ENV_FILE}
                     """
 
-                    if (!fileExists(env.ENV_FILE)) {
-                        error "❌ El archivo ${env.ENV_FILE} no existe en el workspace de Jenkins."
+                    if (!fileExists(env.COMPOSE_FILE)) {
+                        error "❌ No se encontró ${env.COMPOSE_FILE}"
                     }
                 }
             }
         }
 
+        // =======================================================
+        // 3️⃣ COMPILAR Y PUBLICAR .NET
+        // =======================================================
         stage('Compilar .NET dentro de contenedor SDK') {
             steps {
                 script {
@@ -65,22 +81,28 @@ pipeline {
             }
         }
 
+        // =======================================================
+        // 4️⃣ CONSTRUIR IMAGEN DOCKER
+        // =======================================================
         stage('Construir imagen Docker') {
             steps {
                 dir('GESCOMPH') {
                     sh """
                         echo "🐳 Construyendo imagen Docker para GESCOMPH (${env.ENVIRONMENT})"
-                        docker build -t gescomph-${env.ENVIRONMENT}:latest -f WebGESCOMPH/Dockerfile .
+                        docker build -t gescomph-api-${env.ENVIRONMENT}:latest -f WebGESCOMPH/Dockerfile .
                     """
                 }
             }
         }
 
+        // =======================================================
+        // 5️⃣ DESPLEGAR CON DOCKER COMPOSE
+        // =======================================================
         stage('Desplegar GESCOMPH') {
             steps {
                 dir('.') {
                     sh """
-                        echo "🚀 Desplegando GESCOMPH para entorno: ${env.ENVIRONMENT}"
+                        echo "🚀 Desplegando entorno: ${env.ENVIRONMENT}"
                         docker compose -f ${env.COMPOSE_FILE} --env-file ${env.ENV_FILE} up -d --build
                     """
                 }
