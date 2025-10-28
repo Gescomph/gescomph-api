@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'mcr.microsoft.com/dotnet/sdk:9.0'
-            args '-v /var/run/docker.sock:/var/run/docker.sock -u root:root'
-        }
-    }
+    agent any
 
     environment {
         DOTNET_CLI_HOME = '/var/jenkins_home/.dotnet'
@@ -41,32 +36,19 @@ pipeline {
             }
         }
 
-        stage('Restaurar dependencias .NET') {
+        stage('Compilar .NET dentro de contenedor SDK') {
             steps {
-                dir('GESCOMPH') {
-                    sh '''
-                        echo "🔧 Restaurando dependencias .NET..."
-                        dotnet restore WebGESCOMPH/WebGESCOMPH.csproj
-                    '''
-                }
-            }
-        }
-
-        stage('Compilar proyecto') {
-            steps {
-                dir('GESCOMPH') {
-                    sh 'dotnet build WebGESCOMPH/WebGESCOMPH.csproj --configuration Release'
-                }
-            }
-        }
-
-        stage('Publicar artefactos .NET') {
-            steps {
-                dir('GESCOMPH') {
-                    sh '''
-                        echo "📦 Publicando binarios..."
-                        dotnet publish WebGESCOMPH/WebGESCOMPH.csproj -c Release -o ./publish
-                    '''
+                script {
+                    docker.image('mcr.microsoft.com/dotnet/sdk:9.0')
+                        .inside('-v /var/run/docker.sock:/var/run/docker.sock -u root:root') {
+                        sh '''
+                            echo "🔧 Restaurando dependencias .NET..."
+                            cd GESCOMPH
+                            dotnet restore WebGESCOMPH/WebGESCOMPH.csproj
+                            dotnet build WebGESCOMPH/WebGESCOMPH.csproj --configuration Release
+                            dotnet publish WebGESCOMPH/WebGESCOMPH.csproj -c Release -o ./publish
+                        '''
+                    }
                 }
             }
         }
