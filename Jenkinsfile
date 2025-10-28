@@ -22,8 +22,9 @@ pipeline {
                         error "❌ No se encontró ENVIRONMENT en GESCOMPH/.env"
                     }
 
+                    // Solo definimos rutas relativas a GESCOMPH (sin duplicar)
                     env.ENVIRONMENT = envValue
-                    env.ENV_DIR = "GESCOMPH/DevOps/${env.ENVIRONMENT}"
+                    env.ENV_DIR = "DevOps/${env.ENVIRONMENT}"
                     env.COMPOSE_FILE = "${env.ENV_DIR}/docker-compose.yml"
                     env.ENV_FILE = "${env.ENV_DIR}/.env"
 
