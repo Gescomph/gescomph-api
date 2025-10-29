@@ -37,7 +37,6 @@ namespace Test.Modulo.Business
         private readonly Mock<IContractPdfGeneratorService> _contractPdfService = new();
         private readonly Mock<IUnitOfWork> _uow = new();
         private readonly Mock<ILogger<ContractService>> _logger = new();
-        private readonly ApplicationDbContext _ctx;
         private readonly ContractService _service;
 
         private readonly DateTime _fixedDate = new DateTime(2025, 9, 18);
@@ -46,7 +45,6 @@ namespace Test.Modulo.Business
         {
             var opt = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
-            _ctx = new ApplicationDbContext(opt);
 
             _service = new ContractService(
                 _contracts.Object,
@@ -55,7 +53,6 @@ namespace Test.Modulo.Business
                 _userSvc.Object,
                 _mapper.Object,
                 _email.Object,
-                _ctx,
                 _currentUser.Object,
                 _obligationSvc.Object,
                 _userCtx.Object,
