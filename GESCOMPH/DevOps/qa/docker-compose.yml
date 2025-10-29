@@ -10,12 +10,13 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "Admin123!"
       MSSQL_PID: "Developer"
-    # Healthcheck para garantizar disponibilidad antes de la API
+    # ✅ Healthcheck robusto
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin123!", "-Q", "SELECT 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Admin123!' -C -Q 'SELECT 1' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
     ports:
       - "1434:1433" # Puerto externo único para QA
     volumes:

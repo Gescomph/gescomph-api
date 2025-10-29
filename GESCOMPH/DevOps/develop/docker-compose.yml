@@ -10,12 +10,13 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "Admin123!"
       MSSQL_PID: "Developer"
-    # Healthcheck: garantiza que la API espere hasta que SQL esté listo
+    # ✅ Healthcheck robusto: espera a que SQL Server esté realmente listo
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin123!", "-Q", "SELECT 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Admin123!' -C -Q 'SELECT 1' || exit 1"]
+      interval: 15s        # chequea cada 15 segundos
+      timeout: 10s         # tiempo máximo por intento
+      retries: 20          # hasta 20 intentos
+      start_period: 120s   # espera 2 minutos antes de comenzar los chequeos
     ports:
       - "1433:1433"
     volumes:
@@ -43,10 +44,11 @@ services:
       - com.gescomph.environment=develop
 
 # ==============================
-# Volúmenes y red
+# 📦 Volúmenes y redes
 # ==============================
 volumes:
   sqldata_develop:
 
 networks:
   network_develop:
+    driver: bridge
