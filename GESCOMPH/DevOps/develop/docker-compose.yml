@@ -8,8 +8,14 @@ services:
     restart: always
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "Admin123"
+      MSSQL_SA_PASSWORD: "Admin123!"
       MSSQL_PID: "Developer"
+    # Healthcheck: garantiza que la API espere hasta que SQL esté listo
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin123!", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     ports:
       - "1433:1433"
     volumes:
@@ -27,7 +33,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - gescomph-sqlserver-develop
+      gescomph-sqlserver-develop:
+        condition: service_healthy
     ports:
       - "5100:8080"
     networks:
@@ -35,6 +42,9 @@ services:
     labels:
       - com.gescomph.environment=develop
 
+# ==============================
+# Volúmenes y red
+# ==============================
 volumes:
   sqldata_develop:
 

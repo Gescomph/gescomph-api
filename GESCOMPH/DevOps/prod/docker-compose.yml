@@ -8,8 +8,13 @@ services:
     restart: always
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "Admin123"
+      MSSQL_SA_PASSWORD: "Admin123!"
       MSSQL_PID: "Developer"
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin123!", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     ports:
       - "1435:1433"
     volumes:
@@ -27,7 +32,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - gescomph-postgres-prod
+      gescomph-sqlserver-prod:
+        condition: service_healthy
     ports:
       - "5103:8080"
     networks:
@@ -36,7 +42,7 @@ services:
       - com.gescomph.environment=prod
 
 volumes:
-  pgdata_prod:
+  sqldata_prod:
 
 networks:
   network_prod:

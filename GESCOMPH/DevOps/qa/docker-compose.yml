@@ -8,14 +8,21 @@ services:
     restart: always
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "Admin123"
+      MSSQL_SA_PASSWORD: "Admin123!"
       MSSQL_PID: "Developer"
+    # Healthcheck para garantizar disponibilidad antes de la API
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Admin123!", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     ports:
-      - "1434:1433"      # Puerto externo diferente para QA
+      - "1434:1433" # Puerto externo único para QA
     volumes:
       - sqldata_qa:/var/opt/mssql
     networks:
       - network_qa
+
   # 🌐 API principal - QA
   gescomph-api-qa:
     container_name: gescomph-api-qa
@@ -26,7 +33,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - gescomph-postgres-qa
+      gescomph-sqlserver-qa:
+        condition: service_healthy
     ports:
       - "5101:8080"
     networks:
@@ -35,7 +43,7 @@ services:
       - com.gescomph.environment=qa
 
 volumes:
-  pgdata_qa:
+  sqldata_qa:
 
 networks:
   network_qa:
