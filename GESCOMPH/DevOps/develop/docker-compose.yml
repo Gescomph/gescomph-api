@@ -1,27 +1,21 @@
 version: '3.8'
 
 services:
-  # 🗄️ Base de datos SQL Server - DEVELOP
+  # 🗄️ SQL Server - DEVELOP
   gescomph-sqlserver-develop:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: gescomph-sqlserver-develop
     restart: always
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "Admin123."
+      MSSQL_SA_PASSWORD: "Admin123"
+      MSSQL_PID: "Developer"
     ports:
       - "1433:1433"
     volumes:
-      - mssql_data_develop:/var/opt/mssql
+      - sqldata_develop:/var/opt/mssql
     networks:
       - network_develop
-    labels:
-      - com.gescomph.database=sqlserver
-    healthcheck:
-      test: ["CMD-SHELL", "sqlcmd -S localhost -U sa -P 'Admin123.' -Q 'SELECT 1' || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
 
   # 🌐 API principal - DEVELOP
   gescomph-api-develop:
@@ -33,8 +27,7 @@ services:
     env_file:
       - .env
     depends_on:
-      gescomph-sqlserver-develop:
-        condition: service_healthy
+      - gescomph-sqlserver-develop
     ports:
       - "5100:8080"
     networks:
@@ -43,8 +36,7 @@ services:
       - com.gescomph.environment=develop
 
 volumes:
-  mssql_data_develop:
+  sqldata_develop:
 
 networks:
   network_develop:
-    driver: bridge

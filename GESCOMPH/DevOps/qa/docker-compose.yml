@@ -1,28 +1,21 @@
 version: '3.8'
 
 services:
-  # 🗄️ Base de datos SQL Server - QA
+  # 🗄️ SQL Server - QA
   gescomph-sqlserver-qa:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: gescomph-sqlserver-qa
     restart: always
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "Admin123."
+      MSSQL_SA_PASSWORD: "Admin123"
+      MSSQL_PID: "Developer"
     ports:
-      - "5433:1433"  # mapeo distinto al host
+      - "1434:1433"      # Puerto externo diferente para QA
     volumes:
-      - mssql_data_qa:/var/opt/mssql
+      - sqldata_qa:/var/opt/mssql
     networks:
       - network_qa
-    labels:
-      - com.gescomph.database=sqlserver
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Admin123.' -Q 'SELECT 1' || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
   # 🌐 API principal - QA
   gescomph-api-qa:
     container_name: gescomph-api-qa
@@ -33,8 +26,7 @@ services:
     env_file:
       - .env
     depends_on:
-      gescomph-sqlserver-qa:
-        condition: service_healthy
+      - gescomph-postgres-qa
     ports:
       - "5101:8080"
     networks:
@@ -43,7 +35,7 @@ services:
       - com.gescomph.environment=qa
 
 volumes:
-  mssql_data_qa:
+  pgdata_qa:
 
 networks:
   network_qa:

@@ -1,27 +1,21 @@
 version: "3.8"
 
 services:
-  # 🗄️ Base de datos SQL Server - PROD
+  # 🗄️ SQL Server - PROD
   gescomph-sqlserver-prod:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: gescomph-sqlserver-prod
     restart: always
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "Admin123."
+      MSSQL_SA_PASSWORD: "Admin123"
+      MSSQL_PID: "Developer"
     ports:
-      - "5435:1433"
+      - "1435:1433"
     volumes:
-      - mssql_data_prod:/var/opt/mssql
+      - sqldata_prod:/var/opt/mssql
     networks:
       - network_prod
-    labels:
-      - com.gescomph.database=sqlserver
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Admin123.' -Q 'SELECT 1' || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
 
   # 🌐 API principal - PROD
   gescomph-api-prod:
@@ -33,8 +27,7 @@ services:
     env_file:
       - .env
     depends_on:
-      gescomph-sqlserver-prod:
-        condition: service_healthy
+      - gescomph-postgres-prod
     ports:
       - "5103:8080"
     networks:
@@ -43,7 +36,7 @@ services:
       - com.gescomph.environment=prod
 
 volumes:
-  mssql_data_prod:
+  pgdata_prod:
 
 networks:
   network_prod:
