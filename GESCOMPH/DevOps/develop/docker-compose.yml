@@ -18,7 +18,7 @@ services:
       retries: 20          # hasta 20 intentos
       start_period: 120s   # espera 2 minutos antes de comenzar los chequeos
     ports:
-      - "1433:1433"
+      - "1434:1433"
     volumes:
       - sqldata_develop:/var/opt/mssql
     networks:

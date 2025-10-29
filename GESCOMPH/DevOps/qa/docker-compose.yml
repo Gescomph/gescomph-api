@@ -18,7 +18,7 @@ services:
       retries: 20
       start_period: 120s
     ports:
-      - "1434:1433" # Puerto externo único para QA
+      - "1436:1433" # Puerto externo único para QA
     volumes:
       - sqldata_qa:/var/opt/mssql
     networks:
