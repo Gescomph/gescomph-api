@@ -23,24 +23,24 @@ namespace WebGESCOMPH.Extensions.Infrastructure
                 {
                     switch (t)
                     {
-                        //case "sqlserver":
-                        //    {
-                        //        var ctx = sp.GetService<ApplicationDbContext>();
-                        //        if (ctx == null) { log.LogWarning("SQL Server no configurado: se omite."); break; }
-                        //        log.LogInformation("➡ Migrando SQL Server...");
-                        //        ctx.Database.Migrate();
-                        //        log.LogInformation("✅ Migración completada para SqlServer");
-                        //        break;
-                        //    }
-                        case "postgres":
+                        case "sqlserver":
                             {
-                                var ctx = sp.GetService<PostgresDbContext>();
-                                if (ctx == null) { log.LogWarning("POSTGRES no configurado: se omite."); break; }
-                                log.LogInformation("➡ Migrando POSTGRES ...");
+                                var ctx = sp.GetService<ApplicationDbContext>();
+                                if (ctx == null) { log.LogWarning("SQL Server no configurado: se omite."); break; }
+                                log.LogInformation("➡ Migrando SQL Server...");
                                 ctx.Database.Migrate();
-                                log.LogInformation("✅ Migración completada para Postgres");
+                                log.LogInformation("✅ Migración completada para SqlServer");
                                 break;
                             }
+                        //case "postgres":
+                        //    {
+                        //        var ctx = sp.GetService<PostgresDbContext>();
+                        //        if (ctx == null) { log.LogWarning("POSTGRES no configurado: se omite."); break; }
+                        //        log.LogInformation("➡ Migrando POSTGRES ...");
+                        //        ctx.Database.Migrate();
+                        //        log.LogInformation("✅ Migración completada para Postgres");
+                        //        break;
+                        //    }
                         //case "mysql":
                         //    {
                         //        var ctx = sp.GetService<ApplicationDbContext>();

@@ -1,21 +1,27 @@
 version: "3.8"
 
 services:
-  # 🗄️ Base de datos PostgreSQL - STAGING
-  gescomph-postgres-staging:
-    image: postgres:16
-    container_name: gescomph-postgres-staging
+  # 🗄️ Base de datos SQL Server - STAGING
+  gescomph-sqlserver-staging:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gescomph-sqlserver-staging
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: gescomph_staging
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Admin123."
     ports:
-      - "5434:5432"
+      - "5434:1433"  # mapeo único por entorno
     volumes:
-      - pgdata_staging:/var/lib/postgresql/data
+      - mssql_data_staging:/var/opt/mssql
     networks:
       - network_staging
+    labels:
+      - com.gescomph.database=sqlserver
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Admin123.' -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   # 🌐 API principal - STAGING
   gescomph-api-staging:
@@ -27,7 +33,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - gescomph-postgres-staging
+      gescomph-sqlserver-staging:
+        condition: service_healthy
     ports:
       - "5102:8080"
     networks:
@@ -36,7 +43,7 @@ services:
       - com.gescomph.environment=staging
 
 volumes:
-  pgdata_staging:
+  mssql_data_staging:
 
 networks:
   network_staging:

@@ -1,21 +1,27 @@
 version: '3.8'
 
 services:
-  # 🗄️ Base de datos PostgreSQL - DEVELOP
-  gescomph-postgres-develop:
-    image: postgres:16
-    container_name: gescomph-postgres-develop
+  # 🗄️ Base de datos SQL Server - DEVELOP
+  gescomph-sqlserver-develop:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gescomph-sqlserver-develop
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: gescomph_develop
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Admin123."
     ports:
-      - "5432:5432"
+      - "1433:1433"
     volumes:
-      - pgdata_develop:/var/lib/postgresql/data
+      - mssql_data_develop:/var/opt/mssql
     networks:
       - network_develop
+    labels:
+      - com.gescomph.database=sqlserver
+    healthcheck:
+      test: ["CMD-SHELL", "sqlcmd -S localhost -U sa -P 'Admin123.' -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   # 🌐 API principal - DEVELOP
   gescomph-api-develop:
@@ -23,12 +29,12 @@ services:
     build:
       context: ../..
       dockerfile: WebGESCOMPH/Dockerfile
-
     restart: always
     env_file:
       - .env
     depends_on:
-      - gescomph-postgres-develop
+      gescomph-sqlserver-develop:
+        condition: service_healthy
     ports:
       - "5100:8080"
     networks:
@@ -37,7 +43,7 @@ services:
       - com.gescomph.environment=develop
 
 volumes:
-  pgdata_develop:
+  mssql_data_develop:
 
 networks:
   network_develop:
