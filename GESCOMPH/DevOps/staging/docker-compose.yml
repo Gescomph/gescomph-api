@@ -10,19 +10,13 @@ services:
     restart: always
     env_file:
       - .env
-    depends_on:
-      gescomph-sqlserver-staging:
-        condition: service_healthy
     ports:
       - "5102:8080"
     networks:
-      - network_staging
+      - gescomph_network
     labels:
       - com.gescomph.environment=staging
-
-volumes:
-  sqldata_staging:
-
 networks:
-  network_staging:
-    driver: bridge
+  gescomph_network:
+    external: true
+
