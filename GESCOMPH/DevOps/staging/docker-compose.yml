@@ -1,29 +1,6 @@
 version: "3.8"
 
 services:
-  # 🗄️ SQL Server - STAGING
-  gescomph-sqlserver-staging:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: gescomph-sqlserver-staging
-    restart: always
-    environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "Admin123!"
-      MSSQL_PID: "Developer"
-    # ✅ Healthcheck robusto
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Admin123!' -C -Q 'SELECT 1' || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 20
-      start_period: 120s
-    ports:
-      - "1437:1433"  # Puerto externo exclusivo para staging
-    volumes:
-      - sqldata_staging:/var/opt/mssql
-    networks:
-      - network_staging
-
   # 🌐 API principal - STAGING
   gescomph-api-staging:
     container_name: gescomph-api-staging
