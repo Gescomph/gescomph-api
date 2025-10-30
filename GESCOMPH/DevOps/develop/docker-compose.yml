@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.9"
 
 services:
   # 🌐 API principal - DEVELOP
@@ -10,8 +10,6 @@ services:
     restart: always
     env_file:
       - .env
-    depends_on:
-      - gescomph-sqlserver-develop
     ports:
       - "5100:8080"
     networks:
@@ -19,10 +17,6 @@ services:
     labels:
       - com.gescomph.environment=develop
 
-# ==============================
-# 📦 redes
-# ==============================
-
 networks:
   gescomph_network:
-    driver: bridge
+    external: true

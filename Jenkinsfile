@@ -27,31 +27,26 @@ pipeline {
         stage('Detectar entorno') {
             steps {
                 script {
-                    // Mapear ramas con entornos
                     switch (env.BRANCH_NAME) {
-                        case 'main':
-                            env.ENVIRONMENT = 'prod'
-                            break
-                        case 'staging':
-                            env.ENVIRONMENT = 'staging'
-                            break
-                        case 'qa':
-                            env.ENVIRONMENT = 'qa'
-                            break
-                        default:
-                            env.ENVIRONMENT = 'develop'
-                            break
+                        case 'main': env.ENVIRONMENT = 'prod'; break
+                        case 'staging': env.ENVIRONMENT = 'staging'; break
+                        case 'qa': env.ENVIRONMENT = 'qa'; break
+                        default: env.ENVIRONMENT = 'develop'; break
                     }
 
                     env.ENV_DIR = "GESCOMPH/DevOps/${env.ENVIRONMENT}"
                     env.COMPOSE_FILE = "${env.ENV_DIR}/docker-compose.yml"
                     env.ENV_FILE = "${env.ENV_DIR}/.env"
 
+                    // 📂 Ruta de docker-compose de bases de datos compartidas
+                    env.DB_COMPOSE_FILE = "GESCOMPH-DB/docker-compose.yml"
+
                     echo """
                     ✅ Rama detectada: ${env.BRANCH_NAME}
                     🌎 Entorno asignado: ${env.ENVIRONMENT}
-                    📄 Compose file: ${env.COMPOSE_FILE}
-                    📁 Env file: ${env.ENV_FILE}
+                    📄 Compose file (API): ${env.COMPOSE_FILE}
+                    📁 Env file (API): ${env.ENV_FILE}
+                    🗄️ Compose file (DB): ${env.DB_COMPOSE_FILE}
                     """
 
                     if (!fileExists(env.COMPOSE_FILE)) {
@@ -96,9 +91,26 @@ pipeline {
         }
 
         // =======================================================
-        // 5️⃣ DESPLEGAR CON DOCKER COMPOSE
+        // 5️⃣ PREPARAR RED Y BASES DE DATOS
         // =======================================================
-        stage('Desplegar GESCOMPH') {
+        stage('Preparar red y base de datos') {
+            steps {
+                script {
+                    sh """
+                        echo "🌐 Creando red externa compartida (si no existe)..."
+                        docker network create gescomph_network || true
+
+                        echo "🗄️ Levantando stack de bases de datos..."
+                        docker compose -f ${env.DB_COMPOSE_FILE} up -d
+                    """
+                }
+            }
+        }
+
+        // =======================================================
+        // 6️⃣ DESPLEGAR API CON DOCKER COMPOSE
+        // =======================================================
+        stage('Desplegar GESCOMPH API') {
             steps {
                 dir('.') {
                     sh """
