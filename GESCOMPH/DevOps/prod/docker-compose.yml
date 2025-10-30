@@ -22,4 +22,5 @@ volumes:
 
 networks:
   gescomph_network:
-    driver: bridge
+    external: true
+
