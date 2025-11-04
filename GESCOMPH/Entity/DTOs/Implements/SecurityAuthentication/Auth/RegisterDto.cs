@@ -1,19 +1,18 @@
-﻿namespace Entity.DTOs.Implements.SecurityAuthentication.Auth
-{
-    public class RegisterDto
+﻿    namespace Entity.DTOs.Implements.SecurityAuthentication.Auth
     {
-        public string Email { get; set; } = null!;
-        public string Password { get; set; } = null!;
+        public class RegisterDto
+        {
+            public string Email { get; set; } = null!;
+            public string Password { get; set; } = null!;
 
-        // Datos personales
-        public string FirstName { get; set; } = null!;
-        public string LastName { get; set; } = null!;
-        //public DocumentType DocumentType { get; set; }
-        public string Document { get; set; } = null!;
-        public string Phone { get; set; } = null!;
-        public string Address { get; set; } = null!;
-        public int CityId { get; set; }
-        public IReadOnlyList<int>? RoleIds { get; set; }
-        public bool SendPasswordByEmail { get; set; } = true;
+            public string FirstName { get; set; } = null!;
+            public string LastName { get; set; } = null!;
+            public string Document { get; set; } = null!;
+            public string Phone { get; set; } = null!;
+            public string Address { get; set; } = null!;
+            public int CityId { get; set; }
+
+            public int? PersonId { get; set; }
+            public ICollection<int>? RoleIds { get; set; }
+        }
     }
-}

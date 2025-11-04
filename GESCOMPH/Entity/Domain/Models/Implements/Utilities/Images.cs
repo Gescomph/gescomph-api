@@ -1,5 +1,6 @@
 ﻿using Entity.Domain.Models.Implements.Business;
 using Entity.Domain.Models.ModelBase;
+using Entity.Enum;
 
 namespace Entity.Domain.Models.Implements.Utilities
 {
@@ -10,8 +11,8 @@ namespace Entity.Domain.Models.Implements.Utilities
         public string PublicId { get; set; } = null!;
 
         //  Relación    
-        public int EstablishmentId { get; set; }
-        public Establishment Establishment { get; set; } = null!;
+        public EntityType EntityType { get; set; } // "Establishment", "Plaza", ...
+        public int EntityId { get; set; }
     }
 
 }

@@ -1,7 +1,5 @@
 using Entity.DTOs.Implements.SecurityAuthentication.Auth;
 using FluentValidation;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Entity.DTOs.Validations.SecurityAuthentication.Auth
 {
@@ -40,18 +38,6 @@ namespace Entity.DTOs.Validations.SecurityAuthentication.Auth
 
             RuleFor(x => x.CityId)
                 .GreaterThan(0).WithMessage("Debe seleccionar una ciudad válida.");
-
-            RuleFor(x => x.RoleIds)
-                .Must(AllPositive)
-                    .WithMessage("Todos los roles deben tener identificadores positivos.")
-                .Must(AllDistinct)
-                    .WithMessage("No se permiten roles duplicados.");
         }
-
-        private static bool AllPositive(IReadOnlyCollection<int>? ids)
-            => ids is null || ids.All(id => id > 0);
-
-        private static bool AllDistinct(IReadOnlyCollection<int>? ids)
-            => ids is null || ids.Distinct().Count() == ids.Count;
     }
 }

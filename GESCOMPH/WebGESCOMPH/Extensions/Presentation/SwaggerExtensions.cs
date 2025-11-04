@@ -49,6 +49,8 @@ namespace WebGESCOMPH.Extensions.Presentation
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "GESCOMPH API v1");
                 c.RoutePrefix = "swagger";
+
+                c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None); //Configuración para que los endpoint aparezcan cerrados
             });
 
             return app;

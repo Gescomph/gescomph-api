@@ -14,13 +14,13 @@ namespace WebGESCOMPH.RealTime.Contract
             _contractService = contractService;
         }
 
-        public async Task RunExpirationSweepAsync(CancellationToken ct = default)
+        public async Task RunExpirationSweepAsync()
         {
             try
             {
                 _logger.LogInformation("Barrido de contratos vencidos: INICIO");
 
-                var result = await _contractService.RunExpirationSweepAsync(ct);
+                var result = await _contractService.RunExpirationSweepAsync();
 
                 _logger.LogInformation(
                     "Barrido de contratos vencidos: FIN OK. Deactivated={Deactivated}, Reactivated={Reactivated}",

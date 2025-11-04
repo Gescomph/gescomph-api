@@ -48,5 +48,9 @@ namespace Business.Interfaces.Implements.Business
         // === LISTA LIVIANA PARA GRID/CARDS ===
         Task<IReadOnlyList<EstablishmentCardDto>> GetCardsAnyAsync();
         Task<IReadOnlyList<EstablishmentCardDto>> GetCardsActiveAsync();
+        Task<IReadOnlyList<EstablishmentCardDto>> GetCardsByPlazaAsync(int plazaId, bool activeOnly = false);
+
+
+
     }
 }

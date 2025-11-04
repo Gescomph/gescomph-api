@@ -1,84 +1,121 @@
 using Business.Interfaces.Implements.Business;
 using Business.Repository;
-using Data.Interfaz.DataBasic;
 using Data.Interfaz.IDataImplement.Business;
 using Entity.Domain.Models.Implements.Business;
+using Entity.DTOs.Implements.Business.EstablishmentDto;
 using Entity.DTOs.Implements.Business.Plaza;
+using Entity.Enum;
+using Mapster;
 using MapsterMapper;
+using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 using Utilities.Exceptions;
 
 namespace Business.Services.Business
 {
-    /// <summary>
-    /// Servicio de negocio encargado de la gestión de las plazas,
-    /// incluyendo validaciones de contratos y propagación de estados a establecimientos.
-    /// </summary>
-    public class PlazasService : BusinessGeneric<PlazaSelectDto, PlazaCreateDto, PlazaUpdateDto, Plaza>, IPlazaService
+    public sealed class PlazaService :
+        BusinessGeneric<PlazaSelectDto, PlazaCreateDto, PlazaUpdateDto, Plaza>, IPlazaService
     {
-        private readonly IDataGeneric<Plaza> _data;
+        private readonly IPlazaRepository _plazaRepository;
         private readonly IEstablishmentsRepository _establishmentsRepository;
         private readonly IContractRepository _contractRepository;
+        private readonly ILogger<PlazaService> _logger;
 
-        /// <summary>
-        /// Inicializa una nueva instancia del servicio de plazas.
-        /// </summary>
-        /// <param name="data">Repositorio genérico de acceso a datos.</param>
-        /// <param name="mapper">Mapper para conversión entre entidades y DTOs.</param>
-        /// <param name="establishmentsRepository">Repositorio de establecimientos asociados.</param>
-        /// <param name="contractRepository">Repositorio de contratos asociados.</param>
-        public PlazasService(
-            IDataGeneric<Plaza> data,
+        public PlazaService(
+            IPlazaRepository plazaRepository,
             IMapper mapper,
             IEstablishmentsRepository establishmentsRepository,
-            IContractRepository contractRepository
-        ) : base(data, mapper)
+            IContractRepository contractRepository,
+            ILogger<PlazaService> logger
+        ) : base(plazaRepository, mapper)
         {
-            _data = data;
+            _plazaRepository = plazaRepository;
             _establishmentsRepository = establishmentsRepository;
             _contractRepository = contractRepository;
+            _logger = logger;
         }
 
-        /// <summary>
-        /// Define la clave única de negocio: 
-        /// el nombre de la plaza no puede repetirse.
-        /// </summary>
-        protected override IQueryable<Plaza>? ApplyUniquenessFilter(IQueryable<Plaza> query, Plaza candidate)
-            => query.Where(p => p.Name == candidate.Name);
+        // ---------------------------------------------
+        // GET ALL / GET BY ID → con imágenes polimórficas
+        // ---------------------------------------------
 
-        /// <summary>
-        /// Actualiza el estado de activación de una plaza y propaga el cambio
-        /// a los establecimientos asociados. Valida además que no existan contratos activos
-        /// antes de desactivar la plaza.
-        /// </summary>
-        /// <param name="id">Identificador de la plaza.</param>
-        /// <param name="active">Nuevo estado activo/inactivo.</param>
-        /// <exception cref="BusinessException">Si existen contratos activos asociados.</exception>
-        /// <exception cref="KeyNotFoundException">Si la plaza no existe.</exception>
+
+        // Lista liviana para grid/cards (sin Includes pesados)
+        public async Task<IReadOnlyList<PlazaCardDto>> GetCardsAnyAsync()
+        {
+            var list = await _plazaRepository.GetCardsAsync();
+            return list.ToList().AsReadOnly();
+        }
+
+
+        public override async Task<IEnumerable<PlazaSelectDto>> GetAllAsync()
+        {
+            var data = await _plazaRepository.GetAllWithImagesAsync();
+            return data.Adapt<IEnumerable<PlazaSelectDto>>(); // gracias al mapping de Mapster
+        }
+
+        public override async Task<PlazaSelectDto?> GetByIdAsync(int id)
+        {
+            var data = await _plazaRepository.GetByIdWithImagesAsync(id);
+            if (data.plaza is null) return null;
+
+            return data.Adapt<PlazaSelectDto>(); // mapea plaza + images → dto
+        }
+
+
+
+
+        public async Task<PlazaSelectDto> CreateAsync(PlazaCreateDto dto)
+        {
+
+            // 1) map a entidad
+            var entity = dto.Adapt<Plaza>();
+
+            // 2) persistir
+            await _plazaRepository.AddAsync(entity);
+
+            // 3) cargar el registro completo desde DB (con el ID real ya generado)
+            var created = await _plazaRepository.GetByIdAsync(entity.Id)
+                          ?? entity;
+
+            // 4) mapear a SELECT (este sí incluye id)
+            return created.Adapt<PlazaSelectDto>();
+        }
+
+        // ---------------------------------------------
+        // ACTIVATE / DEACTIVATE con validación dominio
+        // ---------------------------------------------
         public override async Task UpdateActiveStatusAsync(int id, bool active)
         {
-            var entity = await _data.GetByIdAsync(id)
-                         ?? throw new KeyNotFoundException($"No se encontró el registro con ID {id}.");
+            var entity = await _plazaRepository.GetByIdAsync(id)
+                ?? throw new KeyNotFoundException($"No se encontró la plaza con ID {id}.");
 
-            if (entity.Active == active) return;
+            if (entity.Active == active)
+                return;
 
             if (!active)
             {
                 var hasActiveContracts = await _contractRepository.AnyActiveByPlazaAsync(id);
                 if (hasActiveContracts)
-                    throw new BusinessException("No se puede desactivar la plaza porque tiene establecimientos con contratos activos.");
+                    throw new BusinessException("No se puede desactivar la plaza porque tiene contratos activos.");
             }
 
             entity.Active = active;
-            await _data.UpdateAsync(entity);
+            await _plazaRepository.UpdateAsync(entity);
 
-            // Cascada: aplicar mismo estado a establecimientos asociados
+            // cascada
             await _establishmentsRepository.SetActiveByPlazaIdAsync(id, active);
         }
 
-        /// <summary>
-        /// Define los campos que pueden ser buscados mediante texto.
-        /// </summary>
+        // ---------------------------------------------
+        // Uniqueness
+        // ---------------------------------------------
+        protected override IQueryable<Plaza>? ApplyUniquenessFilter(IQueryable<Plaza> query, Plaza candidate)
+            => query.Where(p => p.Name == candidate.Name);
+
+        // ---------------------------------------------
+        // Search + Sorting
+        // ---------------------------------------------
         protected override Expression<Func<Plaza, string>>[] SearchableFields() =>
         [
             p => p.Name,
@@ -86,9 +123,6 @@ namespace Business.Services.Business
             p => p.Location
         ];
 
-        /// <summary>
-        /// Define los campos que admiten ordenamiento dinámico.
-        /// </summary>
         protected override string[] SortableFields() =>
         [
             nameof(Plaza.Name),
@@ -98,15 +132,5 @@ namespace Business.Services.Business
             nameof(Plaza.CreatedAt),
             nameof(Plaza.Id)
         ];
-
-        /// <summary>
-        /// Define los filtros permitidos para consultas mediante query params.
-        /// </summary>
-        protected override IDictionary<string, Func<string, Expression<Func<Plaza, bool>>>> AllowedFilters() =>
-            new Dictionary<string, Func<string, Expression<Func<Plaza, bool>>>>(StringComparer.OrdinalIgnoreCase)
-            {
-                [nameof(Plaza.Name)] = value => p => p.Name == value,
-                [nameof(Plaza.Active)] = value => p => p.Active == bool.Parse(value)
-            };
     }
 }

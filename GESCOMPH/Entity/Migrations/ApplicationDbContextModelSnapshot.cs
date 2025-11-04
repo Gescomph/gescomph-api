@@ -1281,6 +1281,140 @@ namespace Entity.Migrations
                         .IsUnique();
 
                     b.ToTable("ObligationMonths", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Active = true,
+                            BaseAmount = 5700000m,
+                            ContractId = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DaysLate = 0,
+                            DueDate = new DateTime(2025, 4, 30, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            LateAmount = 0m,
+                            Locked = true,
+                            Month = 4,
+                            PaymentDate = new DateTime(2025, 4, 28, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = "PAID",
+                            TotalAmount = 6783000m,
+                            UvtQtyApplied = 38m,
+                            UvtValueApplied = 47065m,
+                            VatAmount = 1083000m,
+                            VatRateApplied = 0.19m,
+                            Year = 2025
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Active = true,
+                            BaseAmount = 5700000m,
+                            ContractId = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DaysLate = 0,
+                            DueDate = new DateTime(2025, 5, 31, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            LateAmount = 0m,
+                            Locked = true,
+                            Month = 5,
+                            PaymentDate = new DateTime(2025, 5, 29, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = "PAID",
+                            TotalAmount = 6783000m,
+                            UvtQtyApplied = 38m,
+                            UvtValueApplied = 47065m,
+                            VatAmount = 1083000m,
+                            VatRateApplied = 0.19m,
+                            Year = 2025
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Active = true,
+                            BaseAmount = 5700000m,
+                            ContractId = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DaysLate = 0,
+                            DueDate = new DateTime(2025, 6, 30, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            LateAmount = 0m,
+                            Locked = true,
+                            Month = 6,
+                            PaymentDate = new DateTime(2025, 6, 29, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = "PAID",
+                            TotalAmount = 6783000m,
+                            UvtQtyApplied = 38m,
+                            UvtValueApplied = 47065m,
+                            VatAmount = 1083000m,
+                            VatRateApplied = 0.19m,
+                            Year = 2025
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Active = true,
+                            BaseAmount = 7100000m,
+                            ContractId = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DaysLate = 0,
+                            DueDate = new DateTime(2025, 7, 31, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            LateAmount = 0m,
+                            Locked = true,
+                            Month = 7,
+                            PaymentDate = new DateTime(2025, 7, 29, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = "PAID",
+                            TotalAmount = 8449000m,
+                            UvtQtyApplied = 48m,
+                            UvtValueApplied = 47065m,
+                            VatAmount = 1349000m,
+                            VatRateApplied = 0.19m,
+                            Year = 2025
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Active = true,
+                            BaseAmount = 7100000m,
+                            ContractId = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DaysLate = 0,
+                            DueDate = new DateTime(2025, 8, 31, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            LateAmount = 0m,
+                            Locked = true,
+                            Month = 8,
+                            PaymentDate = new DateTime(2025, 8, 29, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = "PAID",
+                            TotalAmount = 8449000m,
+                            UvtQtyApplied = 48m,
+                            UvtValueApplied = 47065m,
+                            VatAmount = 1349000m,
+                            VatRateApplied = 0.19m,
+                            Year = 2025
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Active = true,
+                            BaseAmount = 7100000m,
+                            ContractId = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DaysLate = 0,
+                            DueDate = new DateTime(2025, 9, 30, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            LateAmount = 0m,
+                            Locked = true,
+                            Month = 9,
+                            PaymentDate = new DateTime(2025, 9, 29, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = "PAID",
+                            TotalAmount = 8449000m,
+                            UvtQtyApplied = 48m,
+                            UvtValueApplied = 47065m,
+                            VatAmount = 1349000m,
+                            VatRateApplied = 0.19m,
+                            Year = 2025
+                        });
                 });
 
             modelBuilder.Entity("Entity.Domain.Models.Implements.Business.Plaza", b =>
@@ -2991,7 +3125,13 @@ namespace Entity.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("EstablishmentId")
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EntityType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EstablishmentId")
                         .HasColumnType("int");
 
                     b.Property<string>("FileName")
@@ -3016,6 +3156,8 @@ namespace Entity.Migrations
 
                     b.HasIndex("EstablishmentId");
 
+                    b.HasIndex("EntityType", "EntityId");
+
                     b.ToTable("Images", (string)null);
 
                     b.HasData(
@@ -3024,7 +3166,8 @@ namespace Entity.Migrations
                             Id = 1,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 1,
+                            EntityId = 1,
+                            EntityType = 1,
                             FileName = "primavera_1.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3035,7 +3178,8 @@ namespace Entity.Migrations
                             Id = 2,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 1,
+                            EntityId = 1,
+                            EntityType = 1,
                             FileName = "primavera_2.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3046,7 +3190,8 @@ namespace Entity.Migrations
                             Id = 3,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 2,
+                            EntityId = 2,
+                            EntityType = 1,
                             FileName = "torre_1.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3057,7 +3202,8 @@ namespace Entity.Migrations
                             Id = 4,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 2,
+                            EntityId = 2,
+                            EntityType = 1,
                             FileName = "torre_2.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3068,7 +3214,8 @@ namespace Entity.Migrations
                             Id = 5,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 3,
+                            EntityId = 3,
+                            EntityType = 1,
                             FileName = "bodega_1.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3079,7 +3226,8 @@ namespace Entity.Migrations
                             Id = 6,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 3,
+                            EntityId = 3,
+                            EntityType = 1,
                             FileName = "bodega_2.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3090,7 +3238,8 @@ namespace Entity.Migrations
                             Id = 7,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 4,
+                            EntityId = 4,
+                            EntityType = 1,
                             FileName = "local_1.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3101,7 +3250,8 @@ namespace Entity.Migrations
                             Id = 8,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 4,
+                            EntityId = 4,
+                            EntityType = 1,
                             FileName = "local_2.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3112,7 +3262,8 @@ namespace Entity.Migrations
                             Id = 9,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 5,
+                            EntityId = 5,
+                            EntityType = 1,
                             FileName = "isla_1.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3123,7 +3274,8 @@ namespace Entity.Migrations
                             Id = 10,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 5,
+                            EntityId = 5,
+                            EntityType = 1,
                             FileName = "isla_2.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3134,7 +3286,8 @@ namespace Entity.Migrations
                             Id = 11,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 6,
+                            EntityId = 6,
+                            EntityType = 1,
                             FileName = "oficina12_1.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3145,7 +3298,8 @@ namespace Entity.Migrations
                             Id = 12,
                             Active = true,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EstablishmentId = 6,
+                            EntityId = 6,
+                            EntityType = 1,
                             FileName = "oficina12_2.jpg",
                             FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                             IsDeleted = false,
@@ -3354,13 +3508,9 @@ namespace Entity.Migrations
 
             modelBuilder.Entity("Entity.Domain.Models.Implements.Utilities.Images", b =>
                 {
-                    b.HasOne("Entity.Domain.Models.Implements.Business.Establishment", "Establishment")
+                    b.HasOne("Entity.Domain.Models.Implements.Business.Establishment", null)
                         .WithMany("Images")
-                        .HasForeignKey("EstablishmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Establishment");
+                        .HasForeignKey("EstablishmentId");
                 });
 
             modelBuilder.Entity("Entity.Domain.Models.Implements.AdministrationSystem.Form", b =>

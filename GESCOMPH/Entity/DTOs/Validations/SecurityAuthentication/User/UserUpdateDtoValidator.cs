@@ -1,12 +1,13 @@
-using Entity.DTOs.Implements.SecurityAuthentication.User;
-using FluentValidation;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
+using Entity.DTOs.Implements.SecurityAuthentication.User;
+using Entity.DTOs.Validations.Persons;
+using FluentValidation;
 
 namespace Entity.DTOs.Validations.SecurityAuthentication.User
 {
-    public class UserUpdateDtoValidator : AbstractValidator<UserUpdateDto>
+    public class UserUpdateDtoValidator : BasePersonValidator<UserUpdateDto>
     {
         public UserUpdateDtoValidator()
         {
@@ -14,21 +15,12 @@ namespace Entity.DTOs.Validations.SecurityAuthentication.User
                 .GreaterThan(0)
                     .WithMessage("El identificador es obligatorio.");
 
-            RuleFor(x => x.PersonId)
-                .GreaterThan(0)
-                    .WithMessage("El identificador de la persona es obligatorio.");
-
             RuleFor(x => x.Email)
                 .Cascade(CascadeMode.Stop)
                 .Must(value => !string.IsNullOrWhiteSpace(value))
                     .WithMessage("El correo es obligatorio.")
                 .Must(IsValidEmail)
                     .WithMessage("El correo no tiene un formato valido.");
-
-            RuleFor(x => x.Password)
-                .MinimumLength(6).WithMessage("La contraseña debe tener al menos 6 caracteres.")
-                .MaximumLength(100).WithMessage("La contraseña no puede exceder los 100 caracteres.")
-                .When(x => !string.IsNullOrWhiteSpace(x.Password));
 
             RuleFor(x => x.RoleIds)
                 .Must(AllPositive)

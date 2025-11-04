@@ -10,55 +10,51 @@ using Entity.Domain.Models.Implements.Business;
 using Entity.DTOs.Implements.Business.Contract;
 using Entity.DTOs.Implements.Business.ObligationMonth;
 using Entity.DTOs.Implements.Persons.Person;
+using Entity.DTOs.Implements.SecurityAuthentication.Auth;
 using MapsterMapper;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using Utilities.Exceptions;
+using Utilities.Helpers.Business;
 using Utilities.Messaging.Interfaces;
 
 namespace Business.Services.Business
 {
-    /// <summary>
-    /// Servicio encargado de gestionar la lógica de negocio asociada a los contratos,
-    /// incluyendo la creación de personas y usuarios relacionados, validaciones,
-    /// orquestación transaccional y acciones post-commit (correo, PDF, obligaciones).
-    /// </summary>
     public class ContractService
         : BusinessGeneric<ContractSelectDto, ContractCreateDto, ContractUpdateDto, Contract>, IContractService
     {
         private readonly IContractRepository _contractRepository;
         private readonly IPersonService _personService;
         private readonly IEstablishmentService _establishmentService;
-        private readonly IUserService _userService;
+        private readonly IAuthService _authService;
         private readonly ISendCode _emailService;
-        private readonly IUnitOfWork _uow;
         private readonly ICurrentUser _user;
         private readonly IObligationMonthService _obligationMonthService;
         private readonly IUserContextService _userContextService;
         private readonly IContractPdfGeneratorService _contractPdfService;
+        private readonly IUnitOfWork _uow;
         private readonly ILogger<ContractService> _logger;
+        private readonly IMapper _mapper;
 
         public ContractService(
             IContractRepository contractRepository,
             IPersonService personService,
             IEstablishmentService establishmentService,
-            IUserService userService,
-            IMapper mapper,
+            IAuthService authService,
             ISendCode emailService,
             ICurrentUser user,
             IObligationMonthService obligationMonthService,
             IUserContextService userContextService,
             IContractPdfGeneratorService contractPdfService,
             IUnitOfWork uow,
-            ILogger<ContractService> logger
+            ILogger<ContractService> logger,
+            IMapper mapper
         ) : base(contractRepository, mapper)
         {
             _contractRepository = contractRepository;
             _personService = personService;
             _establishmentService = establishmentService;
-            _userService = userService;
+            _authService = authService;
             _emailService = emailService;
             _user = user;
             _obligationMonthService = obligationMonthService;
@@ -66,232 +62,124 @@ namespace Business.Services.Business
             _contractPdfService = contractPdfService;
             _uow = uow;
             _logger = logger;
+            _mapper = mapper;
         }
 
-        // ======================================================
-        // =================== CREACIÓN PRINCIPAL ===============
-        // ======================================================
 
-        /// <summary>
-        /// Crea un contrato de forma orquestada:
-        /// - Valida el DTO.
-        /// - Crea o recupera la persona.
-        /// - Garantiza la existencia del usuario.
-        /// - Genera el contrato y reserva establecimientos.
-        /// - Agenda tareas post-commit (correo, PDF, obligaciones).
-        /// Todo se ejecuta en una transacción (Unit of Work).
-        /// </summary>
-        public async Task<int> CreateContractWithPersonHandlingAsync(ContractCreateDto dto)
+
+
+
+        public Task<ContractPublicMetricsDto> GetMetricsAsync()
+                => _contractRepository.GetPublicMetricsAsync();
+
+        // ===========================================================
+        // MÉTODO PRINCIPAL DE CREACIÓN DE CONTRATO
+        // ===========================================================
+        public override async Task<ContractSelectDto> CreateAsync(ContractCreateDto dto)
         {
+            BusinessValidationHelper.ThrowIfNull(dto, "El DTO no puede ser nulo.");
             ValidatePayload(dto);
 
-            try
+            Contract? createdContract = null;
+            int personId = 0;
+
+            await _uow.ExecuteAsync(async ct =>
             {
-                var createdContract = await _uow.ExecuteAsync(async ct =>
+                // ==========================================================
+                // 1️⃣ Verificar existencia de persona
+                // ==========================================================
+                var existingPerson = await _personService.GetByDocumentAsync(dto.Document);
+
+                if (existingPerson == null)
                 {
-                    // 1. Creacion transaccional (persona, usuario, contrato)
-                    var (contract, person, userResult) = await HandleContractCreationAsync(dto);
+                    // ======================================================
+                    // 2️⃣ Registrar nueva persona y usuario mediante AuthService
+                    // ======================================================
+                    var registerDto = _mapper.Map<RegisterDto>(dto);
+                    registerDto.Password = string.Empty; // Ignorado en RegisterInternalAsync
 
-                    // 2. Acciones post-commit (correo, PDF, obligaciones)
-                    await HandlePostCommitActionsAsync(dto, contract, person, userResult);
-
-                    return contract;
-                });
-
-                return createdContract.Id;
-            }
-            catch (BusinessException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error inesperado al crear contrato para {Document}", dto.Document);
-                throw new BusinessException("Ocurrió un error creando el contrato.", ex);
-            }
-        }
-
-        // ======================================================
-        // ==================== CONSULTAS =======================
-        // ======================================================
-
-        /// <summary>
-        /// Retorna los contratos asociados al usuario autenticado.
-        /// Si el usuario es administrador, devuelve todos los contratos.
-        /// </summary>
-        public async Task<IReadOnlyList<ContractCardDto>> GetMineAsync()
-        {
-            if (_user.EsAdministrador)
-                return (await _contractRepository.GetCardsAllAsync()).ToList().AsReadOnly();
-
-            if (!_user.PersonId.HasValue || _user.PersonId.Value <= 0)
-                throw new BusinessException("El usuario autenticado no tiene persona asociada.");
-
-            var contracts = await _contractRepository.GetCardsByPersonAsync(_user.PersonId.Value);
-            return contracts.ToList().AsReadOnly();
-        }
-
-        /// <summary>
-        /// Retorna las obligaciones mensuales asociadas a un contrato.
-        /// </summary>
-        public async Task<IReadOnlyList<ObligationMonthSelectDto>> GetObligationsAsync(int contractId)
-        {
-            if (contractId <= 0)
-                throw new BusinessException("ContractId inválido.");
-
-            return await _obligationMonthService.GetByContractAsync(contractId);
-        }
-
-        // ======================================================
-        // ============== BARRIDO DE EXPIRACIÓN =================
-        // ======================================================
-
-        /// <summary>
-        /// Realiza el barrido de expiración:
-        /// - Desactiva contratos vencidos.
-        /// - Libera establecimientos que ya no tienen contratos activos.
-        /// </summary>
-        public async Task<ExpirationSweepResult> RunExpirationSweepAsync(CancellationToken ct = default)
-        {
-            return await _uow.ExecuteAsync(async _ =>
-            {
-                var now = DateTime.UtcNow;
-                var deactivated = await _contractRepository.DeactivateExpiredAsync(now);
-                var released = await _contractRepository.ReleaseEstablishmentsForExpiredAsync(now);
-
-                _uow.RegisterPostCommit(_ =>
+                    var registeredUser = await _authService.RegisterInternalAsync(registerDto);
+                    personId = registeredUser.PersonId ?? 0;
+                }
+                else
                 {
+                    // ======================================================
+                    // 3️⃣ Si la persona ya existe, reutilizar su ID
+                    // ======================================================
+                    personId = existingPerson.Id;
+                }
+
+                // ==========================================================
+                // 4️⃣ Reservar establecimientos y calcular renta base total
+                // ==========================================================
+                var (baseRent, uvtQty) = await _establishmentService.ReserveForContractAsync(dto.EstablishmentIds);
+
+                // ==========================================================
+                // 5️⃣ Crear contrato con cláusulas y locales
+                // ==========================================================
+                var contract = BuildContract(dto, personId, baseRent, uvtQty);
+                createdContract = await _contractRepository.AddAsync(contract);
+
+                // Forzar persistencia para obtener IDs
+                await _uow.SaveChangesAsync(ct);
+            });
+
+            // ==========================================================
+            // 6️⃣ Operaciones post-commit (correo, PDF, obligaciones)
+            // ==========================================================
+            if (!string.IsNullOrWhiteSpace(dto.Email) && createdContract != null)
+            {
+                try
+                {
+                    var person = await _personService.GetByIdAsync(personId);
+                    var fullName = ComposeFullName(person);
+                    var snapshot = await BuildSnapshotAsync(createdContract);
+
+                    await SchedulePostCommitAsync(createdContract.Id, dto.Email, fullName, snapshot);
+
                     _logger.LogInformation(
-                        "Barrido de expiración: {Count} contratos desactivados, {Estabs} establecimientos liberados.",
-                        deactivated.Count, released);
-                    return Task.CompletedTask;
-                });
+                        "Correo y generación de obligaciones programadas correctamente para contrato {ContractId}.",
+                        createdContract.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Error en operaciones post-creación (correo/obligaciones) para contrato {ContractId}.",
+                        createdContract?.Id);
+                }
+            }
+
+            // ==========================================================
+            // 7️⃣ Retornar DTO del contrato creado
+            // ==========================================================
+            return _mapper.Map<ContractSelectDto>(createdContract!);
+        }
+
+        // ===========================================================
+        // MÉTODO DE BARRIDO DE EXPIRACIÓN
+        // ===========================================================
+        public async Task<ExpirationSweepResult> RunExpirationSweepAsync()
+        {
+            return await _uow.ExecuteAsync(async ct =>
+            {
+                var deactivated = (await _contractRepository.DeactivateExpiredAsync(DateTime.UtcNow)).ToList();
+                var released = await _contractRepository.ReleaseEstablishmentsForExpiredAsync(DateTime.UtcNow);
+
+                await _uow.SaveChangesAsync(ct);
+
+                _logger.LogInformation(
+                    "Barrido de expiración: {DeactivatedCount} contratos desactivados, {ReleasedCount} establecimientos liberados.",
+                    deactivated.Count, released
+                );
 
                 return new ExpirationSweepResult(deactivated, released);
-            }, ct);
-        }
-
-        // ======================================================
-        // ================== MÉTODOS PRIVADOS ==================
-        // ======================================================
-
-        /// <summary>
-        /// Orquesta la creación de persona, usuario y contrato dentro de una transacción.
-        /// </summary>
-        private async Task<(Contract contract, PersonSelectDto person, (int userId, bool created, string? tempPassword) userResult)>
-            HandleContractCreationAsync(ContractCreateDto dto)
-        {
-            var personPayload = _mapper.Map<PersonDto>(dto);
-            var person = await _personService.GetOrCreateByDocumentAsync(personPayload);
-
-            var userResult = await _userService.EnsureUserForPersonAsync(person.Id, dto.Email);
-
-            var (baseRent, uvtQty) = await _establishmentService.ReserveForContractAsync(dto.EstablishmentIds);
-
-            var contract = _mapper.Map<Contract>(dto);
-            contract.PersonId = person.Id;
-            contract.TotalBaseRentAgreed = baseRent;
-            contract.TotalUvtQtyAgreed = uvtQty;
-
-            var establishmentIds = dto.EstablishmentIds?
-                .Where(id => id > 0)
-                .Distinct()
-                .ToList() ?? new List<int>();
-
-            if (establishmentIds.Count == 0)
-                throw new BusinessException("Debe seleccionar al menos un establecimiento.");
-
-            contract.PremisesLeased = establishmentIds
-                .Select(id => new PremisesLeased { EstablishmentId = id })
-                .ToList();
-
-            if (dto.ClauseIds is { Count: > 0 })
-            {
-                var clauseIds = dto.ClauseIds
-                    .Where(id => id > 0)
-                    .Distinct()
-                    .ToList();
-
-                if (clauseIds.Count > 0)
-                {
-                    contract.ContractClauses = clauseIds
-                        .Select(id => new ContractClause { ClauseId = id })
-                        .ToList();
-                }
-            }
-
-            await _contractRepository.AddAsync(contract);
-
-            return (contract, person, userResult);
-        }
-
-        /// <summary>
-        /// Registra las acciones post-commit:
-        /// - Envío de correo con credenciales (si aplica)
-        /// - Generación de obligaciones mensuales
-        /// - Envío del contrato en PDF
-        /// </summary>
-        private async Task HandlePostCommitActionsAsync(
-            ContractCreateDto dto,
-            Contract contract,
-            PersonSelectDto person,
-            (int userId, bool created, string? tempPassword) userResult)
-        {
-            var fullName = $"{person.FirstName} {person.LastName}".Trim();
-
-            if (userResult.created &&
-                !string.IsNullOrWhiteSpace(dto.Email) &&
-                !string.IsNullOrWhiteSpace(userResult.tempPassword))
-            {
-                _userService.QueuePasswordEmail(dto.Email!, fullName, userResult.tempPassword!);
-            }
-
-            _uow.RegisterPostCommit(async _ =>
-            {
-                try
-                {
-                    var now = TimeZoneInfo.ConvertTimeFromUtc(
-                        DateTime.UtcNow,
-                        TimeZoneConverter.TZConvert.GetTimeZoneInfo("America/Bogota"));
-
-                    await _obligationMonthService.GenerateForContractMonthAsync(contract.Id, now.Year, now.Month);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error generando obligaciones para contrato {ContractId}", contract.Id);
-                }
-            });
-
-            _uow.RegisterPostCommit(async _ =>
-            {
-                try
-                {
-                    var loaded = await _contractRepository.GetByIdAsync(contract.Id);
-                    var snapshot = _mapper.Map<ContractSelectDto>(loaded ?? contract);
-                    var pdf = await _contractPdfService.GeneratePdfAsync(snapshot);
-
-                    if (!string.IsNullOrWhiteSpace(dto.Email))
-                    {
-                        await _emailService.SendContractWithPdfAsync(
-                            dto.Email!,
-                            fullName,
-                            contract.Id.ToString("D6"),
-                            pdf);
-                    }
-
-                    _logger.LogInformation("Contrato {ContractId} enviado a {Email}", contract.Id, dto.Email);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error enviando contrato {ContractId} a {Email}", contract.Id, dto.Email);
-                }
             });
         }
 
-        /// <summary>
-        /// Valida reglas mínimas antes de iniciar la creación de contrato.
-        /// </summary>
-        private static void ValidatePayload(ContractCreateDto dto)
+        // ===========================================================
+        // MÉTODOS AUXILIARES
+        // ===========================================================
+        private void ValidatePayload(ContractCreateDto dto)
         {
             if (dto == null)
                 throw new BusinessException("Payload inválido.");
@@ -300,9 +188,113 @@ namespace Business.Services.Business
                 throw new BusinessException("Debe seleccionar al menos un establecimiento.");
         }
 
-        // ======================================================
-        // ================ CONFIGURACIÓN BASE ==================
-        // ======================================================
+        private Contract BuildContract(ContractCreateDto dto, int personId, decimal totalBaseRent, decimal totalUvt)
+        {
+            var contract = _mapper.Map<Contract>(dto);
+            contract.PersonId = personId;
+            contract.TotalBaseRentAgreed = totalBaseRent;
+            contract.TotalUvtQtyAgreed = totalUvt;
+            contract.Active = true;
+
+            // Asociar locales arrendados
+            contract.PremisesLeased = dto.EstablishmentIds
+                .Select(eid => new PremisesLeased { EstablishmentId = eid })
+                .ToList();
+
+            // Asociar cláusulas seleccionadas
+            if (dto.ClauseIds is { Count: > 0 })
+            {
+                contract.ContractClauses = dto.ClauseIds
+                    .Distinct()
+                    .Select(cid => new ContractClause { ClauseId = cid })
+                    .ToList();
+            }
+
+            return contract;
+        }
+
+        private async Task<ContractSelectDto?> BuildSnapshotAsync(Contract contract)
+        {
+            var loaded = await _contractRepository.GetByIdAsync(contract.Id);
+            return _mapper.Map<ContractSelectDto>(loaded ?? contract);
+        }
+
+        private string ComposeFullName(PersonSelectDto person)
+            => $"{person.FirstName} {person.LastName}".Trim();
+
+        private async Task SchedulePostCommitAsync(
+            int contractId,
+            string? email,
+            string fullName,
+            ContractSelectDto? contractSnapshot)
+        {
+            // ---------- Generar obligaciones después del commit ----------
+            _uow.RegisterPostCommit(async ct =>
+            {
+                try
+                {
+                    var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow,
+                        TimeZoneConverter.TZConvert.GetTimeZoneInfo("America/Bogota"));
+
+                    await _obligationMonthService.GenerateForContractMonthAsync(contractId, now.Year, now.Month);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error generando obligaciones para contrato {ContractId}", contractId);
+                }
+            });
+
+            // ---------- Enviar correo con PDF ----------
+            if (!string.IsNullOrWhiteSpace(email) && contractSnapshot != null)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var pdf = await _contractPdfService.GeneratePdfAsync(contractSnapshot);
+                        await _emailService.SendContractWithPdfAsync(email!, fullName, contractId.ToString("D6"), pdf);
+
+                        _logger.LogInformation("Correo de contrato enviado a {Email} con PDF {ContractId}", email, contractId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex,
+                            "Error enviando correo/PDF del contrato {ContractId} a {Email}. El contrato sigue creado.",
+                            contractId, email);
+                    }
+                });
+            }
+        }
+
+        // ===========================================================
+        // CONSULTAS Y FILTROS
+        // ===========================================================
+        public async Task<IEnumerable<ContractSelectDto>> GetMineAsync()
+        {
+            IEnumerable<Contract> contracts;
+
+            if (_user.EsAdministrador)
+            {
+                contracts = await _contractRepository.GetAllAsync();
+            }
+            else
+            {
+                if (!_user.PersonId.HasValue || _user.PersonId.Value <= 0)
+                    throw new BusinessException("El usuario autenticado no tiene persona asociada. Complete el perfil antes de consultar contratos.");
+
+                contracts = await _contractRepository.GetByPersonAsync(_user.PersonId.Value);
+            }
+
+            return _mapper.Map<IEnumerable<ContractSelectDto>>(contracts);
+        }
+
+        public async Task<IEnumerable<ObligationMonthSelectDto>> GetObligationsAsync(int contractId)
+        {
+            if (contractId <= 0)
+                throw new BusinessException("ContractId inválido.");
+
+            return await _obligationMonthService.GetByContractAsync(contractId);
+        }
 
         protected override Expression<Func<Contract, string>>[] SearchableFields() =>
         [

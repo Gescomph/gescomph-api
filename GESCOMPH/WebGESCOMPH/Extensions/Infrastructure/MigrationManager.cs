@@ -28,28 +28,10 @@ namespace WebGESCOMPH.Extensions.Infrastructure
                                 var ctx = sp.GetService<ApplicationDbContext>();
                                 if (ctx == null) { log.LogWarning("SQL Server no configurado: se omite."); break; }
                                 log.LogInformation("➡ Migrando SQL Server...");
-                                ctx.Database.Migrate();
+                                    ctx.Database.Migrate();
                                 log.LogInformation("✅ Migración completada para SqlServer");
                                 break;
                             }
-                        //case "postgres":
-                        //    {
-                        //        var ctx = sp.GetService<PostgresDbContext>();
-                        //        if (ctx == null) { log.LogWarning("POSTGRES no configurado: se omite."); break; }
-                        //        log.LogInformation("➡ Migrando POSTGRES ...");
-                        //        ctx.Database.Migrate();
-                        //        log.LogInformation("✅ Migración completada para Postgres");
-                        //        break;
-                        //    }
-                        //case "mysql":
-                        //    {
-                        //        var ctx = sp.GetService<ApplicationDbContext>();
-                        //        if (ctx == null) { log.LogWarning("My SQL no configurado: se omite."); break; }
-                        //        log.LogInformation("➡ Migrando MY SQL ...");
-                        //        ctx.Database.Migrate();
-                        //        log.LogInformation("✅ Migración completada para MySql");
-                        //        break;
-                        //    }
                         default:
                             log.LogWarning("Objetivo de migración desconocido: {Target}", raw);
                             break;

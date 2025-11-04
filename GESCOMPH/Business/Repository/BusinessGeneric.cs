@@ -109,39 +109,31 @@ namespace Business.Repository
         /// <exception cref="BusinessException">Si se detecta duplicado o falla la creación.</exception>
         public override async Task<TDtoGet> CreateAsync(TDtoCreate dto)
         {
-            try
-            {
-                BusinessValidationHelper.ThrowIfNull(dto, "El DTO no puede ser nulo.");
-                var candidate = _mapper.Map<TEntity>(dto);
+            BusinessValidationHelper.ThrowIfNull(dto, "DTO no puede ser nulo.");
 
-                var query = ApplyUniquenessFilter(Data.GetAllQueryable(), candidate);
-                if (query is not null)
+            var candidate = _mapper.Map<TEntity>(dto);
+
+            // lógica duplicados (igual que tenías)
+            var query = ApplyUniquenessFilter(Data.GetAllQueryable(), candidate);
+            if (query is not null)
+            {
+                var existing = query.FirstOrDefault();
+                if (existing is not null)
                 {
-                    var existing = query.FirstOrDefault();
-                    if (existing is not null)
-                    {
-                        if (!existing.IsDeleted)
-                            throw new BusinessException("Ya existe un registro con los mismos datos.");
+                    if (!existing.IsDeleted)
+                        throw new BusinessException("Duplicado");
 
-                        existing.IsDeleted = false;
-                        _mapper.Map(dto, existing);
-                        var updated = await Data.UpdateAsync(existing);
-                        return _mapper.Map<TDtoGet>(updated);
-                    }
+                    existing.IsDeleted = false;
+                    _mapper.Map(dto, existing);
+                    var updated = await Data.UpdateAsync(existing);
+                    return _mapper.Map<TDtoGet>(updated); // 👈 SELECT
                 }
+            }
 
-                candidate.InitializeLogicalState();
-                var created = await Data.AddAsync(candidate);
-                return _mapper.Map<TDtoGet>(created);
-            }
-            catch (DbUpdateException dbx)
-            {
-                throw new BusinessException("Violación de unicidad al crear el registro. Revisa valores únicos.", dbx);
-            }
-            catch (Exception ex)
-            {
-                throw new BusinessException("Error al crear el registro.", ex);
-            }
+            candidate.InitializeLogicalState();
+            var created = await Data.AddAsync(candidate);
+
+            return _mapper.Map<TDtoGet>(created); // 👈 SELECT
         }
 
         /// <summary>
@@ -152,17 +144,10 @@ namespace Business.Repository
         /// <exception cref="BusinessException">Si ocurre un error durante la actualización.</exception>
         public override async Task<TDtoGet> UpdateAsync(TDtoUpdate dto)
         {
-            try
-            {
-                BusinessValidationHelper.ThrowIfNull(dto, "El DTO no puede ser nulo.");
-                var entity = _mapper.Map<TEntity>(dto);
-                var updated = await Data.UpdateAsync(entity);
-                return _mapper.Map<TDtoGet>(updated);
-            }
-            catch (Exception ex)
-            {
-                throw new BusinessException("Error al actualizar el registro.", ex);
-            }
+            BusinessValidationHelper.ThrowIfNull(dto, "DTO no puede ser nulo.");
+            var entity = _mapper.Map<TEntity>(dto);
+            var updated = await Data.UpdateAsync(entity);
+            return _mapper.Map<TDtoGet>(updated); // 👈 SELECT
         }
 
         /// <summary>

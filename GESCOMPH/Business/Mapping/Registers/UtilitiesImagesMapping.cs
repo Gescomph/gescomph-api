@@ -14,7 +14,6 @@ namespace Business.Mapping.Registers
 
             config.NewConfig<ImageCreateDto, Images>()
                 .Ignore(dest => dest.Id)
-                .Ignore(dest => dest.Establishment)
                 .Ignore(dest => dest.CreatedAt)
                 .Ignore(dest => dest.IsDeleted);
 

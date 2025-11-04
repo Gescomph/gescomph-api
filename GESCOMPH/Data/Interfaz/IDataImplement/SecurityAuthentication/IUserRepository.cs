@@ -5,24 +5,14 @@ namespace Data.Interfaz.IDataImplement.SecurityAuthentication
 {
     public interface IUserRepository : IDataGeneric<User>
     {
-        // Existencia
-        Task<bool> ExistsByEmailAsync(string email);
-        Task<bool> ExistsByEmailExcludingIdAsync(int id, string email);
+        // ======== Verificación de existencia ========
+        Task<bool> ExistsByEmailAsync(string email, int? excludeId = null);
 
-        // Búsquedas típicas
+        // ======== Consultas por Email ========
         Task<int?> GetIdByEmailAsync(string email);
         Task<User?> GetByEmailAsync(string email);
-        Task<User?> GetByEmailProjectionAsync(string email);
 
-        Task<User?> GetByIdForUpdateAsync(int id);
-
-        // Lecturas (detalladas) para SELECTs
-        Task<User?> GetByIdWithDetailsAsync(int id);
-
-        // Lectura mínima para autenticación
+        // ======== Consulta mínima para autenticación ========
         Task<User?> GetAuthUserByEmailAsync(string email);
-
-        // Opcionales según tu uso actual
-        Task<User?> GetByPersonIdAsync(int personId);
     }
 }

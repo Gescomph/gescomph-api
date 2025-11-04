@@ -31,5 +31,7 @@ namespace Data.Interfaz.IDataImplement.Business
 
         // Actualizacion masiva por Plaza
         Task<int> SetActiveByPlazaIdAsync(int plazaId, bool active);
+
+        Task<IReadOnlyList<EstablishmentCardDto>> GetCardsByPlazaAsync(int plazaId, ActivityFilter filter);
     }
 }

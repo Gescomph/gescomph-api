@@ -1,6 +1,6 @@
 ﻿using Business.Interfaces.Implements.SecurityAuthentication;
-using Business.Repository;
 using Business.Interfaces.Notifications;
+using Business.Repository;
 using Data.Interfaz.IDataImplement.SecurityAuthentication;
 using Entity.Domain.Models.Implements.SecurityAuthentication;
 using Entity.DTOs.Implements.SecurityAuthentication.RolFormPemission;
@@ -9,11 +9,6 @@ using System.Linq.Expressions;
 
 namespace Business.Services.SecurityAuthentication
 {
-    /// <summary>
-    /// Servicio encargado de la gestión de permisos por formulario y rol.
-    /// Controla la asignación, actualización y eliminación de permisos asociados
-    /// a combinaciones de roles y formularios dentro del sistema.
-    /// </summary>
     public class RolFormPermissionService
         : BusinessGeneric<RolFormPermissionSelectDto, RolFormPermissionCreateDto, RolFormPermissionUpdateDto, RolFormPermission>,
           IRolFormPermissionService
@@ -22,11 +17,7 @@ namespace Business.Services.SecurityAuthentication
         private readonly IUserContextService _auth;
         private readonly IPermissionsNotificationService _notify;
 
-        public RolFormPermissionService(
-            IRolFormPermissionRepository data,
-            IMapper mapper,
-            IUserContextService auth,
-            IPermissionsNotificationService notify)
+        public RolFormPermissionService(IRolFormPermissionRepository data, IMapper mapper, IUserContextService auth, IPermissionsNotificationService notify)
             : base(data, mapper)
         {
             _repo = data;
@@ -34,27 +25,19 @@ namespace Business.Services.SecurityAuthentication
             _notify = notify;
         }
 
-        /// <summary>
-        /// Define la regla de unicidad de negocio: una combinación Rol-Form-Permission debe ser única.
-        /// </summary>
-        protected override IQueryable<RolFormPermission>? ApplyUniquenessFilter(
-            IQueryable<RolFormPermission> query, RolFormPermission candidate)
-            => query.Where(rfp =>
-                rfp.RolId == candidate.RolId &&
-                rfp.FormId == candidate.FormId &&
-                rfp.PermissionId == candidate.PermissionId);
+        // Aquí defines la llave “única” de negocio
+        protected override IQueryable<RolFormPermission>? ApplyUniquenessFilter(IQueryable<RolFormPermission> query, RolFormPermission candidate)
+            => query.Where(rfp => rfp.RolId == candidate.RolId && rfp.FormId == candidate.FormId && rfp.PermissionId == candidate.PermissionId);
 
-        /// <summary>
-        /// Crea un conjunto de permisos asociados a un rol y formulario.
-        /// Valida duplicados antes de insertar y notifica los cambios de permisos.
-        /// </summary>
         public override async Task<RolFormPermissionSelectDto> CreateAsync(RolFormPermissionCreateDto dto)
         {
+            // 1. Validar duplicados antes de crear
             await ValidateDuplicatesAsync(dto.RolId, dto.FormId, dto.PermissionIds);
 
             var createdEntities = new List<RolFormPermission>();
 
-            foreach (var permissionId in dto.PermissionIds)
+            // 2. Crear todas las relaciones Rol-Form-Permission
+            foreach (var permissionId in dto.PermissionIds.Distinct())
             {
                 var entity = new RolFormPermission
                 {
@@ -68,36 +51,50 @@ namespace Business.Services.SecurityAuthentication
                 createdEntities.Add(entity);
             }
 
-            var affectedUsers = await InvalidateUsersByRole(dto.RolId);
-            await _notify.NotifyPermissionsUpdated(affectedUsers);
+            // 3. Invalidar cachés y notificar usuarios afectados
+            var affectedCreate = await InvalidateUsersByRole(dto.RolId);
+            await _notify.NotifyPermissionsUpdated(affectedCreate);
 
-            if (createdEntities.Count == 0)
+            if (!createdEntities.Any())
                 return null;
 
-            var entityToReturn = await _repo.GetByIdAsync(createdEntities.Last().Id);
-            return _mapper.Map<RolFormPermissionSelectDto>(entityToReturn);
+            // 4. Recargar desde BD para asegurar relaciones actualizadas
+            var persistedGroup = (await _repo.GetByRolAndFormAsync(dto.RolId, dto.FormId)).ToList();
+
+            // 5. Mapear a RolFormPermissionCreateDto usando Mapster DI
+            var createdDto = _mapper.Map<RolFormPermissionSelectDto>(new
+            {
+                RolId = dto.RolId,
+                FormId = dto.FormId,
+                PermissionIds = persistedGroup.Select(p => p.PermissionId).ToList()
+            });
+
+            return createdDto;
         }
 
-        /// <summary>
-        /// Actualiza los permisos asociados a un rol y formulario, añadiendo, eliminando
-        /// o manteniendo los registros según corresponda. Notifica los cambios de permisos.
-        /// </summary>
-        public override async Task<RolFormPermissionSelectDto?> UpdateAsync(RolFormPermissionUpdateDto dto)
+
+        public override async Task<RolFormPermissionSelectDto> UpdateAsync(RolFormPermissionUpdateDto dto)
         {
+            // 1. Obtener grupo actual
             var group = (await _repo.GetByRolAndFormAsync(dto.RolId, dto.FormId)).ToList();
 
+            // 2. Normalizar IDs
             var existingPermissionIds = group.Select(g => g.PermissionId).ToHashSet();
             var incomingPermissionIds = dto.PermissionIds.Distinct().ToHashSet();
 
+            // 3. Calcular diferencias
             var toAdd = incomingPermissionIds.Except(existingPermissionIds).ToList();
             var toRemove = group.Where(g => !incomingPermissionIds.Contains(g.PermissionId)).ToList();
 
+            // 4. Validar duplicados solo para los nuevos permisos
             if (toAdd.Any())
                 await ValidateDuplicatesAsync(dto.RolId, dto.FormId, toAdd);
 
+            // 5. Eliminar los que sobran
             foreach (var item in toRemove)
                 await _repo.DeleteAsync(item.Id);
 
+            // 6. Agregar los que faltan
             foreach (var pid in toAdd)
             {
                 var entity = new RolFormPermission
@@ -108,41 +105,35 @@ namespace Business.Services.SecurityAuthentication
                     Active = true
                 };
                 await _repo.AddAsync(entity);
-                group.Add(entity);
             }
 
-            var affectedUsers = await InvalidateUsersByRole(dto.RolId);
-            await _notify.NotifyPermissionsUpdated(affectedUsers);
+            // 7. Invalidar caché y notificar
+            var affected = await InvalidateUsersByRole(dto.RolId);
+            await _notify.NotifyPermissionsUpdated(affected);
 
-            if (group.Count == 0)
+            // 8. Recargar estado actualizado desde BD
+            var updatedGroup = (await _repo.GetByRolAndFormAsync(dto.RolId, dto.FormId)).ToList();
+            if (!updatedGroup.Any())
                 return null;
 
-            return new RolFormPermissionSelectDto
+            // 9. Mapear a DTO de actualización (Mapster con DI)
+            var updatedDto = _mapper.Map<RolFormPermissionSelectDto>(new
             {
-                Id = group.First().Id,
-                RolId = group.First().RolId,
-                RolName = group.First().Rol?.Name ?? "",
-                FormId = group.First().FormId,
-                FormName = group.First().Form?.Name ?? "",
-                Permissions = group
-                    .Select(g => new PermissionInfoDto
-                    {
-                        PermissionId = g.PermissionId,
-                        PermissionName = g.Permission?.Name ?? ""
-                    })
-                    .ToList(),
-                Active = group.Any(g => g.Active)
-            };
+                RolId = dto.RolId,
+                FormId = dto.FormId,
+                PermissionIds = updatedGroup.Select(x => x.PermissionId).ToList()
+            });
+
+            return updatedDto;
         }
 
-        /// <summary>
-        /// Obtiene todos los permisos agrupados por combinación de rol y formulario.
-        /// </summary>
+
+
         public async Task<IEnumerable<RolFormPermissionSelectDto>> GetAllGroupedAsync()
         {
             var all = await _repo.GetAllAsync();
 
-            return all
+            var grouped = all
                 .GroupBy(x => new { x.RolId, x.FormId })
                 .Select(g =>
                 {
@@ -162,11 +153,10 @@ namespace Business.Services.SecurityAuthentication
                         Active = g.Any(p => p.Active)
                     };
                 });
+
+            return grouped;
         }
 
-        /// <summary>
-        /// Elimina todos los permisos asociados a un rol y formulario específico.
-        /// </summary>
         public async Task<bool> DeleteByGroupAsync(int rolId, int formId)
         {
             var records = await _repo.GetByRolAndFormAsync(rolId, formId);
@@ -175,14 +165,11 @@ namespace Business.Services.SecurityAuthentication
             foreach (var record in records)
                 await _repo.DeleteAsync(record.Id);
 
-            var affectedUsers = await InvalidateUsersByRole(rolId);
-            await _notify.NotifyPermissionsUpdated(affectedUsers);
+            var affectedDeleteByGroup = await InvalidateUsersByRole(rolId);
+            await _notify.NotifyPermissionsUpdated(affectedDeleteByGroup);
             return true;
         }
 
-        /// <summary>
-        /// Elimina un permiso individual y notifica los cambios a los usuarios afectados.
-        /// </summary>
         public override async Task<bool> DeleteAsync(int id)
         {
             var rfp = await _repo.GetByIdAsync(id);
@@ -190,24 +177,31 @@ namespace Business.Services.SecurityAuthentication
 
             if (result && rfp != null)
             {
-                var affectedUsers = await InvalidateUsersByRole(rfp.RolId);
-                await _notify.NotifyPermissionsUpdated(affectedUsers);
+                var affectedDelete = await InvalidateUsersByRole(rfp.RolId);
+                await _notify.NotifyPermissionsUpdated(affectedDelete);
             }
 
             return result;
         }
 
-        /// <summary>
-        /// Actualiza el estado activo/inactivo de todos los permisos dentro de un grupo
-        /// (rol + formulario) y notifica a los usuarios impactados.
-        /// </summary>
+        private async Task<IReadOnlyList<int>> InvalidateUsersByRole(int rolId)
+        {
+            var userIds = await _repo.GetUserIdsByRoleIdAsync(rolId);
+            foreach (var uid in userIds)
+                _auth.InvalidateCache(uid);
+            return userIds.ToList();
+        }
+
         public override async Task<RolFormPermissionSelectDto> UpdateActiveStatusAsync(int id, bool active)
         {
-            var target = await _repo.GetByIdAsync(id)
-                ?? throw new KeyNotFoundException($"No se encontró el permiso con ID {id}");
+            var target = await _repo.GetByIdAsync(id);
+            if (target == null)
+                throw new KeyNotFoundException($"No se encontró el permiso con ID {id}");
 
+            // 1. Obtener el grupo completo
             var group = await _repo.GetByRolAndFormAsync(target.RolId, target.FormId);
 
+            // 2. Actualizar el estado de todos los elementos en el grupo
             foreach (var item in group)
             {
                 if (item.Active != active)
@@ -217,42 +211,30 @@ namespace Business.Services.SecurityAuthentication
                 }
             }
 
-            var affectedUsers = await InvalidateUsersByRole(target.RolId);
-            await _notify.NotifyPermissionsUpdated(affectedUsers);
+            var affectedChangeState = await InvalidateUsersByRole(target.RolId);
+            await _notify.NotifyPermissionsUpdated(affectedChangeState);
 
+            // 3. Devolver el DTO de uno de los elementos (todos tienen el mismo Rol y Form)
             var refreshed = await _repo.GetByIdAsync(id);
             return _mapper.Map<RolFormPermissionSelectDto>(refreshed);
         }
 
-        /// <summary>
-        /// Invalida el caché de los usuarios asociados a un rol,
-        /// normalmente tras un cambio de permisos.
-        /// </summary>
-        private async Task<IReadOnlyList<int>> InvalidateUsersByRole(int rolId)
-        {
-            var userIds = await _repo.GetUserIdsByRoleIdAsync(rolId);
-            foreach (var uid in userIds)
-                _auth.InvalidateCache(uid);
-            return userIds.ToList();
-        }
-
-        /// <summary>
-        /// Valida que no existan duplicados antes de crear nuevas relaciones Rol-Form-Permission.
-        /// </summary>
         private async Task ValidateDuplicatesAsync(int rolId, int formId, IEnumerable<int> permissionIds)
         {
             var existing = await _repo.GetByRolAndFormAsync(rolId, formId);
 
             foreach (var pid in permissionIds)
             {
-                if (existing.Any(p => p.PermissionId == pid))
+                var existingPerm = existing.FirstOrDefault(p => p.PermissionId == pid);
+                if (existingPerm != null)
+                {
+                    // Verificar si ya existe un permiso con el mismo ID
                     throw new InvalidOperationException($"El permiso con ID {pid} ya existe en este formulario.");
+                }
             }
         }
 
-        /// <summary>
-        /// Define los campos sobre los que se puede realizar búsqueda textual.
-        /// </summary>
+
         protected override Expression<Func<RolFormPermission, string?>>[] SearchableFields() =>
         [
             x => x.Rol.Name,
@@ -260,9 +242,6 @@ namespace Business.Services.SecurityAuthentication
             x => x.Permission.Name
         ];
 
-        /// <summary>
-        /// Define los campos que se pueden usar para ordenamiento dinámico.
-        /// </summary>
         protected override string[] SortableFields() =>
         [
             nameof(RolFormPermission.Id),
@@ -273,9 +252,6 @@ namespace Business.Services.SecurityAuthentication
             nameof(RolFormPermission.Active)
         ];
 
-        /// <summary>
-        /// Define los filtros permitidos para consultas parametrizadas.
-        /// </summary>
         protected override IDictionary<string, Func<string, Expression<Func<RolFormPermission, bool>>>> AllowedFilters() =>
             new Dictionary<string, Func<string, Expression<Func<RolFormPermission, bool>>>>(StringComparer.OrdinalIgnoreCase)
             {
@@ -284,5 +260,6 @@ namespace Business.Services.SecurityAuthentication
                 [nameof(RolFormPermission.PermissionId)] = val => x => x.PermissionId == int.Parse(val),
                 [nameof(RolFormPermission.Active)] = val => x => x.Active == bool.Parse(val)
             };
+
     }
 }

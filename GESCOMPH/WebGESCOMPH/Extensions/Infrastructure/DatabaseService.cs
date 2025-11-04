@@ -24,29 +24,29 @@ namespace WebGESCOMPH.Extensions.Infrastructure
                     }));
             }
 
-            //if (!string.IsNullOrWhiteSpace(pg))
-            //{
-            //    services.AddDbContext<PostgresDbContext>(opt =>
-            //        opt.UseNpgsql(pg, n =>
-            //        {
-            //            n.MigrationsAssembly(typeof(PostgresDbContext).Assembly.FullName);
-            //            n.EnableRetryOnFailure();
-            //            n.CommandTimeout(60);
-            //        }));
-            //}
+            /*if (!string.IsNullOrWhiteSpace(pg))
+            {
+                services.AddDbContext<PostgresDbContext>(opt =>
+                    opt.UseNpgsql(pg, n =>
+                    {
+                        n.MigrationsAssembly(typeof(PostgresDbContext).Assembly.FullName);
+                        n.EnableRetryOnFailure();
+                        n.CommandTimeout(60);
+                    }));
+            }
 
-            //if (!string.IsNullOrWhiteSpace(my))
-            //{
-            //    services.AddDbContext<MySqlApplicationDbContext>(opt =>
-            //        opt.UseMySql(my, ServerVersion.AutoDetect(my), m =>
-            //        {
-            //            m.MigrationsAssembly(typeof(MySqlApplicationDbContext).Assembly.FullName);
-            //            m.EnableStringComparisonTranslations(); // para Contains, StartsWith, EndsWith
-            //        })
-            //        .EnableDetailedErrors()
-            //        .EnableSensitiveDataLogging()
-            //    );
-            //}
+            if (!string.IsNullOrWhiteSpace(my))
+            {
+                services.AddDbContext<MySqlApplicationDbContext>(opt =>
+                    opt.UseMySql(my, ServerVersion.AutoDetect(my), m =>
+                    {
+                        m.MigrationsAssembly(typeof(MySqlApplicationDbContext).Assembly.FullName);
+                        m.EnableStringComparisonTranslations(); // para Contains, StartsWith, EndsWith
+                    })
+                    .EnableDetailedErrors()
+                    .EnableSensitiveDataLogging()
+                );
+            }*/
 
             return services;
         }

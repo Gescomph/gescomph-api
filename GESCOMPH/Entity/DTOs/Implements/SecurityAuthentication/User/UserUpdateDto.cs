@@ -4,11 +4,15 @@ namespace Entity.DTOs.Implements.SecurityAuthentication.User
 {
     public sealed class UserUpdateDto : BaseDto
     {
-        public required int PersonId { get; init; }
-        public required string Email { get; init; }
+
+        // Persona
+        public string Email { get; set; } = null!;
+        public string Password{ get; set; } = null!;
+
+        public int PersonId { get; set; }
+
+        // Roles
         public IReadOnlyList<int>? RoleIds { get; init; }
-        public string? Password { get; init; }
-        public bool? Active { get; init; }
-        public bool SendPasswordByEmail { get; init; } = false;
+
     }
 }

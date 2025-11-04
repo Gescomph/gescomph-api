@@ -1,12 +1,10 @@
-using System.Collections.Generic;
-
 using Entity.Domain.Models.Implements.Business;
-
+using Entity.Domain.Models.Implements.Utilities;
 using Entity.DTOs.Implements.Business.EstablishmentDto;
 using Entity.DTOs.Implements.Business.Plaza;
 using Entity.DTOs.Implements.Utilities.Images;
-
 using Mapster;
+using System.Collections.Generic;
 
 namespace Business.Mapping.Registers
 {
@@ -50,6 +48,16 @@ namespace Business.Mapping.Registers
 
             // Plaza
             config.NewConfig<Plaza, PlazaSelectDto>();
+
+            TypeAdapterConfig<(Plaza plaza, List<Images> images), PlazaSelectDto>
+                .NewConfig()
+                .Map(dst => dst.Id, src => src.plaza.Id)
+                .Map(dst => dst.Name, src => src.plaza.Name)
+                .Map(dst => dst.Description, src => src.plaza.Description)
+                .Map(dst => dst.Location, src => src.plaza.Location)
+                .Map(dst => dst.Active, src => src.plaza.Active)
+                .Map(dst => dst.ImagePaths, src => src.images.Select(i => i.FilePath).ToList());
+
         }
     }
 }

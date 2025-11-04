@@ -8,6 +8,9 @@ namespace Entity.Infrastructure.Configurations.Utilities
     {
         public void Configure(EntityTypeBuilder<Images> builder)
         {
+
+            builder.HasIndex(x => new { x.EntityType, x.EntityId });
+
             builder.ToTable("Images");
 
             builder.HasKey(i => i.Id);
@@ -24,11 +27,7 @@ namespace Entity.Infrastructure.Configurations.Utilities
                    .IsRequired()
                    .HasMaxLength(128);
 
-            // Relación con Establishment
-            builder.HasOne(i => i.Establishment)
-                   .WithMany(e => e.Images)
-                   .HasForeignKey(i => i.EstablishmentId)
-                   .OnDelete(DeleteBehavior.Cascade);
+
         }
     }
 }

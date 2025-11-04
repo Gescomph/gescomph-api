@@ -39,7 +39,7 @@ namespace WebGESCOMPH.Controllers.Module.Business
         }
 
         [HttpPost]
-        public async Task<ActionResult<AppointmentSelectDto>> Create([FromBody] AppointmentCreateDto dto)
+        public async Task<ActionResult<AppointmentCreateDto>> Create([FromBody] AppointmentCreateDto dto)
         {
             var appointment = await _appointmentService.CreateAsync(dto);
             return Ok(appointment);

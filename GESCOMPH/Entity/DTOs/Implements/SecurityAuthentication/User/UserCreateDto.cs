@@ -2,10 +2,13 @@
 {
     public class UserCreateDto
     {
-        public required int PersonId { get; init; }
-        public required string Email { get; init; }
-        public string? Password { get; init; }
+        // Persona
+        public string Email { get; set; } = null!;
+        public string Password{ get; set; } = null!;
+
+        public int PersonId { get; set; }
+
+        // Roles
         public IReadOnlyList<int>? RoleIds { get; init; }
-        public bool SendPasswordByEmail { get; init; } = true;
     }
 }

@@ -8,11 +8,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Utilities.Exceptions;
 using Utilities.Helpers.CloudinaryHelper;
+using Entity.Enum;
+
 
 namespace Business.Services.Utilities
 {
     /// <summary>
-    /// Servicio encargado de manejar imágenes utilizando Cloudinary como proveedor de almacenamiento.
+    /// Servicio para manejar imágenes con Cloudinary (polimórfico).
     /// </summary>
     public sealed class ImageService :
         BusinessGeneric<ImageSelectDto, ImageCreateDto, ImageUpdateDto, Images>, IImagesService
@@ -37,21 +39,21 @@ namespace Business.Services.Utilities
         }
 
         /// <summary>
-        /// Agrega múltiples imágenes asociadas a un establecimiento.
-        /// Valida formato, controla la concurrencia y realiza rollback en caso de error.
+        /// Subida polimórfica → entityType = "Establishment" | "Plaza" | etc.
         /// </summary>
-        /// <param name="establishmentId">Identificador del establecimiento.</param>
-        /// <param name="files">Colección de archivos a subir.</param>
-        /// <returns>Lista de imágenes creadas.</returns>
-        /// <exception cref="BusinessException">Cuando no se reciben archivos válidos o hay un error en el proceso.</exception>
-        public async Task<List<ImageSelectDto>> AddImagesAsync(int establishmentId, IFormFileCollection files)
+        public async Task<List<ImageSelectDto>> AddImagesAsync(string entityType, int entityId, IFormFileCollection files)
         {
+            if (string.IsNullOrWhiteSpace(entityType))
+                throw new BusinessException("entityType requerido.");
+
+            if (entityId <= 0)
+                throw new BusinessException("entityId inválido.");
+
             if (files is null || files.Count == 0)
                 throw new BusinessException("Debe adjuntar al menos un archivo.");
 
             var allowedMime = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             { "image/jpeg", "image/png", "image/webp" };
-
             var allowedExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             { ".jpg", ".jpeg", ".png", ".webp" };
 
@@ -59,14 +61,13 @@ namespace Business.Services.Utilities
                 .Where(f => f?.Length > 0)
                 .Where(f =>
                 {
-                    var contentType = f.ContentType ?? string.Empty;
-                    var ext = Path.GetExtension(f.FileName) ?? string.Empty;
-                    if (!allowedMime.Contains(contentType) || !allowedExt.Contains(ext))
+                    var ct = f.ContentType ?? string.Empty;
+                    var ext = System.IO.Path.GetExtension(f.FileName) ?? string.Empty;
+                    if (!allowedMime.Contains(ct) || !allowedExt.Contains(ext))
                         throw new BusinessException($"El archivo '{f.FileName}' tiene un formato no permitido. Solo se permiten JPG, PNG o WEBP.");
                     return true;
                 })
                 .ToList();
-
             if (filesToUpload.Count == 0)
                 throw new BusinessException("No se recibieron archivos válidos.");
 
@@ -81,7 +82,9 @@ namespace Business.Services.Utilities
                     await semaphore.WaitAsync();
                     try
                     {
-                        var result = await _cloudinary.UploadImageAsync(file, establishmentId);
+                        // Cloudinary solo recibe el id numérico, así que esto no cambia
+                        var result = await _cloudinary.UploadImageAsync(file, entityId);
+
                         lock (uploadedEntities)
                         {
                             uploadedEntities.Add(new Images
@@ -89,8 +92,10 @@ namespace Business.Services.Utilities
                                 FileName = file.FileName,
                                 FilePath = result.SecureUrl.AbsoluteUri,
                                 PublicId = result.PublicId,
-                                EstablishmentId = establishmentId
+                                EntityType = Enum.Parse<EntityType>(entityType, true),
+                                EntityId = entityId
                             });
+
                             uploadedPublicIds.Add(result.PublicId);
                         }
                     }
@@ -104,24 +109,24 @@ namespace Business.Services.Utilities
 
                 await _imagesRepository.AddRangeAsync(uploadedEntities);
 
-                _logger.LogInformation("Subidas {Count} imágenes para establecimiento {Id}", uploadedEntities.Count, establishmentId);
+                _logger.LogInformation("Subidas {Count} imágenes para {EntityType} {Id}",
+                    uploadedEntities.Count, entityType, entityId);
+
                 return _mapper.Map<List<ImageSelectDto>>(uploadedEntities);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Falló la subida/persistencia de imágenes para establecimiento {Id}. Ejecutando rollback...", establishmentId);
+                _logger.LogError(ex,
+                    "Falló la subida/persistencia de imágenes para {EntityType} {Id}. Ejecutando rollback...",
+                    entityType, entityId);
 
                 var deletes = uploadedPublicIds.Select(pid => _cloudinary.DeleteAsync(pid));
                 await Task.WhenAll(deletes);
 
-                throw new BusinessException("Error al adjuntar imágenes al establecimiento.", ex);
+                throw new BusinessException("Error al adjuntar imágenes.", ex);
             }
         }
 
-        /// <summary>
-        /// Elimina una imagen identificada por su PublicId tanto en Cloudinary como en la base de datos.
-        /// </summary>
-        /// <param name="publicId">Identificador público en Cloudinary.</param>
         public async Task DeleteByPublicIdAsync(string publicId)
         {
             if (string.IsNullOrWhiteSpace(publicId))
@@ -131,29 +136,22 @@ namespace Business.Services.Utilities
             await _imagesRepository.DeleteByPublicIdAsync(publicId);
         }
 
-        /// <summary>
-        /// Elimina una imagen por su identificador interno en la base de datos.
-        /// También elimina el archivo remoto en Cloudinary.
-        /// </summary>
-        /// <param name="id">Identificador interno de la imagen.</param>
         public async Task DeleteByIdAsync(int id)
         {
             var img = await _imagesRepository.GetByIdAsync(id);
             if (img is null)
-                return; // Idempotente
+                return;
 
             await _cloudinary.DeleteAsync(img.PublicId);
             await _imagesRepository.DeleteAsync(id);
         }
 
         /// <summary>
-        /// Obtiene todas las imágenes asociadas a un establecimiento.
+        /// Polimórfico: obtiene imágenes por entidad.
         /// </summary>
-        /// <param name="establishmentId">Identificador del establecimiento.</param>
-        /// <returns>Lista de imágenes relacionadas.</returns>
-        public async Task<List<ImageSelectDto>> GetImagesByEstablishmentIdAsync(int establishmentId)
+        public async Task<List<ImageSelectDto>> GetImagesAsync(string entityType, int entityId)
         {
-            var images = await _imagesRepository.GetByEstablishmentIdAsync(establishmentId);
+            var images = await _imagesRepository.GetByAsync(entityType, entityId);
             return _mapper.Map<List<ImageSelectDto>>(images);
         }
     }

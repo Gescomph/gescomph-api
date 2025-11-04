@@ -84,10 +84,10 @@ namespace WebGESCOMPH.Controllers.Module.Business
         [Consumes("application/json")]
         [ProducesResponseType(typeof(EstablishmentSelectDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<EstablishmentSelectDto>> Create([FromBody] EstablishmentCreateDto dto)
+        public async Task<ActionResult<EstablishmentCreateDto>> Create([FromBody] EstablishmentCreateDto dto)
         {
             var result = await _establishmentService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            return Ok(result);
         }
 
         /// <summary>Actualizar un establecimiento (JSON puro; imagenes aparte).</summary>
@@ -136,5 +136,21 @@ namespace WebGESCOMPH.Controllers.Module.Business
             var dto = basics.Select(b => new { b.Id, b.RentValueBase, b.UvtQty });
             return Ok(dto);
         }
+
+
+        /// <summary>
+        /// listado liviano (cards) filtrado por plaza
+        /// </summary>
+        [HttpGet("cards/plaza/{plazaId:int}")]
+        [ProducesResponseType(typeof(IEnumerable<EstablishmentCardDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetCardsByPlaza(int plazaId)
+        {
+            if (plazaId <= 0)
+                return BadRequest(new { plazaId = new[] { "El plazaId debe ser mayor a 0." } });
+
+            var result = await _establishmentService.GetCardsByPlazaAsync(plazaId);
+            return Ok(result);
+        }
+
     }
 }

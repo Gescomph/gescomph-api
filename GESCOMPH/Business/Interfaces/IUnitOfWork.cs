@@ -79,5 +79,17 @@ namespace Business.Interfaces
         /// ya que se ejecutan fuera del contexto de base de datos.
         /// </remarks>
         void RegisterPostCommit(Func<CancellationToken, Task> action);
+
+
+        /// <summary>
+        /// Fuerza la persistencia inmediata de los cambios pendientes en el contexto.
+        /// </summary>
+        /// <remarks>
+        /// Se usa cuando necesitas obtener identificadores generados (IDs) antes del commit final.
+        /// 
+        /// Este método mantiene la transacción activa y no hace commit,
+        /// simplemente sincroniza el estado del contexto con la base de datos.
+        /// </remarks>
+        Task<int> SaveChangesAsync(CancellationToken ct = default);
     }
 }

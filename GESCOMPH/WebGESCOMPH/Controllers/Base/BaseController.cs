@@ -39,13 +39,10 @@ namespace WebGESCOMPH.Controllers.Base
         {
             var created = await Service.CreateAsync(dto);
 
-            // Respuesta 201 con Location al recurso usando Id del DTO base
-            if (created.Id > 0)
-                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-
-            // Devolver 200 si por algún motivo no se asignó Id (casos especiales)
-            return Ok(created);
+            // created ya es TGet
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
+
 
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -60,6 +57,7 @@ namespace WebGESCOMPH.Controllers.Base
                 baseDto.Id = id;
 
             var updated = await Service.UpdateAsync(dto);
+
             return updated is null ? NotFound() : Ok(updated);
         }
 

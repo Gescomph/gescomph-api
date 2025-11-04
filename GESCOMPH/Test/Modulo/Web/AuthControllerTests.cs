@@ -1,7 +1,6 @@
 using Business.Interfaces;
 using Business.Interfaces.Implements.SecurityAuthentication;
 using Entity.DTOs.Implements.SecurityAuthentication.Auth;
-using Entity.DTOs.Implements.SecurityAuthentication.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -51,31 +50,6 @@ public class AuthControllerTests
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
-    }
-
-    [Fact]
-    public async Task Register_Created_ReturnsUser()
-    {
-        var createdUser = new UserSelectDto { Id = 99, Email = "new@mail" };
-        _auth.Setup(a => a.RegisterAsync(It.IsAny<RegisterDto>()))
-             .ReturnsAsync(createdUser);
-
-        var ctrl = Create();
-        var res = await ctrl.Register(new RegisterDto
-        {
-            Email = "new@mail",
-            Password = "StrongP@ss1",
-            FirstName = "Test",
-            LastName = "User",
-            Document = "12345678",
-            Phone = "+1234567890",
-            Address = "Main St",
-            CityId = 1
-        });
-
-        var created = Assert.IsType<CreatedResult>(res);
-        Assert.Equal(createdUser, created.Value);
-        Assert.Contains("/api/User/99", created.Location);
     }
 
     [Fact]

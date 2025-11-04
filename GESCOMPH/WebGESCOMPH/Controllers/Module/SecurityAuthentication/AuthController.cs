@@ -41,19 +41,6 @@ namespace WebGESCOMPH.Controllers.Module.SecurityAuthentication
             _logger = logger;
         }
 
-        /// <summary>Registra un nuevo usuario junto con sus datos personales.</summary>
-        [HttpPost("register")]
-        [AllowAnonymous]
-        [ProducesResponseType(typeof(UserSelectDto), StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
-        {
-            var created = await _authService.RegisterAsync(dto);
-            var location = Url.Action("GetById", "User", new { id = created.Id }) ?? $"/api/User/{created.Id}";
-            return Created(location, created);
-        }
-
         /// <summary>Login: genera access + refresh + csrf, guarda cookies HttpOnly.</summary>
         [HttpPost("login")]
         [AllowAnonymous]

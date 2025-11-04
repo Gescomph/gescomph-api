@@ -1,4 +1,5 @@
 ﻿using Entity.Domain.Models.Implements.Utilities;
+using Entity.Enum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -6,7 +7,6 @@ namespace Entity.Infrastructure.DataInit.Utilities
 {
     public class ImagesSeeder : IEntityTypeConfiguration<Images>
     {
-
         public void Configure(EntityTypeBuilder<Images> builder)
         {
             var seedDate = new DateTime(2025, 01, 01, 0, 0, 0, DateTimeKind.Utc);
@@ -18,7 +18,8 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "primavera_1.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "primavera_1",
-                    EstablishmentId = 1,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 1,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
@@ -29,7 +30,8 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "primavera_2.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "primavera_2",
-                    EstablishmentId = 1,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 1,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
@@ -40,7 +42,8 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "torre_1.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "torre_1",
-                    EstablishmentId = 2,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 2,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
@@ -51,7 +54,8 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "torre_2.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "torre_2",
-                    EstablishmentId = 2,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 2,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
@@ -62,7 +66,8 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "bodega_1.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "bodega_1",
-                    EstablishmentId = 3,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 3,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
@@ -73,7 +78,8 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "bodega_2.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "bodega_2",
-                    EstablishmentId = 3,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 3,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
@@ -84,7 +90,8 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "local_1.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "local_1",
-                    EstablishmentId = 4,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 4,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
@@ -95,7 +102,8 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "local_2.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "local_2",
-                    EstablishmentId = 4,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 4,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
@@ -106,7 +114,8 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "isla_1.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "isla_1",
-                    EstablishmentId = 5,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 5,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
@@ -117,7 +126,8 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "isla_2.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "isla_2",
-                    EstablishmentId = 5,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 5,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
@@ -128,7 +138,8 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "oficina12_1.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "oficina12_1",
-                    EstablishmentId = 6,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 6,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
@@ -139,13 +150,13 @@ namespace Entity.Infrastructure.DataInit.Utilities
                     FileName = "oficina12_2.jpg",
                     FilePath = "https://res.cloudinary.com/dmbndpjlh/image/upload/v1755031443/defaul_cj5nqv.png",
                     PublicId = "oficina12_2",
-                    EstablishmentId = 6,
+                    EntityType = EntityType.Establishment,
+                    EntityId = 6,
                     Active = true,
                     IsDeleted = false,
                     CreatedAt = seedDate
                 }
             );
         }
-
     }
 }

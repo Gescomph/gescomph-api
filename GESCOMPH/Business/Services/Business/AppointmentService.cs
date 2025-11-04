@@ -1,16 +1,20 @@
-﻿using Business.Interfaces.Implements.Business;
+﻿using Business.Interfaces;
+using Business.Interfaces.Implements.Business;
 using Business.Interfaces.Implements.Persons;
 using Business.Interfaces.Implements.SecurityAuthentication;
 using Business.Repository;
+using Business.Services.SecurityAuthentication;
 using Data.Interfaz.IDataImplement.Business;
 using Entity.Domain.Models.Implements.Business;
 using Entity.DTOs.Implements.Business.Appointment;
-using Entity.DTOs.Implements.Persons.Person; 
+using Entity.DTOs.Implements.Persons.Person;
+using Entity.DTOs.Implements.SecurityAuthentication.Auth;
 using Entity.Infrastructure.Context;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
+using Utilities.Exceptions;
 using Utilities.Helpers.Business;
 using Utilities.Messaging.Interfaces;
 
@@ -25,8 +29,10 @@ namespace Business.Services.Business
         private readonly IPersonService _personService;
         private readonly IUserService _userService;
         private readonly ISendCode _emailService;
-        private readonly ApplicationDbContext _context;   
+        private readonly IAuthService _authService;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<AppointmentService> _logger;
+        private readonly IUnitOfWork _uow;
 
         public AppointmentService(
             IAppointmentRepository data,
@@ -34,7 +40,8 @@ namespace Business.Services.Business
             IPersonService personService,
             IUserService userService,
             ISendCode emailService,
-            ApplicationDbContext context,
+            IAuthService authService,
+            IUnitOfWork uow,
             ILogger<AppointmentService> logger
         ) : base(data, mapper)
         {
@@ -43,68 +50,80 @@ namespace Business.Services.Business
             _personService = personService;
             _userService = userService;
             _emailService = emailService;
-            _context = context;
+            _authService = authService;
+            _uow = uow;
             _logger = logger;
         }
 
-        /// <summary>
-        /// Crea una cita nueva, gestionando automáticamente la persona y el usuario asociado.
-        /// También envía las credenciales por correo si se crea un usuario nuevo.
-        /// </summary>
-        /// <param name="dto">Datos de creación de la cita.</param>
-        /// <returns>Objeto <see cref="AppointmentSelectDto"/> con la cita creada.</returns>
         public override async Task<AppointmentSelectDto> CreateAsync(AppointmentCreateDto dto)
         {
             BusinessValidationHelper.ThrowIfNull(dto, "El DTO no puede ser nulo.");
 
-            var strategy = _context.Database.CreateExecutionStrategy();
-            Appointment? createdAppointment = null;
-            string? tempPassword = null;
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                throw new BusinessException("El correo electrónico es obligatorio para registrar la persona.");
 
-            await strategy.ExecuteAsync(async () =>
+            if (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName))
+                throw new BusinessException("Nombre y apellido son obligatorios para registrar la persona.");
+
+            if (string.IsNullOrWhiteSpace(dto.Document))
+                throw new BusinessException("El documento es obligatorio para registrar la persona.");
+
+            return await _uow.ExecuteAsync(async ct =>
             {
-                await using var tx = await _context.Database.BeginTransactionAsync();
+                Appointment? createdAppointment = null;
+                int personId = 0;
 
-                var personDto = _mapper.Map<PersonDto>(dto);
-                var person = await _personService.GetOrCreateByDocumentAsync(personDto);
+                var existingPerson = await _personService.GetByDocumentAsync(dto.Document);
 
-                var (userId, created, password) = await _userService.EnsureUserForPersonAsync(person.Id, dto.Email);
-                tempPassword = password;
+                if (existingPerson == null)
+                {
+                    var registerDto = _mapper.Map<RegisterDto>(dto);
+                    registerDto.Password = string.Empty;
+
+                    RegisterDto? registeredUser;
+                    try
+                    {
+                        // Usar el método interno que no crea su propia transacción
+                        registeredUser = await _authService.RegisterInternalAsync(registerDto, ct);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error registrando usuario desde cita. Email={Email}", dto.Email);
+                        throw;
+                    }
+
+                    if (registeredUser?.PersonId is null or 0)
+                        throw new BusinessException("El registro de usuario no devolvió un PersonId válido.");
+
+                    personId = registeredUser.PersonId.Value;
+                }
+                else
+                {
+                    personId = existingPerson.Id;
+                }
 
                 var appointment = _mapper.Map<Appointment>(dto);
-                appointment.PersonId = person.Id;
+                appointment.PersonId = personId;
                 appointment.Active = true;
 
                 createdAppointment = await _data.AddAsync(appointment);
+                await _uow.SaveChangesAsync(ct);
 
-                await tx.CommitAsync();
+                // Registrar post-commit (por ejemplo, envío de correo o notificación)
+                //_uow.RegisterPostCommit(async _ =>
+                //{
+                //    await _emailService.SendAppointmentConfirmationAsync(dto.Email, appointment.Id);
+                //});
+
+                return _mapper.Map<AppointmentSelectDto>(createdAppointment!);
             });
-
-            if (!string.IsNullOrWhiteSpace(dto.Email) && !string.IsNullOrWhiteSpace(tempPassword))
-            {
-                try
-                {
-                    await _emailService.SendTemporaryPasswordAsync(dto.Email, dto.FirstName, tempPassword!);
-                    _logger.LogInformation(
-                        "Correo enviado correctamente a {Email} para la cita {AppointmentId}",
-                        dto.Email, createdAppointment!.Id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex,
-                        "Error al enviar correo de credenciales a {Email} para la cita {AppointmentId}. " +
-                        "El proceso de negocio no se interrumpió.",
-                        dto.Email, createdAppointment?.Id);
-                }
-            }
-
-            return _mapper.Map<AppointmentSelectDto>(createdAppointment!);
         }
 
-        /// <summary>
-        /// Define los campos de la entidad que son buscables mediante operaciones de texto.
-        /// </summary>
-        /// <returns>Expresiones que representan los campos buscables.</returns>
+
+
+
+
+
         protected override Expression<Func<Appointment, string>>[] SearchableFields() =>
         [
             a => a.Description!,
@@ -114,10 +133,6 @@ namespace Business.Services.Business
             a => a.Establishment.Name!
         ];
 
-        /// <summary>
-        /// Define los campos que se pueden utilizar para ordenar los resultados de las consultas.
-        /// </summary>
-        /// <returns>Arreglo de nombres de campos ordenables.</returns>
         protected override string[] SortableFields() => new[]
         {
             nameof(Appointment.Description),
@@ -130,10 +145,6 @@ namespace Business.Services.Business
             nameof(Appointment.Active)
         };
 
-        /// <summary>
-        /// Define los filtros permitidos para la búsqueda y consulta de citas.
-        /// </summary>
-        /// <returns>Diccionario de filtros válidos y sus expresiones asociadas.</returns>
         protected override IDictionary<string, Func<string, Expression<Func<Appointment, bool>>>> AllowedFilters() =>
             new Dictionary<string, Func<string, Expression<Func<Appointment, bool>>>>(StringComparer.OrdinalIgnoreCase)
             {

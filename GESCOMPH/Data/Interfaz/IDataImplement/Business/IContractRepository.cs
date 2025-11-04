@@ -6,16 +6,20 @@ namespace Data.Interfaz.IDataImplement.Business
 {
     public interface IContractRepository : IDataGeneric<Contract>
     {
-        // Proyecciones para tarjetas de contratos
-        Task<IReadOnlyList<ContractCardDto>> GetCardsByPersonAsync(int personId);
-        Task<IReadOnlyList<ContractCardDto>> GetCardsAllAsync();
+        // Proyecciones para contratos (ya no usa DTOs)
+        Task<IEnumerable<Contract>> GetByPersonAsync(int personId);
 
         // Operaciones por expiración
-        Task<IReadOnlyList<int>> DeactivateExpiredAsync(DateTime utcNow);
+        Task<IEnumerable<int>> DeactivateExpiredAsync(DateTime utcNow);
         Task<int> ReleaseEstablishmentsForExpiredAsync(DateTime utcNow);
 
-        // Validación de negocio: ¿existen contratos activos asociados a una plaza?
+        // Validación de negocio
         Task<bool> AnyActiveByPlazaAsync(int plazaId);
+
+        // Creación de contrato con entidades
+        Task<int> CreateContractAsync(Contract contract, IReadOnlyCollection<int> establishmentIds, IReadOnlyCollection<int>? clauseIds = null);
+
+
+        Task<ContractPublicMetricsDto> GetPublicMetricsAsync();
     }
 }
-

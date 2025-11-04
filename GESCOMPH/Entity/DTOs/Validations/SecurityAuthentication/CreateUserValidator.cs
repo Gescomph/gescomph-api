@@ -1,30 +1,27 @@
-using Entity.DTOs.Implements.SecurityAuthentication.User;
-using FluentValidation;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
+using System.Text.RegularExpressions;
+using Entity.DTOs.Implements.SecurityAuthentication.User;
+using Entity.DTOs.Validations.Persons;
+using FluentValidation;
 
 namespace Entity.DTOs.Validations.SecurityAuthentication
 {
-    public class CreateUserValidator : AbstractValidator<UserCreateDto>
+    public class CreateUserValidator : BasePersonValidator<UserCreateDto>
     {
+        private static readonly Regex DocumentRegex = new(@"^\d{7,10}$", RegexOptions.Compiled);
+
         public CreateUserValidator()
         {
-            RuleFor(x => x.PersonId)
-                .GreaterThan(0)
-                    .WithMessage("El identificador de la persona es obligatorio.");
 
             RuleFor(x => x.Email)
                 .Cascade(CascadeMode.Stop)
-                .Must(value => !string.IsNullOrWhiteSpace(value))
+                .Must(NotBlank)
                     .WithMessage("El correo es obligatorio.")
                 .Must(IsValidEmail)
                     .WithMessage("El correo no tiene un formato valido.");
-
-            RuleFor(x => x.Password)
-                .MinimumLength(6).WithMessage("La contraseña debe tener al menos 6 caracteres.")
-                .MaximumLength(100).WithMessage("La contraseña no puede exceder los 100 caracteres.")
-                .When(x => !string.IsNullOrWhiteSpace(x.Password));
 
             RuleFor(x => x.RoleIds)
                 .Must(AllPositive)
@@ -32,6 +29,8 @@ namespace Entity.DTOs.Validations.SecurityAuthentication
                 .Must(AllDistinct)
                     .WithMessage("No se permiten roles duplicados.");
         }
+
+        private static bool NotBlank(string? value) => !string.IsNullOrWhiteSpace(value);
 
         private static bool AllPositive(IReadOnlyCollection<int>? ids)
             => ids is null || ids.All(id => id > 0);

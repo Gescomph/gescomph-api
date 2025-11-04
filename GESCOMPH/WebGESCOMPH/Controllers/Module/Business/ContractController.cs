@@ -1,17 +1,13 @@
 using Business.Interfaces.Implements.Business;
+using Business.Interfaces.Notifications;
 using Business.Interfaces.PDF;
-using System;
 using Entity.DTOs.Implements.Business.Contract;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 using Utilities.Exceptions;
 using WebGESCOMPH.Contracts.Requests;
-using WebGESCOMPH.RealTime;
-using System.Linq;
 using WebGESCOMPH.RealTime.Contract;
-using Business.Interfaces.Notifications;
 
 namespace WebGESCOMPH.Controllers.Module.Business
 {
@@ -40,8 +36,16 @@ namespace WebGESCOMPH.Controllers.Module.Business
             _notify = notify;
         }
 
+        [HttpGet("metrics")]
+        [AllowAnonymous]  // <-- CLAVE 
+        public async Task<ActionResult<ContractPublicMetricsDto>> GetMetrics()
+        {
+            return Ok(await _contractService.GetMetricsAsync());
+        }
+
+
         [HttpGet("mine")]
-        [ProducesResponseType(typeof(IEnumerable<ContractCardDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<ContractSelectDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetMine()
         {
             var result = await _contractService.GetMineAsync();
@@ -58,14 +62,8 @@ namespace WebGESCOMPH.Controllers.Module.Business
 
             try
             {
-                var contractId = await _contractService.CreateContractWithPersonHandlingAsync(dto);
-
-                // Notificar al tenant propietario usando el servicio de notificaciones
-                var createdContract = await _contractService.GetByIdAsync(contractId);
-                if (createdContract != null)
-                    await _notify.NotifyContractCreated(contractId, createdContract.PersonId);
-
-                return CreatedAtAction(nameof(GetById), new { id = contractId }, new { contractId });
+                var result = await _contractService.CreateAsync(dto);
+                return Ok(result);
             }
             catch (BusinessException ex)
             {
@@ -90,48 +88,7 @@ namespace WebGESCOMPH.Controllers.Module.Business
             return Ok(contract);
         }
 
-        [HttpPut("{id:int}")]
-        [ProducesResponseType(typeof(ContractSelectDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ContractSelectDto>> Put(int id, [FromBody] ContractUpdateDto dto)
-        {
-            if (dto is null)
-                return BadRequest(new { detail = "El cuerpo de la solicitud no puede estar vacio." });
-
-            if (dto.Id != 0 && dto.Id != id)
-                return BadRequest(new { detail = "El ID del cuerpo no coincide con el ID de la ruta." });
-
-            dto.Id = id;
-
-            try
-            {
-                var updated = await _contractService.UpdateAsync(dto);
-
-                await _hub.Clients
-                    .Group($"tenant-{updated.PersonId}")
-                    .SendAsync("contracts:mutated", new
-                    {
-                        type = "updated",
-                        id,
-                        active = updated.Active,
-                        at = DateTime.UtcNow
-                    });
-
-                return Ok(updated);
-            }
-            catch (BusinessException ex)
-            {
-                _logger.LogWarning(ex, "Error de negocio al actualizar contrato {Id}: {Message}", id, ex.Message);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error inesperado al actualizar contrato {Id}", id);
-                throw;
-            }
-        }
-
+      
         [HttpPatch("{id:int}/estado")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -241,9 +198,9 @@ namespace WebGESCOMPH.Controllers.Module.Business
 
         [HttpPost("expire/run")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> RunExpirationNow(CancellationToken ct)
+        public async Task<IActionResult> RunExpirationNow()
         {
-            var sweep = await _contractService.RunExpirationSweepAsync(ct);
+            var sweep = await _contractService.RunExpirationSweepAsync();
             var deactivated = sweep.DeactivatedContractIds ?? Array.Empty<int>();
 
             // Resolver personId por contrato y notificar por grupo
@@ -273,7 +230,7 @@ namespace WebGESCOMPH.Controllers.Module.Business
                     },
                     at = DateTime.UtcNow
                 };
-                await _hub.Clients.Group($"tenant-{kv.Key}").SendAsync("contracts:expired", payloadForPerson, ct);
+                await _hub.Clients.Group($"tenant-{kv.Key}").SendAsync("contracts:expired", payloadForPerson);
             }
 
             // Para respuesta HTTP devolvemos el resumen global

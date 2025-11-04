@@ -123,7 +123,7 @@ namespace WebGESCOMPH.Extensions.Infrastructure
                 var cronContracts = configuration["Contracts:Expiration:Cron"] ?? "*/10 * * * *"; // Cada 10 minutos
                 RecurringJob.AddOrUpdate<ContractJobs>(
                     "contracts-expiration",
-                    j => j.RunExpirationSweepAsync(CancellationToken.None),
+                    j => j.RunExpirationSweepAsync(),
                     cronContracts,
                     new RecurringJobOptions { TimeZone = tz, QueueName = "default" }
                 );

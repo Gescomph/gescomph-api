@@ -26,12 +26,19 @@ namespace Data.Services.Utilities
                 .ToListAsync();
         }
 
-        public async Task<List<Images>> GetByEstablishmentIdAsync(int establishmentId)
+        /// <summary>
+        /// Obtiene imágenes polimórficas por tipo de entidad e id.
+        /// </summary>
+        public async Task<List<Images>> GetByAsync(string entityType, int entityId)
         {
+            var entityEnum = Enum.Parse<Entity.Enum.EntityType>(entityType, true);
+
             return await _dbSet
                 .AsNoTracking()
-                .Where(i => i.EstablishmentId == establishmentId && i.Active && !i.IsDeleted)
-                .OrderByDescending(i => i.Id) // portada = la última subida (opcional)
+                .Where(i => i.EntityType == entityEnum &&
+                            i.EntityId == entityId &&
+                            i.Active && !i.IsDeleted)
+                .OrderByDescending(i => i.Id)
                 .ToListAsync();
         }
 

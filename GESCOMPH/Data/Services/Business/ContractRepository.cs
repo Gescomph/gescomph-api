@@ -8,19 +8,12 @@ using Utilities.Exceptions;
 
 namespace Data.Services.Business
 {
-    /// <summary>
-    /// Repositorio encargado de gestionar la persistencia de contratos, 
-    /// incluyendo creación, consultas y mantenimiento de consistencia con establecimientos y cláusulas.
-    /// </summary>
     public class ContractRepository : DataGeneric<Contract>, IContractRepository
     {
         public ContractRepository(ApplicationDbContext context) : base(context) { }
 
         // ================== QUERIES BASE ==================
 
-        /// <summary>
-        /// Construye la query completa de contratos incluyendo persona, usuario, locales y cláusulas.
-        /// </summary>
         private IQueryable<Contract> GetContractFullQuery()
         {
             return _dbSet
@@ -30,107 +23,35 @@ namespace Data.Services.Business
                 .AsNoTracking();
         }
 
-        /// <summary>
-        /// Construye la query para tarjetas de contrato (resumen), con filtro opcional por persona.
-        /// </summary>
-        private IQueryable<ContractCardDto> GetCardQuery(int? personId = null)
-        {
-            var query = _dbSet.AsNoTracking()
-                .Where(c => !c.IsDeleted);
-
-            if (personId.HasValue)
-                query = query.Where(c => c.PersonId == personId.Value);
-
-            return query
-                .OrderByDescending(e => e.Active)
-                .ThenByDescending(e => e.CreatedAt)
-                .ThenByDescending(e => e.Id)
-                .Select(c => new ContractCardDto(
-                    c.Id,
-                    c.PersonId,
-                    c.Person.FirstName,
-                    c.Person.LastName,
-                    c.Person.Document,
-                    c.Person.Phone,
-                    c.Person.User != null ? c.Person.User.Email : null,
-                    c.StartDate,
-                    c.EndDate,
-                    c.TotalBaseRentAgreed,
-                    c.TotalUvtQtyAgreed,
-                    c.Active
-                ));
-        }
-
         // ================== MÉTODOS ==================
 
-        /// <summary>
-        /// Obtiene un contrato completo (con relaciones) por su identificador.
-        /// </summary>
         public override async Task<Contract?> GetByIdAsync(int id) =>
             await GetContractFullQuery().FirstOrDefaultAsync(c => c.Id == id);
 
-        /// <summary>
-        /// Obtiene todas las tarjetas de contrato asociadas a una persona.
-        /// </summary>
-        public async Task<IReadOnlyList<ContractCardDto>> GetCardsByPersonAsync(int personId) =>
-            await GetCardQuery(personId).ToListAsync();
-
-        /// <summary>
-        /// Obtiene todas las tarjetas de contrato disponibles (sin filtro por persona).
-        /// </summary>
-        public async Task<IReadOnlyList<ContractCardDto>> GetCardsAllAsync() =>
-            await GetCardQuery().ToListAsync();
-
-        /// <summary>
-        /// Sobrescribe el método genérico AddAsync para crear un contrato completo 
-        /// dentro del contexto de una unidad de trabajo (sin SaveChanges).
-        /// Incluye validaciones, cálculo de totales, vínculos de cláusulas y actualización de locales.
-        /// </summary>
-        public override async Task<Contract> AddAsync(Contract contract)
+        public async Task<IEnumerable<Contract>> GetByPersonAsync(int personId)
         {
-            ValidateContract(contract);
-
-            var establishmentIds = GetEstablishmentIds(contract);
-
-            await SetTotalsAsync(contract, establishmentIds);
-            await AddContractClausesAsync(contract);
-            await DeactivateEstablishmentsAsync(establishmentIds);
-
-            await _dbSet.AddAsync(contract);
-
-            return contract; // SaveChanges lo realiza el UnitOfWork
+            return await GetContractFullQuery()
+                .Where(c => !c.IsDeleted && c.PersonId == personId)
+                .OrderByDescending(c => c.Active)
+                .ThenByDescending(c => c.CreatedAt)
+                .ToListAsync();
         }
 
-        // ================== MÉTODOS PRIVADOS (modulares) ==================
-
-        /// <summary>
-        /// Valida reglas básicas de negocio antes de persistir el contrato.
-        /// </summary>
-        private static void ValidateContract(Contract contract)
+        public override async Task<IEnumerable<Contract>> GetAllAsync()
         {
-            if (contract.PersonId <= 0)
-                throw new BusinessException("El contrato debe estar asociado a una persona válida.");
+            return await GetContractFullQuery()
+                .Where(c => !c.IsDeleted)
+                .OrderByDescending(c => c.Active)
+                .ThenByDescending(c => c.CreatedAt)
+                .ToListAsync();
+        }
 
-            if (contract.PremisesLeased == null || contract.PremisesLeased.Count == 0)
+        public async Task<int> CreateContractAsync(Contract contract, IReadOnlyCollection<int> establishmentIds, IReadOnlyCollection<int>? clauseIds = null)
+        {
+            if (establishmentIds == null || establishmentIds.Count == 0)
                 throw new BusinessException("Debe seleccionar al menos un establecimiento.");
-        }
 
-        /// <summary>
-        /// Extrae los identificadores únicos de establecimientos asociados al contrato.
-        /// </summary>
-        private static List<int> GetEstablishmentIds(Contract contract)
-        {
-            return contract.PremisesLeased
-                .Select(pl => pl.EstablishmentId)
-                .Distinct()
-                .ToList();
-        }
-
-        /// <summary>
-        /// Calcula y asigna los totales de renta y UVT a partir de los establecimientos vinculados.
-        /// </summary>
-        private async Task SetTotalsAsync(Contract contract, IReadOnlyCollection<int> establishmentIds)
-        {
+            // Totales calculados directamente desde los establecimientos
             var basics = await _context.Set<Establishment>()
                 .AsNoTracking()
                 .Where(e => establishmentIds.Contains(e.Id))
@@ -139,49 +60,33 @@ namespace Data.Services.Business
 
             contract.TotalBaseRentAgreed = basics.Sum(b => b.RentValueBase);
             contract.TotalUvtQtyAgreed = basics.Sum(b => b.UvtQty);
-        }
+            contract.Active = true;
 
-        /// <summary>
-        /// Crea las relaciones de cláusulas asociadas al contrato.
-        /// Si el contrato no tiene cláusulas, no realiza acción alguna.
-        /// </summary>
-        private async Task AddContractClausesAsync(Contract contract)
-        {
-            if (contract.ContractClauses == null || !contract.ContractClauses.Any())
-                return;
+            foreach (var estId in establishmentIds)
+                contract.PremisesLeased.Add(new PremisesLeased { EstablishmentId = estId });
 
-            var uniqueClauseIds = contract.ContractClauses
-                .Select(cc => cc.ClauseId)
-                .Distinct()
-                .ToList();
+            await _dbSet.AddAsync(contract);
 
-            var links = uniqueClauseIds.Select(cid => new ContractClause
+            if (clauseIds is { Count: > 0 })
             {
-                Contract = contract,
-                ClauseId = cid
-            });
-
-            await _context.ContractClauses.AddRangeAsync(links);
-        }
-
-        /// <summary>
-        /// Desactiva los establecimientos que fueron asignados al nuevo contrato.
-        /// </summary>
-        private async Task DeactivateEstablishmentsAsync(IReadOnlyCollection<int> establishmentIds)
-        {
-            if (establishmentIds.Count == 0) return;
+                var uniqueClauseIds = clauseIds.Distinct().ToList();
+                var links = uniqueClauseIds.Select(cid => new ContractClause
+                {
+                    Contract = contract,
+                    ClauseId = cid
+                });
+                await _context.ContractClauses.AddRangeAsync(links);
+            }
 
             await _context.Set<Establishment>()
                 .Where(e => establishmentIds.Contains(e.Id))
                 .ExecuteUpdateAsync(up => up.SetProperty(e => e.Active, _ => false));
+
+            await _context.SaveChangesAsync();
+            return contract.Id;
         }
 
-        // ================== OTRAS OPERACIONES ==================
-
-        /// <summary>
-        /// Desactiva todos los contratos cuya fecha de finalización ya haya expirado.
-        /// </summary>
-        public async Task<IReadOnlyList<int>> DeactivateExpiredAsync(DateTime utcNow)
+        public async Task<IEnumerable<int>> DeactivateExpiredAsync(DateTime utcNow)
         {
             var ids = await _dbSet
                 .Where(c => !c.IsDeleted && c.Active && c.EndDate < utcNow)
@@ -197,9 +102,6 @@ namespace Data.Services.Business
             return ids;
         }
 
-        /// <summary>
-        /// Reactiva los establecimientos cuyos contratos expiraron y que no estén ocupados por otro contrato activo.
-        /// </summary>
         public async Task<int> ReleaseEstablishmentsForExpiredAsync(DateTime utcNow)
         {
             var expiredIds = await _dbSet
@@ -232,9 +134,6 @@ namespace Data.Services.Business
                 .ExecuteUpdateAsync(s => s.SetProperty(e => e.Active, true));
         }
 
-        /// <summary>
-        /// Indica si existen contratos activos en una plaza específica.
-        /// </summary>
         public async Task<bool> AnyActiveByPlazaAsync(int plazaId)
         {
             return await _dbSet.AsNoTracking()
@@ -243,6 +142,22 @@ namespace Data.Services.Business
                 .AnyAsync(pl => !pl.IsDeleted &&
                                 !pl.Establishment.IsDeleted &&
                                 pl.Establishment.PlazaId == plazaId);
+        }
+
+
+
+        public async Task<ContractPublicMetricsDto> GetPublicMetricsAsync()
+        {
+            var total = await _context.Contracts.CountAsync();
+            var activos = await _context.Contracts.CountAsync(x => x.Active);
+            var inactivos = total - activos;
+
+            return new ContractPublicMetricsDto
+            {
+                Total = total,
+                Activos = activos,
+                Inactivos = inactivos
+            };
         }
     }
 }

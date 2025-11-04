@@ -9,10 +9,10 @@ namespace Business.Interfaces.Implements.SecurityAuthentication
     {
 
         Task<TokenResponseDto> LoginAsync(LoginDto dto);
-        Task<UserSelectDto> RegisterAsync(RegisterDto dto);
         Task RequestPasswordResetAsync(string email);   
         Task<UserMeDto> BuildUserContextAsync(int userId);
         Task ResetPasswordAsync(ConfirmResetDto dto);
         Task ChangePasswordAsync(ChangePasswordDto dto);
+        Task<RegisterDto> RegisterInternalAsync(RegisterDto dto, CancellationToken ct = default);
     }
 }

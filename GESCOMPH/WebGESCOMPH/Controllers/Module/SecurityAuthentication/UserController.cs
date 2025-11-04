@@ -22,7 +22,7 @@ namespace WebGESCOMPH.Controllers.Module.SecurityAuthentication
 
 
         /// <summary>
-        /// Crea un usuario asociándolo a una persona existente y asigna los roles indicados o el rol por defecto.
+        /// Crea usuario (Persona + Usuario) y asigna rol explícito si se envía; si no, rol por defecto.
         /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(UserSelectDto), StatusCodes.Status201Created)]
@@ -31,11 +31,11 @@ namespace WebGESCOMPH.Controllers.Module.SecurityAuthentication
         public override async Task<ActionResult<UserSelectDto>> Post([FromBody] UserCreateDto dto)
         {
             var created = await _userService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            return Ok(created);
         }
 
         /// <summary>
-        /// Actualiza los datos del usuario, su relación con la persona y reemplaza los roles cuando se envían.
+        /// Actualiza datos de Persona/Usuario y reemplaza roles. Password es opcional.
         /// </summary>
         [HttpPut("{id:int}")]
         [ProducesResponseType(typeof(UserSelectDto), StatusCodes.Status200OK)]
