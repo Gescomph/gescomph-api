@@ -84,6 +84,44 @@ public class ContractPdfServiceTests
     }
 
     [Fact]
+    public void BuildHtml_RendersMonthlyRentAmountInWords()
+    {
+        var dto = new ContractSelectDto
+        {
+            FullName = "Test",
+            Document = "123",
+            StartDate = new DateTime(2025, 1, 1),
+            EndDate = new DateTime(2026, 1, 1),
+            TotalBaseRentAgreed = 5_700_000,
+            TotalUvtQtyAgreed = 38
+        };
+
+        var html = InvokeBuildHtml(dto);
+
+        html.Should().Contain("CINCO MILLONES");
+        html.Should().Contain("PESOS");
+    }
+
+    [Fact]
+    public void BuildHtml_RendersDurationInWords()
+    {
+        var dto = new ContractSelectDto
+        {
+            FullName = "Duración",
+            Document = "999",
+            StartDate = new DateTime(2025, 1, 1),
+            EndDate = new DateTime(2025, 12, 1),
+            TotalBaseRentAgreed = 1_000_000,
+            TotalUvtQtyAgreed = 10
+        };
+
+        var html = InvokeBuildHtml(dto);
+
+        html.Should().Contain("<strong>ONCE</strong> (<strong>11</strong>) MESES");
+        html.Should().Contain("<strong>ONCE</strong> (<strong>11</strong>) MESES,");
+    }
+
+    [Fact]
     public void BuildHtml_UsesDefaultLandlordValues_WhenNullOrEmpty()
     {
         var dto = new ContractSelectDto
