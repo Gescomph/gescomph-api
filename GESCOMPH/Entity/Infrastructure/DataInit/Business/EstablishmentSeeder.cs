@@ -20,8 +20,8 @@ namespace Entity.Infrastructure.DataInit.Business
                     RentValueBase = 4_500_000m,
                     Address = "Cra. 15 # 93-60, Bogotá",
                     UvtQty = 30m,
-                    PlazaId = 1, // Asumiendo que la Plaza con Id 1 ya existe
-                    Active = true,
+                    PlazaId = 1,
+                    Active = false, // Ya está arrendada (PremisesLeased.Id 1 + 4)
                     IsDeleted = false,
                     CreatedAt = seedDate
                 },
@@ -34,8 +34,8 @@ namespace Entity.Infrastructure.DataInit.Business
                     RentValueBase = 3_200_000m,
                     Address = "Av. El Dorado # 69-76, Bogotá",
                     UvtQty = 22m,
-                    PlazaId = 2, // Asumiendo que la Plaza con Id 2 ya existe
-                    Active = true,
+                    PlazaId = 2,
+                    Active = false, // Ya está arrendada (PremisesLeased.Id 2)
                     IsDeleted = false,
                     CreatedAt = seedDate
                 },
@@ -48,8 +48,8 @@ namespace Entity.Infrastructure.DataInit.Business
                     RentValueBase = 6_800_000m,
                     Address = "Cl. 57 Sur # 30-15, Bogotá",
                     UvtQty = 45m,
-                    PlazaId = 1, // Asumiendo que la Plaza con Id 1 ya existe
-                    Active = true,
+                    PlazaId = 1,
+                    Active = false, // Histórica (PremisesLeased.Id 3)
                     IsDeleted = false,
                     CreatedAt = seedDate
                 },
@@ -77,7 +77,7 @@ namespace Entity.Infrastructure.DataInit.Business
                     Address = "Centro Comercial Primavera, pasillo central",
                     UvtQty = 8m,
                     PlazaId = 1,
-                    Active = true,
+                    Active = false, // Arrendada en el contrato activo (PremisesLeased.Id 4)
                     IsDeleted = false,
                     CreatedAt = seedDate
                 },
@@ -91,7 +91,7 @@ namespace Entity.Infrastructure.DataInit.Business
                     Address = "Av. El Dorado # 69-76, Bogotá",
                     UvtQty = 26m,
                     PlazaId = 2,
-                    Active = true,
+                    Active = false, // Arrendada en el contrato activo (PremisesLeased.Id 5)
                     IsDeleted = false,
                     CreatedAt = seedDate
                 }

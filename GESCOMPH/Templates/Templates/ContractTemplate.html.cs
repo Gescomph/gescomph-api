@@ -1,4 +1,4 @@
-﻿namespace Templates.Templates
+namespace Templates.Templates
 {
     public static class ContractTemplate
     {
@@ -8,72 +8,18 @@
 <head>
   <meta charset=""UTF-8"">
   <style>
-    /* Configuración de página y estilo general */
-    @page { size: Letter; margin: 15mm 20mm; }
-    body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #000; margin: 0; padding: 0; }
-    
-    /* Header con logo y banner */
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      position: relative;
+    /* Configuración de página y estilo general.
+       El margen superior/izq/der/inf lo controla PagePdfOptions.Margin en C# */
+    @page { size: Letter; }
+    body { 
+      font-family: Arial, sans-serif; 
+      font-size: 11pt; 
+      line-height: 1.4; 
+      color: #000; 
+      margin: 0; 
+      padding: 0; 
     }
-    
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      flex: 1;
-    }
-    
-    .logo {
-      width: 80px;
-      height: auto;
-    }
-    
-    .header-text {
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .header-title {
-      font-size: 14pt;
-      color: #2c5f8d;
-      font-weight: bold;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .header-subtitle {
-      font-size: 18pt;
-      color: #2c5f8d;
-      font-weight: bold;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .header-nit {
-      font-size: 10pt;
-      color: #333;
-      margin: 2px 0 0 0;
-    }
-    
-    .header-right {
-      text-align: right;
-      font-size: 9pt;
-      line-height: 1.3;
-    }
-    
-    .wave-banner {
-      width: 100%;
-      height: 40px;
-      background: linear-gradient(90deg, #a8d5a8 0%, #fff9b3 50%, #ffd9a8 100%);
-      border-radius: 0 0 50% 50% / 0 0 100% 100%;
-      margin-bottom: 15px;
-    }
-    
+
     /* Título del contrato */
     .contract-title {
       text-align: center;
@@ -137,32 +83,10 @@
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <div class=""header"">
-    <div class=""header-left"">
-      <img src=""data:image/png;base64,{{LOGO_BASE64}}"" alt=""Logo Palermo"" class=""logo"" />
-      <div class=""header-text"">
-        <div class=""header-title"">Alcaldía Municipal de</div>
-        <div class=""header-subtitle"">PALERMO</div>
-        <div class=""header-nit"">NIT: 891.180.021-9</div>
-      </div>
-    </div>
-    <div class=""header-right"">
-      <strong>COMUNICACIÓN</strong><br />
-      <strong>OFICIAL DESPACHADA</strong><br />
-      Codigo: FOR -GP-05<br />
-      Versión:05<br />
-      Fecha: 02-04-2024<br />
-      Página No. 1
-    </div>
-  </div>
-  
-  <!-- Wave banner -->
-  <div class=""wave-banner""></div>
-  
+
   <!-- Título del contrato -->
-  <div class=""contract-title"">Contrato de Arrendamiento Nº @Model.ContractNumber de @Model.ContractYear</div>
-  <div class=""contract-subtitle"">@Model.PremisesLeased[0].EstablishmentName, @Model.PremisesLeased[0].PlazaName</div>
+  <div class=""contract-title"">Contrato de Arrendamiento Nº {{ ContractNumber }} de {{ ContractYear }}</div>
+  <div class=""contract-subtitle"">{{ PremisesLeased[0].EstablishmentName }}, {{ PremisesLeased[0].PlazaName }}</div>
   
   <!-- Tabla de información principal -->
   <table class=""info-table"">
@@ -175,50 +99,55 @@
     <tr>
       <td class=""label-cell"">ARRENDATARIO(A):</td>
       <td class=""value-cell"">
-        <strong>@Model.FullName</strong> identificado con cédula de ciudadanía No. @Model.Document<br />
-        Dirección: @Model.Address<br />
-        Teléfono: @Model.Phone<br />
-        Email: @Model.Email
+        <strong>{{ FullName }}</strong> identificado con cédula de ciudadanía No. {{ Document }}<br />
+        Dirección: {{ Address }}<br />
+        Teléfono: {{ Phone }}<br />
+        Email: {{ Email }}
       </td>
     </tr>
     <tr>
       <td class=""label-cell"">OBJETO:</td>
       <td class=""value-cell"">
-        Arrendamiento de <strong>@Model.PremisesLeased[0].EstablishmentName</strong> ubicado en @Model.PremisesLeased[0].Address de la <strong>@Model.PremisesLeased[0].PlazaName</strong>
+        Arrendamiento de <strong>{{ PremisesLeased[0].EstablishmentName }}</strong> ubicado en {{ PremisesLeased[0].Address }} de la <strong>{{ PremisesLeased[0].PlazaName }}</strong>
       </td>
     </tr>
+
     <tr>
-      <td class=""label-cell"">VALOR DEL CANON DE ARRENDAMIENTO:</td>
-      <td class=""value-cell"">
-        <strong>@Model.MonthlyRentAmount</strong> PESOS (@Model.MonthlyRentAmount) M/CTE correspondiente a @Model.UVTValue U.V.T. vigente conforme al año @Model.ContractYear Por los locales, más I.V.A. El valor se ajustará anualmente al U.V.T.
-      </td>
+        <td class=""label-cell"">VALOR DEL CANON DE ARRENDAMIENTO:</td>
+        <td class=""value-cell"">
+        <strong>{{ MonthlyRentAmountWords }}</strong>
+        <strong>({{ MonthlyRentAmount }} PESOS)</strong> M/CTE
+        correspondiente a <strong>{{ UVTValue }}</strong> U.V.T. vigente conforme al año {{ ContractYear }}
+        por los locales, más I.V.A. El valor se ajustará anualmente al U.V.T.
+        </td>
     </tr>
+
     <tr>
       <td class=""label-cell"">TÉRMINO /DURACIÓN DEL CONTRATO:</td>
-      <td class=""value-cell""><strong>@Model.DurationMonths MESES</strong></td>
+      <td class=""value-cell""><strong>{{ DurationMonthsWords }}</strong> (<strong>{{ DurationMonths }}</strong>) MESES</td>
     </tr>
     <tr>
       <td class=""label-cell"">FECHA DE INICIO DEL CONTRATO:</td>
-      <td class=""value-cell""><strong>@Model.StartDate.ToString(""dd/MM/yyyy"")</strong></td>
+      <td class=""value-cell""><strong>{{ StartDate }}</strong></td>
     </tr>
   </table>
 
   <!-- Contenido del contrato -->
-  <p>Entre los suscritos a saber: por una parte el <strong>MUNICIPIO DE PALERMO (H)</strong>, identificado con NIT <strong>891.180.021-9</strong>, representado legalmente por <strong>KLEYVER OVIEDO FARFAN</strong>, identificado con cédula de ciudadanía No. <strong>7.717.624</strong>, en calidad de <strong>Alcalde Municipal</strong>, quien en adelante se denominará EL ARRENDADOR; y por otra parte <strong>@Model.FullName</strong>, identificado(a) con cédula de ciudadanía No. <strong>@Model.Document</strong>, en adelante EL ARRENDATARIO; se celebra el presente contrato de arrendamiento que se regirá por las siguientes estipulaciones:</p>
+  <p>Entre los suscritos a saber: por una parte el <strong>MUNICIPIO DE PALERMO (H)</strong>, identificado con NIT <strong>891.180.021-9</strong>, representado legalmente por <strong>KLEYVER OVIEDO FARFAN</strong>, identificado con cédula de ciudadanía No. <strong>7.717.624</strong>, en calidad de <strong>Alcalde Municipal</strong>, quien en adelante se denominará EL ARRENDADOR; y por otra parte <strong>{{ FullName }}</strong>, identificado(a) con cédula de ciudadanía No. <strong>{{ Document }}</strong>, en adelante EL ARRENDATARIO; se celebra el presente contrato de arrendamiento que se regirá por las siguientes estipulaciones:</p>
 
   <div class=""section"">
     <h2>Primera: Objeto</h2>
-    <p>EL ARRENDADOR da en arrendamiento a EL ARRENDATARIO el inmueble/local denominado <strong>@Model.PremisesLeased[0].EstablishmentName</strong>, ubicado en <strong>@Model.PremisesLeased[0].Address</strong>, con un área aproximada de <strong>@Model.PremisesLeased[0].AreaM2</strong> m², perteneciente a la plaza <strong>@Model.PremisesLeased[0].PlazaName</strong>. El local se destinará exclusivamente a las actividades comerciales permitidas por el reglamento del centro comercial y la normatividad vigente.</p>
+    <p>EL ARRENDADOR da en arrendamiento a EL ARRENDATARIO el inmueble/local denominado <strong>{{ PremisesLeased[0].EstablishmentName }}</strong>, ubicado en <strong>{{ PremisesLeased[0].Address }}</strong>, con un área aproximada de <strong>{{ PremisesLeased[0].AreaM2 }}</strong> m², perteneciente a la plaza <strong>{{ PremisesLeased[0].PlazaName }}</strong>. El local se destinará exclusivamente a las actividades comerciales permitidas por el reglamento del centro comercial y la normatividad vigente.</p>
   </div>
 
   <div class=""section"">
     <h2>Segunda: Canon de Arrendamiento y Pagos</h2>
-    <p>El canon mensual de arrendamiento será de <strong>@Model.MonthlyRentAmount PESOS</strong> (@Model.MonthlyRentAmountWords) más IVA cuando aplique. El pago se efectuará por mensualidades vencidas en los medios de pago autorizados por EL ARRENDADOR. La mora causará intereses a la tasa máxima legal permitida.</p>
+    <p>El canon mensual de arrendamiento será de <strong>{{ MonthlyRentAmountWords }}</strong> (<strong>{{ MonthlyRentAmount }} PESOS</strong>) más IVA cuando aplique. El pago se efectuará por mensualidades vencidas en los medios de pago autorizados por EL ARRENDADOR. La mora causará intereses a la tasa máxima legal permitida.</p>
   </div>
 
   <div class=""section"">
     <h2>Tercera: Plazo</h2>
-    <p>El contrato tendrá vigencia de <strong>@Model.DurationMonths MESES</strong>, desde el <strong>@Model.StartDate.ToString(""dd/MM/yyyy"")</strong> hasta el <strong>@Model.EndDate.ToString(""dd/MM/yyyy"")</strong>. Podrá renovarse por períodos iguales salvo preaviso en los términos pactados entre las partes.</p>
+    <p>El contrato tendrá vigencia de <strong>{{ DurationMonthsWords }}</strong> (<strong>{{ DurationMonths }}</strong>) MESES, desde el <strong>{{ StartDate }}</strong> hasta el <strong>{{ EndDate }}</strong>. Podrá renovarse por períodos iguales salvo preaviso en los términos pactados entre las partes.</p>
   </div>
 
   <div class=""section"">
@@ -259,10 +188,11 @@
   <div class=""section"">
     <h2>Cláusulas Especiales</h2>
     <ul>
-      {{CLAUSES}}
+      {% for c in Clauses %}
+        <li>{{ c.Description }}</li>
+      {% endfor %}
     </ul>
   </div>
-
 
   <div class=""signature-section"">
     <div class=""signature"">
@@ -276,10 +206,11 @@
     <div class=""signature"">
       <div class=""signature-line""></div><br />
       <strong>EL ARRENDATARIO</strong><br />
-      @Model.FullName<br />
-      CC @Model.Document
+      {{ FullName }}<br />
+      CC {{ Document }}
     </div>
   </div>
+
 </body>
 </html>";
     }
