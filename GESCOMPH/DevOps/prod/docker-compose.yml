@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  # 🌐 API principal - PROD
+  gescomph-api-prod:
+    container_name: gescomph-api-prod
+    build:
+      context: ../..
+      dockerfile: WebGESCOMPH/Dockerfile
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5103:8080"
+    networks:
+      - gescomph_network
+    labels:
+      - com.gescomph.environment=prod
+
+volumes:
+  sqldata_prod:
+
+networks:
+  gescomph_network:
+    external: true
+
