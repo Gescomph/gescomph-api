@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  # 🌐 API principal - STAGING
+  gescomph-api-staging:
+    container_name: gescomph-api-staging
+    build:
+      context: ../..
+      dockerfile: WebGESCOMPH/Dockerfile
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5102:8080"
+    networks:
+      - gescomph_network
+    labels:
+      - com.gescomph.environment=staging
+networks:
+  gescomph_network:
+    external: true
+

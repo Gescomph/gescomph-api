@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  # 🌐 API principal - QA
+  gescomph-api-qa:
+    container_name: gescomph-api-qa
+    build:
+      context: ../..
+      dockerfile: WebGESCOMPH/Dockerfile
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5101:8080"
+    networks:
+      - gescomph_network
+    labels:
+      - com.gescomph.environment=qa
+
+networks:
+  gescomph_network:
+    external: true
+
