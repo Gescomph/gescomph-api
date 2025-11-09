@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+  # 🗄️ SQL Server - DEVELOP
+  gescomph-sqlserver-develop:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gescomph-sqlserver-develop
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Admin123!"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1438:1433"
+    volumes:
+      - sqldata_develop:/var/opt/mssql
+    networks:
+      - gescomph_network
+
+  # 🗄️ SQL Server - QA
+  gescomph-sqlserver-qa:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gescomph-sqlserver-qa
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Admin123!"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1436:1433"
+    volumes:
+      - sqldata_qa:/var/opt/mssql
+    networks:
+      - gescomph_network
+
+  # 🗄️ SQL Server - STAGING
+  gescomph-sqlserver-staging:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gescomph-sqlserver-staging
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Admin123!"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1437:1433"
+    volumes:
+      - sqldata_staging:/var/opt/mssql
+    networks:
+      - gescomph_network
+
+  # 🗄️ SQL Server - PROD
+  gescomph-sqlserver-prod:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gescomph-sqlserver-prod
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Admin123!"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1435:1433"
+    volumes:
+      - sqldata_prod:/var/opt/mssql
+    networks:
+      - gescomph_network
+
+volumes:
+  sqldata_develop:
+  sqldata_qa:
+  sqldata_staging:
+  sqldata_prod:
+
+networks:
+  gescomph_network:
+    name: gescomph_network
+    driver: bridge
+    external: false
