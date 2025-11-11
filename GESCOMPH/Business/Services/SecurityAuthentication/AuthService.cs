@@ -1,4 +1,5 @@
 using Business.Interfaces;
+using Business.Interfaces.Implements.AdministrationSystem;
 using Business.Interfaces.Implements.SecurityAuthentication;
 using Data.Interfaz.IDataImplement.Persons;
 using Data.Interfaz.IDataImplement.SecurityAuthentication;
@@ -8,6 +9,7 @@ using Entity.DTOs.Implements.SecurityAuthentication.Auth;
 using Entity.DTOs.Implements.SecurityAuthentication.Auth.RestPasword;
 using Entity.DTOs.Implements.SecurityAuthentication.Me;
 using Entity.DTOs.Implements.SecurityAuthentication.User;
+using Entity.DTOs.Implements.Utilities;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -17,6 +19,7 @@ using Utilities.Helpers.Business;
 using Utilities.Helpers.GeneratePassword;
 using Utilities.Messaging.Interfaces;
 using System.Security.Cryptography;
+using Entity.Enum;
 
 namespace Business.Services.SecurityAuthentication
 {
@@ -37,7 +40,8 @@ namespace Business.Services.SecurityAuthentication
         IUserContextService userContextService,
         IPersonRepository personRepository,
         IToken tokenService,
-        IUnitOfWork uow
+        IUnitOfWork uow,
+        INotificationService notificationService
     ) : IAuthService
     {
         private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
@@ -53,6 +57,7 @@ namespace Business.Services.SecurityAuthentication
         private readonly IPersonRepository _personRepository = personRepository;
         private readonly IToken _tokenService = tokenService;
         private readonly IUnitOfWork _uow = uow;
+        private readonly INotificationService _notificationService = notificationService;
 
 
         public async Task<LoginResultDto> LoginAsync(LoginDto dto)
@@ -207,6 +212,28 @@ namespace Business.Services.SecurityAuthentication
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Error al enviar correo de bienvenida a {Email}", dto.Email);
+                }
+            });
+
+            _uow.RegisterPostCommit(async _ =>
+            {
+                try
+                {
+                    var notificationDto = new NotificationCreateDto
+                    {
+                        Title = "Bienvenido a GESCOMPH",
+                        Message = $"Hola {dto.FirstName} {dto.LastName}, tu cuenta quedó creada correctamente.",
+                        Type = NotificationType.System,
+                        Priority = NotificationPriority.Info,
+                        RecipientUserId = user.Id,
+                        ActionRoute = "/"
+                    };
+
+                    await _notificationService.CreateAsync(notificationDto);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error al crear notificación de bienvenida para {Email}", dto.Email);
                 }
             });
 

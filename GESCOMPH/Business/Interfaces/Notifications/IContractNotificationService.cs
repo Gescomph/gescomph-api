@@ -25,6 +25,16 @@
         Task NotifyContractCreated(int contractId, int personId);
 
         /// <summary>
+        /// Envía una notificación cuando un contrato está próximo a vencer.
+        /// </summary>
+        /// <param name="contractId">Identificador del contrato vigente.</param>
+        /// <param name="personId">Identificador de la persona arrendataria.</param>
+        /// <remarks>
+        /// Este evento permite que el frontend muestre alertas o paneles con los contratos que vencen próximamente.
+        /// </remarks>
+        Task NotifyContractExpiring(int contractId, int personId);
+
+        /// <summary>
         /// Envía una notificación cuando un contrato ha expirado.
         /// </summary>
         /// <param name="contractId">Identificador único del contrato expirado.</param>

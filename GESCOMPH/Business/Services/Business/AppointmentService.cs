@@ -95,7 +95,7 @@ namespace Business.Services.Business
                     if (registeredUser == null || registeredUser.PersonId <= 0)
                         throw new BusinessException("El registro de usuario no devolvió un PersonId válido.");
 
-                    personId = registeredUser.PersonId;
+                    personId = registeredUser.PersonId.Value;
                 }
                 else
                 {

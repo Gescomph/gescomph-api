@@ -1,5 +1,6 @@
 using WebGESCOMPH.RealTime;
 using WebGESCOMPH.RealTime.Contract;
+using WebGESCOMPH.RealTime.Notifications;
 using WebGESCOMPH.RealTime.Security;
 
 namespace WebGESCOMPH.Extensions.RealTime
@@ -32,6 +33,7 @@ namespace WebGESCOMPH.Extensions.RealTime
         {
             endpoints.MapHub<ContractsHub>("/api/hubs/contracts");
             endpoints.MapHub<SecurityHub>("/api/hubs/security");
+            endpoints.MapHub<NotificationsHub>("/api/hubs/notifications");
             return endpoints;
         }
     }

@@ -46,6 +46,8 @@ namespace Entity.Infrastructure.Context
         public DbSet<Form> Forms { get; set; }
         public DbSet<FormModule> FormModules { get; set; }
         public DbSet<Domain.Models.Implements.AdministrationSystem.Module> Modules { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+
 
         // ==========================
         //       Personas

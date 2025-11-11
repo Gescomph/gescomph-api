@@ -37,6 +37,13 @@ namespace Data.Services.Business
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Contract>> GetExpiringContractsAsync(DateTime fromUtc, DateTime toUtc)
+        {
+            return await GetContractFullQuery()
+                .Where(c => !c.IsDeleted && c.Active && c.EndDate >= fromUtc && c.EndDate <= toUtc)
+                .ToListAsync();
+        }
+
         public override async Task<IEnumerable<Contract>> GetAllAsync()
         {
             return await GetContractFullQuery()

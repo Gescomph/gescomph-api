@@ -1,5 +1,6 @@
 using Business.Interfaces.Notifications;
 using WebGESCOMPH.RealTime;
+using WebGESCOMPH.RealTime.Notifications;
 
 namespace WebGESCOMPH.Extensions.Modules.Notifications
 {
@@ -15,6 +16,7 @@ namespace WebGESCOMPH.Extensions.Modules.Notifications
         {
             services.AddScoped<IContractNotificationService, SignalRContractNotificationService>();
             services.AddScoped<IPermissionsNotificationService, SignalRPermissionsNotificationService>();
+            services.AddScoped<INotificationRealtimeService, SignalRNotificationRealtimeService>();
             return services;
         }
     }
