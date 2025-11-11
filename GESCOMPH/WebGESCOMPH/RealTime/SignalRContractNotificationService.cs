@@ -51,6 +51,15 @@ namespace WebGESCOMPH.RealTime
         }
 
         /// <summary>
+        /// Notifica que un contrato está por expirar para que la interfaz pueda mostrar alertas.
+        /// </summary>
+        public async Task NotifyContractExpiring(int contractId, int personId)
+        {
+            await _hubContext.Clients.Group($"tenant-{personId}")
+                .SendAsync("contracts:mutated", new { type = "expiring", id = contractId, at = DateTime.UtcNow });
+        }
+
+        /// <summary>
         /// Notifica que un contrato ha expirado, informando tanto 
         /// a los administradores como al arrendador correspondiente.
         /// </summary>

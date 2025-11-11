@@ -12,6 +12,7 @@ namespace Entity.DTOs.Implements.SecurityAuthentication.Auth
         public string Address { get; set; } = null!;
         public int CityId { get; set; }
 
+        public int? PersonId { get; set; }
         public ICollection<int>? RoleIds { get; set; }
     }
 }

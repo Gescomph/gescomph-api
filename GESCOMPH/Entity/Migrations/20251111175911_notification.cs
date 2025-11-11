@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Entity.Migrations
 {
     /// <inheritdoc />
-    public partial class sqlServer : Migration
+    public partial class notification : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -409,6 +409,7 @@ namespace Entity.Migrations
                     Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     Password = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     PersonId = table.Column<int>(type: "int", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
                     Active = table.Column<bool>(type: "bit", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -519,6 +520,36 @@ namespace Entity.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    Priority = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    RecipientUserId = table.Column<int>(type: "int", nullable: false),
+                    ActionRoute = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReadAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Active = table.Column<bool>(type: "bit", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Notifications_Users_RecipientUserId",
+                        column: x => x.RecipientUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "RefreshToken",
                 columns: table => new
                 {
@@ -565,6 +596,32 @@ namespace Entity.Migrations
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_RolUsers_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TwoFactorCodes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsUsed = table.Column<bool>(type: "bit", nullable: false),
+                    UsedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Active = table.Column<bool>(type: "bit", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TwoFactorCodes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TwoFactorCodes_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -790,12 +847,12 @@ namespace Entity.Migrations
                 columns: new[] { "Id", "Active", "Address", "AreaM2", "CreatedAt", "Description", "IsDeleted", "Name", "PlazaId", "RentValueBase", "UvtQty" },
                 values: new object[,]
                 {
-                    { 1, true, "Cra. 15 # 93-60, Bogotá", 120m, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Local comercial en centro urbano con alto flujo peatonal.", false, "Centro Comercial Primavera", 1, 4500000m, 30m },
-                    { 2, true, "Av. El Dorado # 69-76, Bogotá", 85m, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Oficina empresarial con vista y sala de reuniones.", false, "Oficina Torre Norte Piso 7", 2, 3200000m, 22m },
-                    { 3, true, "Cl. 57 Sur # 30-15, Bogotá", 750m, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Bodega con muelle de carga y altura de 8m.", false, "Bodega Industrial Sur", 1, 6800000m, 45m },
+                    { 1, false, "Cra. 15 # 93-60, Bogotá", 120m, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Local comercial en centro urbano con alto flujo peatonal.", false, "Centro Comercial Primavera", 1, 4500000m, 30m },
+                    { 2, false, "Av. El Dorado # 69-76, Bogotá", 85m, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Oficina empresarial con vista y sala de reuniones.", false, "Oficina Torre Norte Piso 7", 2, 3200000m, 22m },
+                    { 3, false, "Cl. 57 Sur # 30-15, Bogotá", 750m, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Bodega con muelle de carga y altura de 8m.", false, "Bodega Industrial Sur", 1, 6800000m, 45m },
                     { 4, true, "Cra. 5 # 69A-19, Bogotá", 95m, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Espacio para restaurante con extracción y bodega.", false, "Local Gastronómico Zona G", 1, 5200000m, 35m },
-                    { 5, true, "Centro Comercial Primavera, pasillo central", 12m, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Isla en pasillo principal, ideal retail liviano.", false, "Isla Comercial Pasillo Central", 1, 1200000m, 8m },
-                    { 6, true, "Av. El Dorado # 69-76, Bogotá", 110m, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Oficina abierta con 2 parqueaderos y cableado estructurado.", false, "Oficina Torre Norte Piso 12", 2, 3900000m, 26m }
+                    { 5, false, "Centro Comercial Primavera, pasillo central", 12m, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Isla en pasillo principal, ideal retail liviano.", false, "Isla Comercial Pasillo Central", 1, 1200000m, 8m },
+                    { 6, false, "Av. El Dorado # 69-76, Bogotá", 110m, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Oficina abierta con 2 parqueaderos y cableado estructurado.", false, "Oficina Torre Norte Piso 12", 2, 3900000m, 26m }
                 });
 
             migrationBuilder.InsertData(
@@ -902,11 +959,11 @@ namespace Entity.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "Active", "CreatedAt", "Email", "IsDeleted", "Password", "PersonId" },
+                columns: new[] { "Id", "Active", "CreatedAt", "Email", "IsDeleted", "Password", "PersonId", "TwoFactorEnabled" },
                 values: new object[,]
                 {
-                    { 1, true, new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@gescomph.com", false, "AQAAAAEAACcQAAAAEK1QvWufDHBzB3acG5GKxdQTabH8BhbyLLyyZHo4WoOEvRYijXcOtRqsb3OeOpoGqw==", 1 },
-                    { 2, true, new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Utc), "usuario@gescomph.com", false, "AQAAAAIAAYagAAAAEGNtpwDVV/mpIlUqi5xrPjpvzCejMXq142erkCJONaKJSiXb73eZm1tPxzj+2RvBXw==", 2 }
+                    { 1, true, new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@gescomph.com", false, "AQAAAAEAACcQAAAAEK1QvWufDHBzB3acG5GKxdQTabH8BhbyLLyyZHo4WoOEvRYijXcOtRqsb3OeOpoGqw==", 1, false },
+                    { 2, true, new DateTime(2025, 9, 1, 0, 0, 0, 0, DateTimeKind.Utc), "usuario@gescomph.com", false, "AQAAAAIAAYagAAAAEGNtpwDVV/mpIlUqi5xrPjpvzCejMXq142erkCJONaKJSiXb73eZm1tPxzj+2RvBXw==", 2, false }
                 });
 
             migrationBuilder.InsertData(
@@ -1042,6 +1099,11 @@ namespace Entity.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Notifications_RecipientUserId",
+                table: "Notifications",
+                column: "RecipientUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ObligationMonths_ContractId_Year_Month",
                 table: "ObligationMonths",
                 columns: new[] { "ContractId", "Year", "Month" },
@@ -1156,6 +1218,11 @@ namespace Entity.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_TwoFactorCodes_UserId",
+                table: "TwoFactorCodes",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_CreatedAt_Id",
                 table: "Users",
                 columns: new[] { "CreatedAt", "Id" },
@@ -1190,6 +1257,9 @@ namespace Entity.Migrations
                 name: "Images");
 
             migrationBuilder.DropTable(
+                name: "Notifications");
+
+            migrationBuilder.DropTable(
                 name: "ObligationMonths");
 
             migrationBuilder.DropTable(
@@ -1209,6 +1279,9 @@ namespace Entity.Migrations
 
             migrationBuilder.DropTable(
                 name: "SystemParameters");
+
+            migrationBuilder.DropTable(
+                name: "TwoFactorCodes");
 
             migrationBuilder.DropTable(
                 name: "Clauses");

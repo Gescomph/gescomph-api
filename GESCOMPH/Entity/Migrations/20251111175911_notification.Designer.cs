@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Entity.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251102010358_sqlServer")]
-    partial class sqlServer
+    [Migration("20251111175911_notification")]
+    partial class notification
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -466,6 +466,59 @@ namespace Entity.Migrations
                             IsDeleted = false,
                             Name = "Configuración"
                         });
+                });
+
+            modelBuilder.Entity("Entity.Domain.Models.Implements.AdministrationSystem.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActionRoute")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RecipientUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipientUserId");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("Entity.Domain.Models.Implements.AdministrationSystem.SystemParameter", b =>
@@ -1124,7 +1177,7 @@ namespace Entity.Migrations
                         new
                         {
                             Id = 1,
-                            Active = true,
+                            Active = false,
                             Address = "Cra. 15 # 93-60, Bogotá",
                             AreaM2 = 120m,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -1138,7 +1191,7 @@ namespace Entity.Migrations
                         new
                         {
                             Id = 2,
-                            Active = true,
+                            Active = false,
                             Address = "Av. El Dorado # 69-76, Bogotá",
                             AreaM2 = 85m,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -1152,7 +1205,7 @@ namespace Entity.Migrations
                         new
                         {
                             Id = 3,
-                            Active = true,
+                            Active = false,
                             Address = "Cl. 57 Sur # 30-15, Bogotá",
                             AreaM2 = 750m,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -1180,7 +1233,7 @@ namespace Entity.Migrations
                         new
                         {
                             Id = 5,
-                            Active = true,
+                            Active = false,
                             Address = "Centro Comercial Primavera, pasillo central",
                             AreaM2 = 12m,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -1194,7 +1247,7 @@ namespace Entity.Migrations
                         new
                         {
                             Id = 6,
-                            Active = true,
+                            Active = false,
                             Address = "Av. El Dorado # 69-76, Bogotá",
                             AreaM2 = 110m,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -3048,6 +3101,46 @@ namespace Entity.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Entity.Domain.Models.Implements.SecurityAuthentication.TwoFactorCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("TwoFactorCodes");
+                });
+
             modelBuilder.Entity("Entity.Domain.Models.Implements.SecurityAuthentication.User", b =>
                 {
                     b.Property<int>("Id")
@@ -3078,6 +3171,9 @@ namespace Entity.Migrations
                     b.Property<int>("PersonId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
@@ -3100,7 +3196,8 @@ namespace Entity.Migrations
                             Email = "admin@gescomph.com",
                             IsDeleted = false,
                             Password = "AQAAAAEAACcQAAAAEK1QvWufDHBzB3acG5GKxdQTabH8BhbyLLyyZHo4WoOEvRYijXcOtRqsb3OeOpoGqw==",
-                            PersonId = 1
+                            PersonId = 1,
+                            TwoFactorEnabled = false
                         },
                         new
                         {
@@ -3110,7 +3207,8 @@ namespace Entity.Migrations
                             Email = "usuario@gescomph.com",
                             IsDeleted = false,
                             Password = "AQAAAAIAAYagAAAAEGNtpwDVV/mpIlUqi5xrPjpvzCejMXq142erkCJONaKJSiXb73eZm1tPxzj+2RvBXw==",
-                            PersonId = 2
+                            PersonId = 2,
+                            TwoFactorEnabled = false
                         });
                 });
 
@@ -3329,6 +3427,17 @@ namespace Entity.Migrations
                     b.Navigation("Module");
                 });
 
+            modelBuilder.Entity("Entity.Domain.Models.Implements.AdministrationSystem.Notification", b =>
+                {
+                    b.HasOne("Entity.Domain.Models.Implements.SecurityAuthentication.User", "RecipientUser")
+                        .WithMany()
+                        .HasForeignKey("RecipientUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RecipientUser");
+                });
+
             modelBuilder.Entity("Entity.Domain.Models.Implements.Business.Appointment", b =>
                 {
                     b.HasOne("Entity.Domain.Models.Implements.Business.Establishment", "Establishment")
@@ -3498,6 +3607,17 @@ namespace Entity.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Entity.Domain.Models.Implements.SecurityAuthentication.TwoFactorCode", b =>
+                {
+                    b.HasOne("Entity.Domain.Models.Implements.SecurityAuthentication.User", "User")
+                        .WithMany("TwoFactorCodes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Entity.Domain.Models.Implements.SecurityAuthentication.User", b =>
                 {
                     b.HasOne("Entity.Domain.Models.Implements.Persons.Person", "Person")
@@ -3586,6 +3706,8 @@ namespace Entity.Migrations
             modelBuilder.Entity("Entity.Domain.Models.Implements.SecurityAuthentication.User", b =>
                 {
                     b.Navigation("RolUsers");
+
+                    b.Navigation("TwoFactorCodes");
                 });
 #pragma warning restore 612, 618
         }

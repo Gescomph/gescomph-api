@@ -13,6 +13,8 @@ namespace Data.Interfaz.IDataImplement.Business
         Task<IEnumerable<int>> DeactivateExpiredAsync(DateTime utcNow);
         Task<int> ReleaseEstablishmentsForExpiredAsync(DateTime utcNow);
 
+        Task<IEnumerable<Contract>> GetExpiringContractsAsync(DateTime fromUtc, DateTime toUtc);
+
         // Validación de negocio
         Task<bool> AnyActiveByPlazaAsync(int plazaId);
 

@@ -3,19 +3,18 @@ using Business.Interfaces;
 using Business.Interfaces.Implements.Business;
 using Business.Interfaces.Implements.Persons;
 using Business.Interfaces.Implements.SecurityAuthentication;
+using Business.Interfaces.Notifications;
 using Business.Interfaces.PDF;
 using Business.Services.Business;
 using Data.Interfaz.IDataImplement.Business;
+using Data.Interfaz.IDataImplement.AdministrationSystem;
 using Entity.DTOs.Implements.Business.Contract;
 using Entity.DTOs.Implements.Business.ObligationMonth;
-using Entity.Infrastructure.Context;
 using MapsterMapper;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Utilities.Exceptions;
 using Utilities.Messaging.Interfaces;
@@ -29,39 +28,39 @@ namespace Test.Modulo.Business
         private readonly Mock<IObligationMonthService> _obligationSvc = new();
         private readonly Mock<IPersonService> _personSvc = new();
         private readonly Mock<IEstablishmentService> _estSvc = new();
-        private readonly Mock<IUserService> _userSvc = new();
+        private readonly Mock<IAuthService> _authService = new();
         private readonly Mock<ISendCode> _email = new();
         private readonly Mock<IMapper> _mapper = new();
         private readonly Mock<ICurrentUser> _currentUser = new();
         private readonly Mock<IUserContextService> _userCtx = new();
         private readonly Mock<IContractPdfGeneratorService> _contractPdfService = new();
+        private readonly Mock<IContractNotificationService> _contractNotificationService = new();
+        private readonly Mock<INotificationService> _notificationService = new();
+        private readonly Mock<INotificationRepository> _notificationRepository = new();
         private readonly Mock<IUnitOfWork> _uow = new();
         private readonly Mock<ILogger<ContractService>> _logger = new();
-        private readonly ApplicationDbContext _ctx;
         private readonly ContractService _service;
 
         private readonly DateTime _fixedDate = new DateTime(2025, 9, 18);
 
         public ContractServiceTests()
         {
-            var opt = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
-            _ctx = new ApplicationDbContext(opt);
-
             _service = new ContractService(
                 _contracts.Object,
                 _personSvc.Object,
                 _estSvc.Object,
-                _userSvc.Object,
-                _mapper.Object,
+                _authService.Object,
                 _email.Object,
-                _ctx,
                 _currentUser.Object,
                 _obligationSvc.Object,
                 _userCtx.Object,
                 _contractPdfService.Object,
+                _contractNotificationService.Object,
+                _notificationService.Object,
+                _notificationRepository.Object,
                 _uow.Object,
-                _logger.Object);
+                _logger.Object,
+                _mapper.Object);
         }
 
         [Fact]
@@ -149,7 +148,7 @@ namespace Test.Modulo.Business
             _contracts.Setup(r => r.ReleaseEstablishmentsForExpiredAsync(It.IsAny<DateTime>()))
                 .ReturnsAsync(3);
 
-            var result = await _service.RunExpirationSweepAsync(CancellationToken.None);
+            var result = await _service.RunExpirationSweepAsync();
 
             Assert.Equal(2, result.DeactivatedContractIds.Count);
             Assert.Equal(3, result.ReactivatedEstablishments);
