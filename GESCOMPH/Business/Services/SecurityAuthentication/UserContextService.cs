@@ -99,6 +99,7 @@ namespace Business.Services.SecurityAuthentication
                              .Where(s => !string.IsNullOrWhiteSpace(s))).Trim(),
                 Email = user.Email,
                 Roles = roleNames,
+                TwoFactorEnabled = user.TwoFactorEnabled,
                 Menu = modules
             };
 
