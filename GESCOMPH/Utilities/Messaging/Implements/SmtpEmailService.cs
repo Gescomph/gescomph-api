@@ -256,6 +256,49 @@ namespace Utilities.Messaging.Implements
                 throw;
             }
         }
+
+        public async Task SendPaymentReminderAsync(string email, string fullName, DateTime dueDate, decimal totalAmount)
+        {
+            EnsureValidEmail(email, nameof(email));
+
+            var formattedDate = dueDate.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-CO"));
+            var formattedValue = totalAmount.ToString("N0", new System.Globalization.CultureInfo("es-CO"));
+
+            var content = $@"
+                <p>Hola <strong>{(fullName ?? "arrendatario")}</strong>,</p>
+                <p>Te recordamos que tu <strong>canon de arrendamiento</strong> vence el <strong>{formattedDate}</strong>.</p>
+                <div style='background:#f1f5f9; border-left:4px solid {BrandAccent}; padding:16px; margin:16px 0; border-radius:6px;'>
+                    <p style='margin:0; font-weight:600; color:{BrandText};'>💰 Valor a pagar: ${formattedValue} COP</p>
+                </div>
+                <p>Por favor realiza el pago antes de la fecha de vencimiento para evitar intereses moratorios.</p>
+                <p>Gracias por mantener tus obligaciones al día.</p>";
+
+            var html = WrapEmail("Recordatorio de pago próximo a vencer", content);
+            await SendEmailAsync(email, "GESCOMPH – Recordatorio de pago próximo a vencer", html);
+        }
+
+        public async Task SendOverdueNoticeAsync(string email, string fullName, DateTime dueDate, decimal totalAmount, int daysLate, decimal lateAmount)
+        {
+            EnsureValidEmail(email, nameof(email));
+
+            var formattedDue = dueDate.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-CO"));
+            var formattedTotal = totalAmount.ToString("N0", new System.Globalization.CultureInfo("es-CO"));
+            var formattedLate = lateAmount.ToString("N0", new System.Globalization.CultureInfo("es-CO"));
+
+            var content = $@"
+                <p>Hola <strong>{(fullName ?? "arrendatario")}</strong>,</p>
+                <p>Tu obligación de arrendamiento con fecha de vencimiento <strong>{formattedDue}</strong> se encuentra vencida.</p>
+                <div style='background:#fff7ed; border-left:4px solid #f97316; padding:16px; margin:16px 0; border-radius:6px;'>
+                    <p style='margin:0; font-weight:600; color:{BrandText};'>💰 Valor original: ${formattedTotal} COP</p>
+                    <p style='margin:4px 0 0 0; color:{BrandMuted}; font-size:14px;'>Días de mora: {daysLate}</p>
+                    <p style='margin:4px 0 0 0; color:{BrandMuted}; font-size:14px;'>Intereses acumulados: ${formattedLate} COP</p>
+                </div>
+                <p>Por favor regulariza tu pago lo antes posible para evitar procesos de cobro jurídico.</p>
+                <p>Si ya realizaste el pago, ignora este mensaje.</p>";
+
+            var html = WrapEmail("Notificación de obligación vencida", content);
+            await SendEmailAsync(email, "GESCOMPH – Notificación de pago vencido", html);
+        }
     }
 }
 

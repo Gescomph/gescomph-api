@@ -11,5 +11,8 @@ namespace Utilities.Messaging.Interfaces
         Task SendRecoveryCodeEmail(string emailReceptor, string recoveryCode);
         Task SendTemporaryPasswordAsync(string email, string fullName, string tempPassword);
         Task SendContractWithPdfAsync(string email, string fullName, string contractNumber, byte[] pdfBytes);
+        Task SendPaymentReminderAsync(string email, string fullName, DateTime dueDate, decimal totalAmount);
+        Task SendOverdueNoticeAsync(string email, string fullName, DateTime dueDate, decimal totalAmount, int daysLate, decimal lateAmount);
+
     }
 }

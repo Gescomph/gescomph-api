@@ -147,6 +147,16 @@ namespace Business.Services.SecurityAuthentication
         }
 
         // ======================================================
+        // Buscar usuario por el ID de la Persona
+        // ======================================================
+
+        public async Task<UserSelectDto?> GetByPersonIdAsync(int personId, CancellationToken ct = default)
+        {
+            var entity = await _userRepository.GetByPersonIdAsync(personId, ct);
+            return _mapper.Map<UserSelectDto>(entity);
+        }
+
+        // ======================================================
         // Búsqueda / Ordenación (si tu BusinessGeneric lo requiere)
         // ======================================================
 

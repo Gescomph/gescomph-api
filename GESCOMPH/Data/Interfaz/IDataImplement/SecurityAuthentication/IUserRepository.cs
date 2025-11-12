@@ -14,5 +14,10 @@ namespace Data.Interfaz.IDataImplement.SecurityAuthentication
 
         // ======== Consulta mínima para autenticación ========
         Task<User?> GetAuthUserByEmailAsync(string email);
+
+        /// <summary>
+        /// Obtiene un usuario asociado a una persona.
+        /// </summary>
+        Task<User?> GetByPersonIdAsync(int personId, CancellationToken ct = default);
     }
 }

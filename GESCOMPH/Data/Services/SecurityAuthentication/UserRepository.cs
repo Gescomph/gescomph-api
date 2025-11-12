@@ -98,5 +98,13 @@ namespace Data.Services.SecurityAuthentication
                 })
                 .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
         }
+
+        public async Task<User?> GetByPersonIdAsync(int personId, CancellationToken ct = default)
+        {
+            return await BaseQuery()
+                .AsNoTracking()
+                .Include(e => e.Person)
+                .FirstOrDefaultAsync(u => u.PersonId == personId, ct);
+        }
     }
 }
