@@ -3,6 +3,7 @@ using Business.Interfaces.Implements.SecurityAuthentication;
 using Data.Interfaz.IDataImplement.Business;
 using Microsoft.Extensions.Logging;
 using Utilities.Messaging.Implements;
+using Utilities.Messaging.Interfaces;
 
 namespace Business.Services.Business
 {
@@ -16,7 +17,7 @@ namespace Business.Services.Business
     {
         private readonly IObligationMonthRepository _repo;
         private readonly IUserService _userService;
-        private readonly EmailService _emailService;
+        private readonly ISendCode _emailService;
         private readonly ILogger<CollectionService> _log;
 
         private const decimal DailyLateRate = 0.00033m; // ~1% mensual
@@ -24,7 +25,7 @@ namespace Business.Services.Business
         public CollectionService(
             IObligationMonthRepository repo,
             IUserService userService,
-            EmailService emailService,
+            ISendCode emailService,
             ILogger<CollectionService> log)
         {
             _repo = repo;

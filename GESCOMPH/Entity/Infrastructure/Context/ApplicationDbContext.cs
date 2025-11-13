@@ -63,6 +63,7 @@ namespace Entity.Infrastructure.Context
         //       Parámetros del sistema
         // ==========================
         public DbSet<SystemParameter> SystemParameters { get; set; }
+        public DbSet<CollectionSetting> collectionSettings { get; set; }
 
         // ==========================
         //       Contratos

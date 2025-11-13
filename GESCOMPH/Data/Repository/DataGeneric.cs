@@ -3,7 +3,7 @@ using Entity.DTOs.Base;
 using Entity.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using Utilities.Exceptions;
+using Utilities.Exceptions  ;
 
 namespace Data.Repository
 {

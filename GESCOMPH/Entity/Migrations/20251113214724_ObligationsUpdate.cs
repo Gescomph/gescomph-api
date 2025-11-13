@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Entity.Migrations
 {
     /// <inheritdoc />
-    public partial class sqlServer : Migration
+    public partial class ObligationsUpdate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -28,6 +28,25 @@ namespace Entity.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Clauses", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "collectionSettings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Value = table.Column<double>(type: "float", nullable: false),
+                    TimeUnit = table.Column<int>(type: "int", nullable: false),
+                    Active = table.Column<bool>(type: "bit", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_collectionSettings", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -470,8 +489,11 @@ namespace Entity.Migrations
                     BaseAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     VatAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    NotifiedDueSoonAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    NotifiedOverdueAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DaysLate = table.Column<int>(type: "int", nullable: true),
                     LateAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    LateFeeAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Locked = table.Column<bool>(type: "bit", nullable: false),
                     Active = table.Column<bool>(type: "bit", nullable: false),
@@ -742,6 +764,16 @@ namespace Entity.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "collectionSettings",
+                columns: new[] { "Id", "Active", "CreatedAt", "Description", "IsDeleted", "Name", "TimeUnit", "Value" },
+                values: new object[,]
+                {
+                    { 1, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Tiempo antes de iniciar cobro coactivo", false, "AvisoPrejuridico", 1, 3.0 },
+                    { 2, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Paso a coactivo", false, "CobroCoactivo", 1, 5.0 },
+                    { 3, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Paso a jurídico", false, "CobroJuridico", 1, 8.0 }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Cities",
                 columns: new[] { "Id", "Active", "CreatedAt", "DepartmentId", "IsDeleted", "Name" },
                 values: new object[,]
@@ -911,15 +943,15 @@ namespace Entity.Migrations
 
             migrationBuilder.InsertData(
                 table: "ObligationMonths",
-                columns: new[] { "Id", "Active", "BaseAmount", "ContractId", "CreatedAt", "DaysLate", "DueDate", "IsDeleted", "LateAmount", "Locked", "Month", "PaymentDate", "Status", "TotalAmount", "UvtQtyApplied", "UvtValueApplied", "VatAmount", "VatRateApplied", "Year" },
+                columns: new[] { "Id", "Active", "BaseAmount", "ContractId", "CreatedAt", "DaysLate", "DueDate", "IsDeleted", "LateAmount", "LateFeeAmount", "Locked", "Month", "NotifiedDueSoonAt", "NotifiedOverdueAt", "PaymentDate", "Status", "TotalAmount", "UvtQtyApplied", "UvtValueApplied", "VatAmount", "VatRateApplied", "Year" },
                 values: new object[,]
                 {
-                    { 1, true, 5700000m, 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 4, 30, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, true, 4, new DateTime(2025, 4, 28, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 6783000m, 38m, 47065m, 1083000m, 0.19m, 2025 },
-                    { 2, true, 5700000m, 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 5, 31, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, true, 5, new DateTime(2025, 5, 29, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 6783000m, 38m, 47065m, 1083000m, 0.19m, 2025 },
-                    { 3, true, 5700000m, 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 6, 30, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, true, 6, new DateTime(2025, 6, 29, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 6783000m, 38m, 47065m, 1083000m, 0.19m, 2025 },
-                    { 4, true, 7100000m, 2, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 7, 31, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, true, 7, new DateTime(2025, 7, 29, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 8449000m, 48m, 47065m, 1349000m, 0.19m, 2025 },
-                    { 5, true, 7100000m, 2, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 8, 31, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, true, 8, new DateTime(2025, 8, 29, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 8449000m, 48m, 47065m, 1349000m, 0.19m, 2025 },
-                    { 6, true, 7100000m, 2, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 9, 30, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, true, 9, new DateTime(2025, 9, 29, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 8449000m, 48m, 47065m, 1349000m, 0.19m, 2025 }
+                    { 1, true, 5700000m, 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 4, 30, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, null, true, 4, null, null, new DateTime(2025, 4, 28, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 6783000m, 38m, 47065m, 1083000m, 0.19m, 2025 },
+                    { 2, true, 5700000m, 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 5, 31, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, null, true, 5, null, null, new DateTime(2025, 5, 29, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 6783000m, 38m, 47065m, 1083000m, 0.19m, 2025 },
+                    { 3, true, 5700000m, 1, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 6, 30, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, null, true, 6, null, null, new DateTime(2025, 6, 29, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 6783000m, 38m, 47065m, 1083000m, 0.19m, 2025 },
+                    { 4, true, 7100000m, 2, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 7, 31, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, null, true, 7, null, null, new DateTime(2025, 7, 29, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 8449000m, 48m, 47065m, 1349000m, 0.19m, 2025 },
+                    { 5, true, 7100000m, 2, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 8, 31, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, null, true, 8, null, null, new DateTime(2025, 8, 29, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 8449000m, 48m, 47065m, 1349000m, 0.19m, 2025 },
+                    { 6, true, 7100000m, 2, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 0, new DateTime(2025, 9, 30, 0, 0, 0, 0, DateTimeKind.Utc), false, 0m, null, true, 9, null, null, new DateTime(2025, 9, 29, 0, 0, 0, 0, DateTimeKind.Utc), "PAID", 8449000m, 48m, 47065m, 1349000m, 0.19m, 2025 }
                 });
 
             migrationBuilder.InsertData(
@@ -1179,6 +1211,9 @@ namespace Entity.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Appointments");
+
+            migrationBuilder.DropTable(
+                name: "collectionSettings");
 
             migrationBuilder.DropTable(
                 name: "ContractClauses");

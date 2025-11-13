@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Entity.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251102010358_sqlServer")]
-    partial class sqlServer
+    [Migration("20251113214724_ObligationsUpdate")]
+    partial class ObligationsUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -59,6 +59,77 @@ namespace Entity.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PasswordResetCodes");
+                });
+
+            modelBuilder.Entity("Entity.Domain.Models.Implements.AdministrationSystem.CollectionSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TimeUnit")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Value")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("collectionSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Active = true,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Tiempo antes de iniciar cobro coactivo",
+                            IsDeleted = false,
+                            Name = "AvisoPrejuridico",
+                            TimeUnit = 1,
+                            Value = 3.0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Active = true,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Paso a coactivo",
+                            IsDeleted = false,
+                            Name = "CobroCoactivo",
+                            TimeUnit = 1,
+                            Value = 5.0
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Active = true,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Paso a jurídico",
+                            IsDeleted = false,
+                            Name = "CobroJuridico",
+                            TimeUnit = 1,
+                            Value = 8.0
+                        });
                 });
 
             modelBuilder.Entity("Entity.Domain.Models.Implements.AdministrationSystem.Form", b =>
@@ -1241,11 +1312,20 @@ namespace Entity.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal?>("LateFeeAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("Locked")
                         .HasColumnType("bit");
 
                     b.Property<int>("Month")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("NotifiedDueSoonAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NotifiedOverdueAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("PaymentDate")
                         .HasColumnType("datetime2");

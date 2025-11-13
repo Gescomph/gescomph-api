@@ -10,6 +10,7 @@ using WebGESCOMPH.Extensions.Validation;
 using WebGESCOMPH.RealTime;
 using WebGESCOMPH.RealTime.Contract;
 using WebGESCOMPH.RealTime.Obligations;
+using WebGESCOMPH.RealTime.Collection;
 
 namespace WebGESCOMPH.Extensions.Infrastructure
 {
@@ -65,6 +66,7 @@ namespace WebGESCOMPH.Extensions.Infrastructure
             services.AddScoped<IContractPdfGeneratorService, ContractPdfService>();
             services.AddScoped<ObligationJobs>();
             services.AddScoped<ContractJobs>();
+            services.AddScoped<CollectionHub>();
 
             return services;
         }
