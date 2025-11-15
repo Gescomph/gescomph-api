@@ -1,3 +1,4 @@
+using Business.Services.Utilities.PDF;
 using System.Reflection;
 
 namespace WebGESCOMPH.Extensions.Modules.Shared
@@ -25,11 +26,6 @@ namespace WebGESCOMPH.Extensions.Modules.Shared
         /// <summary>
         /// Registra servicios (no repositorios) y repositorios para un módulo/feature dado.
         /// </summary>
-        /// <param name="services">Service collection</param>
-        /// <param name="businessAssembly">Assembly ancla donde están los servicios de negocio</param>
-        /// <param name="dataAssembly">Assembly ancla donde están los repositorios (puede ser null)</param>
-        /// <param name="servicesNamespaceSuffix">Sufijo de namespace bajo <c>Services.*</c> (p.ej. <c>"Business"</c>, <c>"Location"</c>, <c>"Persons"</c>).</param>
-        /// <param name="extraRepositoryNamespaces">Namespaces adicionales que también contienen repositorios que deben registrarse.</param>
         public static IServiceCollection AddFeatureModule(
             this IServiceCollection services,
             Assembly businessAssembly,
@@ -43,13 +39,24 @@ namespace WebGESCOMPH.Extensions.Modules.Shared
 
             services.Scan(scan =>
                 scan.FromAssemblies(assemblies)
-                    // Servicios de negocio del feature (excluye repositorios)
-                    .AddClasses(c => c.Where(t => t.Namespace != null
-                                                  && t.Namespace.Contains($"Services.{servicesNamespaceSuffix}")
-                                                  && !t.Name.EndsWith("Repository")))
+
+                    // ------------------------------------------------------------
+                    // Servicios del feature (excluye repos, y EXCLUYE tipos PDF infra)
+                    // ------------------------------------------------------------
+                    .AddClasses(c => c.Where(t =>
+                        t.Namespace != null
+                        && t.Namespace.Contains($"Services.{servicesNamespaceSuffix}")
+                        && !t.Name.EndsWith("Repository")
+                        && t != typeof(BrowserContextPool)        
+                        && t != typeof(PdfBrowserHost)           
+                        && !t.FullName!.Contains("Services.Utilities.PDF") 
+                    ))
                         .AsImplementedInterfaces()
                         .WithScopedLifetime()
-                    // Repositorios del feature (en Services.<feature> y opcionalmente en otros namespaces)
+
+                    // ------------------------------------------------------------
+                    // Repositorios (igual que antes)
+                    // ------------------------------------------------------------
                     .AddClasses(c => c.Where(t =>
                     {
                         if (t.Namespace is null) return false;
@@ -64,6 +71,7 @@ namespace WebGESCOMPH.Extensions.Modules.Shared
                             if (!string.IsNullOrWhiteSpace(extra) && ns.Contains(extra))
                                 return true;
                         }
+
                         return false;
                     }))
                         .AsImplementedInterfaces()
@@ -74,4 +82,3 @@ namespace WebGESCOMPH.Extensions.Modules.Shared
         }
     }
 }
-

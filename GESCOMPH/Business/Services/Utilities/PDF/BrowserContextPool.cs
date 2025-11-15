@@ -9,7 +9,7 @@ namespace Business.Services.Utilities.PDF
     /// por adelantado y se reutilizan, lo que mejora la velocidad y reduce la carga
     /// del sistema.
     /// </summary>
-    internal sealed class BrowserContextPool : IAsyncDisposable
+    public sealed class BrowserContextPool : IAsyncDisposable
     {
         private readonly Channel<IBrowserContext> _pool;
         private readonly IBrowser _browser;

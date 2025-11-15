@@ -10,23 +10,20 @@ namespace Business.Services.Utilities.PDF
 {
     /// <summary>
     /// Servicio encargado de generar el PDF de un contrato.
-    /// Se encarga de preparar el HTML, solicitar un contexto del navegador,
-    /// renderizar el contenido y producir el archivo final.
+    /// Se encarga de preparar el HTML, solicitar un contexto del navegador 
+    /// desde el host compartido, renderizar el contenido y producir el archivo final.
     /// 
-    /// También administra la inicialización del navegador y el pool de contextos,
-    /// asegurando que todo se cargue una sola vez y que el sistema responda rápido
-    /// incluso bajo carga.
+    /// Este servicio ya no administra Playwright ni el pool directamente.
+    /// En su lugar, utiliza un host singleton que mantiene los recursos pesados
+    /// (Playwright + Browser + BrowserContextPool) inicializados una sola vez 
+    /// para toda la aplicación, garantizando alto rendimiento bajo carga.
     /// </summary>
-    public class ContractPdfService : IContractPdfGeneratorService, IAsyncDisposable
+    public class ContractPdfService : IContractPdfGeneratorService
     {
-        // Controla que la inicialización solo ocurra una vez
-        private readonly SemaphoreSlim _initLock = new(1, 1);
+        // Host que administra el navegador, el pool y toda la inicialización pesada.
+        private readonly IPdfBrowserHost _browserHost;
 
-        private IPlaywright? _playwright;
-        private IBrowser? _browser;
-        private BrowserContextPool? _pool;
-
-        // Estos valores no dependen del navegador, así que pueden ser estáticos
+        // Valores estáticos que no dependen del navegador
         private static readonly string? _logoBase64 = TryLoadLogoBase64();
         private static readonly CultureInfo _esCO = new("es-CO");
         private static readonly CultureInfo _esES = new("es");
@@ -42,21 +39,24 @@ namespace Business.Services.Utilities.PDF
             _parsedTemplate = Template.Parse(ContractTemplate.Html);
         }
 
+        public ContractPdfService(IPdfBrowserHost browserHost)
+        {
+            _browserHost = browserHost;
+        }
+
         /// <summary>
         /// Genera el PDF completo del contrato:
         /// 1. Arma el HTML del documento.
-        /// 2. Asegura que el navegador esté inicializado.
+        /// 2. Obtiene el pool compartido del host.
         /// 3. Solicita un contexto disponible del pool.
         /// 4. Abre una página, carga el contenido y produce el PDF final.
         /// </summary>
-        /// <param name="contract">Información del contrato que se mostrará en el PDF.</param>
-        /// <returns>El archivo PDF generado en forma de arreglo de bytes.</returns>
         public async Task<byte[]> GeneratePdfAsync(ContractSelectDto contract)
         {
             var html = BuildHtml(contract);
 
-            // Asegura que el pool está listo
-            var pool = await EnsurePoolAsync();
+            // Obtiene el pool compartido mantenido por el host
+            var pool = await _browserHost.GetPoolAsync();
 
             // Toma un contexto disponible
             var context = await pool.RentAsync();
@@ -121,54 +121,10 @@ namespace Business.Services.Utilities.PDF
 
         /// <summary>
         /// Permite que la aplicación inicialice el navegador y el pool anticipadamente,
-        /// evitando que la primera solicitud tenga una demora mayor.
+        /// evitando que la primera solicitud tenga una demora mayor. 
+        /// La inicialización es manejada por el host.
         /// </summary>
-        public Task WarmupAsync() => EnsurePoolAsync();
-
-        /// <summary>
-        /// Inicializa Playwright, el navegador y el pool de contextos.
-        /// Este proceso solo se ejecuta una vez, sin importar cuántas veces se llame.
-        /// </summary>
-        /// <returns>El pool ya inicializado y listo para usarse.</returns>
-        private async Task<BrowserContextPool> EnsurePoolAsync()
-        {
-            if (_pool is not null) return _pool;
-
-            await _initLock.WaitAsync();
-            try
-            {
-                if (_pool is not null) return _pool;
-
-                // Inicia Playwright
-                _playwright ??= await Playwright.CreateAsync();
-
-                // Abre el navegador
-                _browser ??= await _playwright.Chromium.LaunchAsync(new()
-                {
-                    Headless = true,
-                    Args = new[]
-                    {
-                        "--no-sandbox",
-                        "--disable-dev-shm-usage",
-                        "--disable-gpu",
-                        "--disable-extensions"
-                    }
-                });
-
-                // Tamaño del pool: depende del rendimiento del servidor
-                // Usar al menos 2 y máximo cores * 2 para balance óptimo
-                var size = Math.Max(2, Math.Min(Environment.ProcessorCount * 2, 16));
-
-                // Crea el pool completo de contextos
-                _pool = await BrowserContextPool.CreateAsync(_browser!, size);
-
-                return _pool;
-            }
-            finally
-            {
-                _initLock.Release();
-            }
-        }
+        public Task WarmupAsync() => _browserHost.GetPoolAsync();
 
         /// <summary>
         /// Construye el HTML final del contrato mezclando la plantilla con los datos recibidos.
@@ -183,8 +139,6 @@ namespace Business.Services.Utilities.PDF
             var durationMonthsWords = ((long)months).ToWords(_esES).ToUpperInvariant();
             var monthlyRentAmountWords = ((long)c.TotalBaseRentAgreed).ToWords(_esES).ToUpperInvariant();
             var monthlyRentAmount = c.TotalBaseRentAgreed.ToString("N0", _esCO);
-            var startDateStr = c.StartDate.ToString("dd/MM/yyyy");
-            var endDateStr = c.EndDate.ToString("dd/MM/yyyy");
 
             var model = new
             {
@@ -194,8 +148,8 @@ namespace Business.Services.Utilities.PDF
                 Email = c.Email,
                 ContractNumber = c.Id,
                 ContractYear = c.StartDate.Year,
-                StartDate = startDateStr,
-                EndDate = endDateStr,
+                StartDate = c.StartDate.ToString("dd/MM/yyyy"),
+                EndDate = c.EndDate.ToString("dd/MM/yyyy"),
                 DurationMonths = months,
                 DurationMonthsWords = durationMonthsWords,
                 MonthlyRentAmountWords = monthlyRentAmountWords,
@@ -204,10 +158,10 @@ namespace Business.Services.Utilities.PDF
                 Address = c.Address,
                 PremisesLeased = c.PremisesLeased?.Select(p => new
                 {
-                    EstablishmentName = p.EstablishmentName,
-                    Address = p.Address,
-                    AreaM2 = p.AreaM2,
-                    PlazaName = p.PlazaName
+                    p.EstablishmentName,
+                    p.Address,
+                    p.AreaM2,
+                    p.PlazaName
                 }).ToList(),
                 Clauses = c.Clauses?.Select(x => new { Description = x.Description }).ToList()
             };
@@ -230,21 +184,6 @@ namespace Business.Services.Utilities.PDF
             using var ms = new MemoryStream();
             stream!.CopyTo(ms);
             return Convert.ToBase64String(ms.ToArray());
-        }
-
-        /// <summary>
-        /// Libera todos los recursos usados por el servicio al apagar la aplicación,
-        /// asegurando que el navegador y los contextos queden cerrados correctamente.
-        /// </summary>
-        public async ValueTask DisposeAsync()
-        {
-            if (_pool is not null)
-                await _pool.DisposeAsync();
-
-            if (_browser is not null)
-                await _browser.CloseAsync();
-
-            _playwright?.Dispose();
         }
     }
 }
