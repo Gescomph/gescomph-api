@@ -62,7 +62,9 @@ namespace WebGESCOMPH.Extensions.Infrastructure
             // services.AddProxyAndHttps(configuration); // Desactivado temporalmente (sin ngrok).
 
             // Otros servicios transversales
+            services.AddSingleton<IPdfBrowserHost, PdfBrowserHost>();
             services.AddScoped<IContractPdfGeneratorService, ContractPdfService>();
+
             services.AddScoped<ObligationJobs>();
             services.AddScoped<ContractJobs>();
 

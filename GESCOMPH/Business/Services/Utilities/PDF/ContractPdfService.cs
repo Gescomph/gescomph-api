@@ -8,49 +8,78 @@ using Templates.Templates;
 
 namespace Business.Services.Utilities.PDF
 {
+    /// <summary>
+    /// Servicio encargado de generar el PDF de un contrato.
+    /// Se encarga de preparar el HTML, solicitar un contexto del navegador 
+    /// desde el host compartido, renderizar el contenido y producir el archivo final.
+    /// 
+    /// Este servicio ya no administra Playwright ni el pool directamente.
+    /// En su lugar, utiliza un host singleton que mantiene los recursos pesados
+    /// (Playwright + Browser + BrowserContextPool) inicializados una sola vez 
+    /// para toda la aplicación, garantizando alto rendimiento bajo carga.
+    /// </summary>
     public class ContractPdfService : IContractPdfGeneratorService
     {
-        private static BrowserContextPool? _pool;
-        private static readonly SemaphoreSlim _initLock = new(1, 1);
-        private static IPlaywright? _playwright;
-        private static IBrowser? _browser;
+        // Host que administra el navegador, el pool y toda la inicialización pesada.
+        private readonly IPdfBrowserHost _browserHost;
 
-        private static readonly Lazy<string?> _logoBase64 = new(TryLoadLogoBase64);
-
+        // Valores estáticos que no dependen del navegador
+        private static readonly string? _logoBase64 = TryLoadLogoBase64();
+        private static readonly CultureInfo _esCO = new("es-CO");
+        private static readonly CultureInfo _esES = new("es");
         private static readonly Template _parsedTemplate;
 
-        // se ejecuta UNA sola vez cuando la clase se carga en memoria
+        /// <summary>
+        /// Configura el motor de plantillas una sola vez al cargar la clase.
+        /// Este proceso es liviano y ayuda a mejorar la velocidad en tiempo de ejecución.
+        /// </summary>
         static ContractPdfService()
         {
             Template.NamingConvention = new DotLiquid.NamingConventions.CSharpNamingConvention();
             _parsedTemplate = Template.Parse(ContractTemplate.Html);
         }
 
+        public ContractPdfService(IPdfBrowserHost browserHost)
+        {
+            _browserHost = browserHost;
+        }
+
+        /// <summary>
+        /// Genera el PDF completo del contrato:
+        /// 1. Arma el HTML del documento.
+        /// 2. Obtiene el pool compartido del host.
+        /// 3. Solicita un contexto disponible del pool.
+        /// 4. Abre una página, carga el contenido y produce el PDF final.
+        /// </summary>
         public async Task<byte[]> GeneratePdfAsync(ContractSelectDto contract)
         {
             var html = BuildHtml(contract);
 
-            await EnsureBrowserAsync();
+            // Obtiene el pool compartido mantenido por el host
+            var pool = await _browserHost.GetPoolAsync();
 
-            var context = await _pool!.RentAsync();
+            // Toma un contexto disponible
+            var context = await pool.RentAsync();
 
             try
             {
                 var page = await context.NewPageAsync();
                 await page.EmulateMediaAsync(new() { Media = Media.Print });
 
+                // Carga el HTML generado del contrato
                 await page.SetContentAsync(html, new()
                 {
                     WaitUntil = WaitUntilState.DOMContentLoaded,
-                    Timeout = 2000
+                    Timeout = 5000
                 });
 
+                // Encabezado personalizado del PDF
                 var headerHtml = $@"
 <div style='width:100%;font-size:9.5pt;padding-top:6px;padding-bottom:4px;padding-left:25mm;padding-right:25mm;opacity:0.63;'>
   <table style='width:100%;border-collapse:collapse;'>
     <tr>
       <td style='width:70%;vertical-align:top;padding-right:12px;'>
-        <img src=""data:image/jpeg;base64,{_logoBase64.Value}"" style='width:100%;height:auto;' />
+        <img src=""data:image/jpeg;base64,{_logoBase64}"" style='width:100%;height:auto;' />
       </td>
       <td style='font-size:9.5pt;text-align:right;vertical-align:top;white-space:nowrap;'>
         <b>COMUNICACIÓN<br/>OFICIAL DESPACHADA</b><br/>
@@ -63,6 +92,7 @@ namespace Business.Services.Utilities.PDF
   </table>
 </div>";
 
+                // Genera el PDF final usando Playwright
                 var pdfBytes = await page.PdfAsync(new()
                 {
                     Format = "Letter",
@@ -84,48 +114,31 @@ namespace Business.Services.Utilities.PDF
             }
             finally
             {
-                await _pool.ReturnAsync(context);
+                // Devuelve el contexto para que otro proceso pueda usarlo
+                await pool.ReturnAsync(context);
             }
         }
 
-        public Task WarmupAsync() => EnsureBrowserAsync();
+        /// <summary>
+        /// Permite que la aplicación inicialice el navegador y el pool anticipadamente,
+        /// evitando que la primera solicitud tenga una demora mayor. 
+        /// La inicialización es manejada por el host.
+        /// </summary>
+        public Task WarmupAsync() => _browserHost.GetPoolAsync();
 
-        private static async Task EnsureBrowserAsync()
-        {
-            if (_pool is not null) return;
-
-            await _initLock.WaitAsync();
-            try
-            {
-                if (_pool is not null) return;
-
-                _playwright ??= await Playwright.CreateAsync();
-
-                _browser = await _playwright.Chromium.LaunchAsync(new()
-                {
-                    Headless = true,
-                    Args = new[]
-                    {
-                        "--no-sandbox",
-                        "--disable-dev-shm-usage",
-                        "--disable-gpu",
-                        "--disable-extensions"
-                    }
-                });
-
-                var size = Environment.ProcessorCount * 2;
-                _pool = new BrowserContextPool(_browser!, size);
-            }
-            finally
-            {
-                _initLock.Release();
-            }
-        }
-
+        /// <summary>
+        /// Construye el HTML final del contrato mezclando la plantilla con los datos recibidos.
+        /// Este HTML es el que luego se renderiza como PDF.
+        /// Optimizado: evita crear nuevas CultureInfo, reduce allocations innecesarias.
+        /// </summary>
         private static string BuildHtml(ContractSelectDto c)
         {
-            var esCO = new CultureInfo("es-CO");
             var months = ((c.EndDate.Year - c.StartDate.Year) * 12) + (c.EndDate.Month - c.StartDate.Month);
+
+            // Pre-calcular valores antes de crear el modelo anónimo
+            var durationMonthsWords = ((long)months).ToWords(_esES).ToUpperInvariant();
+            var monthlyRentAmountWords = ((long)c.TotalBaseRentAgreed).ToWords(_esES).ToUpperInvariant();
+            var monthlyRentAmount = c.TotalBaseRentAgreed.ToString("N0", _esCO);
 
             var model = new
             {
@@ -138,17 +151,17 @@ namespace Business.Services.Utilities.PDF
                 StartDate = c.StartDate.ToString("dd/MM/yyyy"),
                 EndDate = c.EndDate.ToString("dd/MM/yyyy"),
                 DurationMonths = months,
-                DurationMonthsWords = ((long)months).ToWords(new CultureInfo("es")).ToUpperInvariant(),
-                MonthlyRentAmountWords = ((long)c.TotalBaseRentAgreed).ToWords(new CultureInfo("es")).ToUpperInvariant(),
-                MonthlyRentAmount = c.TotalBaseRentAgreed.ToString("N0", esCO),
+                DurationMonthsWords = durationMonthsWords,
+                MonthlyRentAmountWords = monthlyRentAmountWords,
+                MonthlyRentAmount = monthlyRentAmount,
                 UVTValue = c.TotalUvtQtyAgreed,
                 Address = c.Address,
                 PremisesLeased = c.PremisesLeased?.Select(p => new
                 {
-                    EstablishmentName = p.EstablishmentName,
-                    Address = p.Address,
-                    AreaM2 = p.AreaM2,
-                    PlazaName = p.PlazaName
+                    p.EstablishmentName,
+                    p.Address,
+                    p.AreaM2,
+                    p.PlazaName
                 }).ToList(),
                 Clauses = c.Clauses?.Select(x => new { Description = x.Description }).ToList()
             };
@@ -156,6 +169,10 @@ namespace Business.Services.Utilities.PDF
             return _parsedTemplate.Render(Hash.FromAnonymousObject(model));
         }
 
+        /// <summary>
+        /// Carga el logo desde los recursos embebidos y lo convierte a Base64 para ser usado
+        /// dentro del PDF sin necesidad de archivos externos.
+        /// </summary>
         private static string? TryLoadLogoBase64()
         {
             var asm = typeof(ContractTemplate).Assembly;
