@@ -105,9 +105,9 @@ namespace Business.Services.Business
                 await _repo.AddAsync(entity);
 
                 // Recarga sin filtro por Active (o usa el entity si no hace falta)
-                var created = await _repo.GetByIdAnyAsync(entity.Id) ?? entity;
+                var createdDto = await _repo.GetByIdAnyAsync(entity.Id);
 
-                return created.Adapt<EstablishmentSelectDto>();
+                return createdDto ?? entity.Adapt<EstablishmentSelectDto>();
             }
             catch (Exception ex)
             {
@@ -120,7 +120,7 @@ namespace Business.Services.Business
         {
             try
             {
-                var entity = await _repo.GetByIdAnyAsync(dto.Id);
+                var entity = await _repo.GetByIdAsync(dto.Id);
                 if (entity is null) return null;
 
                 Validate(dto);
@@ -132,9 +132,9 @@ namespace Business.Services.Business
 
                 await _repo.UpdateAsync(entity);
 
-                var reloaded = await _repo.GetByIdAnyAsync(entity.Id) ?? entity;
+                var reloadedDto = await _repo.GetByIdAnyAsync(entity.Id);
 
-                return reloaded.Adapt<EstablishmentSelectDto>();
+                return reloadedDto ?? entity.Adapt<EstablishmentSelectDto>();
             }
             catch (Exception ex)
             {

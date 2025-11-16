@@ -9,29 +9,28 @@ namespace Data.Interfaz.IDataImplement.Business
 {
     public interface IEstablishmentsRepository : IDataGeneric<Establishment>
     {
+        // Listado completo — ahora devuelve DTO con imágenes
+        Task<IEnumerable<EstablishmentSelectDto>> GetAllAsync(ActivityFilter filter, int? limit = null);
 
-        // Sobrecarga explicita
-        Task<IEnumerable<Establishment>> GetAllAsync(ActivityFilter filter, int? limit = null);
-        // Consulta por plaza
-        Task<IEnumerable<Establishment>> GetByPlazaIdAsync(int plazaId, ActivityFilter filter, int? limit = null);
+        // Consulta por plaza — devuelve DTO con imágenes
+        Task<IEnumerable<EstablishmentSelectDto>> GetByPlazaIdAsync(int plazaId, ActivityFilter filter, int? limit = null);
 
-        // Detalles
-        Task<Establishment?> GetByIdAnyAsync(int id);
-        Task<Establishment?> GetByIdActiveAsync(int id);
+        // Detalles — devuelve DTO con imágenes
+        Task<EstablishmentSelectDto?> GetByIdAnyAsync(int id);
+        Task<EstablishmentSelectDto?> GetByIdActiveAsync(int id);
 
-        // Proyeccion liviana
+        // Proyección liviana (solo valores necesarios)
         Task<IReadOnlyList<EstablishmentBasicsDto>> GetBasicsByIdsAsync(IReadOnlyCollection<int> ids);
 
-        // Proyeccion para listados (tarjetas)
+        // Proyección optimizada para tarjetas
         Task<IReadOnlyList<EstablishmentCardDto>> GetCardsAsync(ActivityFilter filter);
-
-        // Validacion / comandos
-        Task<IReadOnlyList<int>> GetInactiveIdsAsync(IReadOnlyCollection<int> ids);
-        Task<int> SetActiveByIdsAsync(IReadOnlyCollection<int> ids, bool active);
-
-        // Actualizacion masiva por Plaza
-        Task<int> SetActiveByPlazaIdAsync(int plazaId, bool active);
-
         Task<IReadOnlyList<EstablishmentCardDto>> GetCardsByPlazaAsync(int plazaId, ActivityFilter filter);
+
+        // Validación
+        Task<IReadOnlyList<int>> GetInactiveIdsAsync(IReadOnlyCollection<int> ids);
+
+        // Comandos
+        Task<int> SetActiveByIdsAsync(IReadOnlyCollection<int> ids, bool active);
+        Task<int> SetActiveByPlazaIdAsync(int plazaId, bool active);
     }
 }
