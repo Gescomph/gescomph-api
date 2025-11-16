@@ -64,8 +64,7 @@ namespace Business.Mapping.Registers
                 .Map(dest => dest.AreaM2, src => src.Establishment.AreaM2)
                 .Map(dest => dest.RentValueBase, src => src.Establishment.RentValueBase)
                 .Map(dest => dest.Address, src => src.Establishment.Address)
-                .Map(dest => dest.PlazaName, src => src.Establishment.Plaza.Name)
-                .Map(dest => dest.Images, src => src.Establishment.Images.Adapt<List<Entity.DTOs.Implements.Utilities.Images.ImageSelectDto>>());
+                .Map(dest => dest.PlazaName, src => src.Establishment.Plaza.Name);
         }
     }
 }
