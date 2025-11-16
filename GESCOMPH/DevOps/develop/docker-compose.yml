@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  # 🌐 API principal - DEVELOP
+  gescomph-api-develop:
+    container_name: gescomph-api-develop
+    build:
+      context: ../..
+      dockerfile: WebGESCOMPH/Dockerfile
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5100:8080"
+    networks:
+      - gescomph_network
+    labels:
+      - com.gescomph.environment=develop
+
+networks:
+  gescomph_network:
+    external: true
