@@ -13,7 +13,6 @@ namespace Entity.Domain.Models.Implements.Business
         public int PlazaId { get; set; }
         public Plaza? Plaza { get; set; }
 
-        public List<Images> Images { get; set; } = [];
         public ICollection<Appointment> Appointments { get; set; } = [];
         public ICollection<PremisesLeased> PremisesLeased { get; set; } = new List<PremisesLeased>();
     }
