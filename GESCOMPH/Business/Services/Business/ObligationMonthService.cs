@@ -5,6 +5,7 @@ using Data.Interfaz.IDataImplement.Business;
 using Entity.Domain.Models.Implements.AdministrationSystem;
 using Entity.Domain.Models.Implements.Business;
 using Entity.DTOs.Implements.Business.ObligationMonth;
+using Entity.Enum;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -86,13 +87,11 @@ namespace Business.Services.Business
                 ?? throw new BusinessException($"No existe obligación mensual con Id {id}.");
 
             existing.PaymentDate = DateTime.UtcNow;
-            existing.Status = "PAID";
+            existing.Status = Status.Aprobada;
             existing.Locked = true;
 
             await _obligationRepository.UpdateAsync(existing);
         }
-
-        // ------------------ Helpers internos ------------------
 
         private async Task UpsertObligationAsync(Contract contract, DateTime periodDate, decimal uvtValue, decimal vatRate)
         {
@@ -119,7 +118,7 @@ namespace Business.Services.Business
                     BaseAmount = baseAmount,
                     VatAmount = vatAmount,
                     TotalAmount = totalAmount,
-                    Status = "PENDING"
+                    Status = Status.Pendiente
                 };
 
                 await _obligationRepository.AddAsync(obligation);
@@ -133,8 +132,8 @@ namespace Business.Services.Business
                 existing.VatAmount = vatAmount;
                 existing.TotalAmount = totalAmount;
 
-                if (existing.Status == "CANCELLED")
-                    existing.Status = "PENDING";
+                if (existing.Status == Status.Rechazada)
+                    existing.Status = Status.Pendiente;
 
                 await _obligationRepository.UpdateAsync(existing);
             }
@@ -205,9 +204,8 @@ namespace Business.Services.Business
 
         protected override Expression<Func<ObligationMonth, string>>[] SearchableFields() =>
         [
-            e => e.Status
+            e => e.Status.ToString()
         ];
-
 
         protected override string[] SortableFields() =>
         [
@@ -230,11 +228,10 @@ namespace Business.Services.Business
             [nameof(ObligationMonth.ContractId)] = val => e => e.ContractId == int.Parse(val),
             [nameof(ObligationMonth.Year)] = val => e => e.Year == int.Parse(val),
             [nameof(ObligationMonth.Month)] = val => e => e.Month == int.Parse(val),
-            [nameof(ObligationMonth.Status)] = val => e => e.Status == val,
+            [nameof(ObligationMonth.Status)] = val => e => e.Status.ToString() == val,
             [nameof(ObligationMonth.Locked)] = val => e => e.Locked == bool.Parse(val),
             [nameof(ObligationMonth.Active)] = val => e => e.Active == bool.Parse(val),
             [nameof(ObligationMonth.DueDate)] = val => e => e.DueDate.Date == DateTime.Parse(val).Date
         };
-
     }
 }
