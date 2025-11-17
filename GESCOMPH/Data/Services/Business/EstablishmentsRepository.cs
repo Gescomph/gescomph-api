@@ -2,6 +2,7 @@ using Data.Interfaz.IDataImplement.Business;
 using Data.Repository;
 using Entity.Domain.Models.Implements.Business;
 using Entity.DTOs.Implements.Business.EstablishmentDto;
+using Entity.DTOs.Implements.Utilities.Images;
 using Entity.Enum;
 using Entity.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
@@ -30,9 +31,9 @@ namespace Data.Services.Business
         /// <summary>
         /// proyección polimórfica con imágenes
         /// </summary>
-        private IQueryable<Establishment> SelectWithImages(IQueryable<Establishment> q)
+        private IQueryable<EstablishmentSelectDto> SelectWithImages(IQueryable<Establishment> q)
         {
-            return q.Select(e => new Establishment
+            return q.Select(e => new EstablishmentSelectDto
             {
                 Id = e.Id,
                 Name = e.Name,
@@ -40,10 +41,10 @@ namespace Data.Services.Business
                 Address = e.Address,
                 AreaM2 = e.AreaM2,
                 RentValueBase = e.RentValueBase,
+                PlazaId = e.PlazaId,
+                PlazaName = e.Plaza.Name,
                 Active = e.Active,
                 UvtQty = e.UvtQty,
-                PlazaId = e.PlazaId,
-                Plaza = e.Plaza,
 
                 Images = _ctx.Images
                     .Where(img => img.EntityType == EntityType.Establishment
@@ -51,17 +52,28 @@ namespace Data.Services.Business
                                   && img.Active
                                   && !img.IsDeleted)
                     .OrderBy(img => img.Id)
+                    .Select(img => new ImageSelectDto(
+                        img.Id,
+                        img.FileName,
+                        img.FilePath,
+                        img.PublicId,
+                        img.EntityType,  
+                        img.EntityId     
+                    ))
                     .ToList()
+
             });
         }
+
+
 
         private static bool IsEmpty(IReadOnlyCollection<int> ids) =>
             ids == null || ids.Count == 0;
 
-        public override async Task<IEnumerable<Establishment>> GetAllAsync() =>
+        public async Task<IEnumerable<EstablishmentSelectDto>> GetAllAsync() =>
             await SelectWithImages(BaseQuery()).ToListAsync();
 
-        public async Task<IEnumerable<Establishment>> GetAllAsync(ActivityFilter filter, int? limit = null)
+        public async Task<IEnumerable<EstablishmentSelectDto>> GetAllAsync(ActivityFilter filter, int? limit = null)
         {
             var q = BaseQuery();
 
@@ -74,7 +86,7 @@ namespace Data.Services.Business
             return await SelectWithImages(q).ToListAsync();
         }
 
-        public async Task<IEnumerable<Establishment>> GetByPlazaIdAsync(int plazaId, ActivityFilter filter, int? limit = null)
+        public async Task<IEnumerable<EstablishmentSelectDto>> GetByPlazaIdAsync(int plazaId, ActivityFilter filter, int? limit = null)
         {
             var q = BaseQuery().Where(e => e.PlazaId == plazaId);
 
@@ -87,13 +99,13 @@ namespace Data.Services.Business
             return await SelectWithImages(q).ToListAsync();
         }
 
-        public async Task<Establishment?> GetByIdAnyAsync(int id)
+        public async Task<EstablishmentSelectDto?> GetByIdAnyAsync(int id)
         {
             var q = BaseQuery().Where(e => e.Id == id);
             return await SelectWithImages(q).FirstOrDefaultAsync();
         }
 
-        public async Task<Establishment?> GetByIdActiveAsync(int id)
+        public async Task<EstablishmentSelectDto?> GetByIdActiveAsync(int id)
         {
             var q = BaseQuery().Where(e => e.Id == id && e.Active);
             return await SelectWithImages(q).FirstOrDefaultAsync();
