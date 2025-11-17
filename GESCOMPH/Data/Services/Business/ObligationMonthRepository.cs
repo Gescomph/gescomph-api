@@ -4,6 +4,7 @@ using Entity.Domain.Models.Implements.Business;
 using Entity.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using Entity.Enum;
 
 namespace Data.Services.Business
 {
@@ -30,19 +31,11 @@ namespace Data.Services.Business
         public async Task<decimal> GetTotalObligationsPaidByDayAsync(DateTime date)
         {
             return await _dbSet.AsNoTracking()
-                              .Where(o => o.Status == "PAID"
+                              .Where(o => o.Status == Status.Aprobada
                                   && o.PaymentDate.HasValue
                                   && o.PaymentDate.Value.Date == date.Date)
                               .SumAsync(o => o.TotalAmount);
         }
-
-        /// <summary>
-        /// Metodo que me carga el valor total pagado los
-        /// ultimos meses apartir desde el vigente asi atras
-        /// </summary>
-        /// <returns>
-        /// { "label": "May", "total": 2000000 }
-        /// </returns>
 
         public async Task<IEnumerable<object>> GetLastSixMonthsPaidAsync()
         {
@@ -51,7 +44,7 @@ namespace Data.Services.Business
             var sixMonthsAgo = currentMonth.AddMonths(-5);
 
             var result = await _context.ObligationMonths
-                .Where(o => o.Status == "PAID"
+                .Where(o => o.Status == Status.Aprobada
                             && o.PaymentDate != null
                             && o.PaymentDate >= sixMonthsAgo
                             && o.PaymentDate < currentMonth.AddMonths(1))
@@ -66,14 +59,13 @@ namespace Data.Services.Business
             return result;
         }
 
-
         public async Task<decimal> GetTotalObligationsPaidByMonthAsync(int year, int month)
         {
             var start = new DateTime(year, month, 1);
             var end = start.AddMonths(1);
 
             return await _dbSet.AsNoTracking()
-                .Where(o => o.Status == "PAID"
+                .Where(o => o.Status == Status.Aprobada
                     && o.PaymentDate >= start
                     && o.PaymentDate < end)
                 .SumAsync(o => o.TotalAmount);
