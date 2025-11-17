@@ -1,4 +1,5 @@
 ﻿using Entity.Domain.Models.Implements.Business;
+using Entity.Enum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,15 +11,13 @@ namespace Entity.Infrastructure.DataInit.Business
         {
             var seedAt = new DateTime(2025, 01, 01, 0, 0, 0, DateTimeKind.Utc);
 
-            // Obligaciones pagadas para distintos meses (sin incluir el mes vigente)
             builder.HasData(
-                // Contrato 1
                 new ObligationMonth
                 {
                     Id = 1,
                     ContractId = 1,
                     Year = 2025,
-                    Month = 4, // abril
+                    Month = 4,
                     DueDate = new DateTime(2025, 04, 30, 0, 0, 0, DateTimeKind.Utc),
                     PaymentDate = new DateTime(2025, 04, 28, 0, 0, 0, DateTimeKind.Utc),
                     UvtQtyApplied = 38m,
@@ -29,16 +28,19 @@ namespace Entity.Infrastructure.DataInit.Business
                     TotalAmount = 6_783_000m,
                     DaysLate = 0,
                     LateAmount = 0m,
-                    Status = "PAID",
+
+                    Status = Status.Aprobada,   // ← ENUM
+
                     Locked = true,
                     CreatedAt = seedAt
                 },
+
                 new ObligationMonth
                 {
                     Id = 2,
                     ContractId = 1,
                     Year = 2025,
-                    Month = 5, // mayo
+                    Month = 5,
                     DueDate = new DateTime(2025, 05, 31, 0, 0, 0, DateTimeKind.Utc),
                     PaymentDate = new DateTime(2025, 05, 29, 0, 0, 0, DateTimeKind.Utc),
                     UvtQtyApplied = 38m,
@@ -49,16 +51,19 @@ namespace Entity.Infrastructure.DataInit.Business
                     TotalAmount = 6_783_000m,
                     DaysLate = 0,
                     LateAmount = 0m,
-                    Status = "PAID",
+
+                    Status = Status.Aprobada,   // ← ENUM
+
                     Locked = true,
                     CreatedAt = seedAt
                 },
+
                 new ObligationMonth
                 {
                     Id = 3,
                     ContractId = 1,
                     Year = 2025,
-                    Month = 6, // junio
+                    Month = 6,
                     DueDate = new DateTime(2025, 06, 30, 0, 0, 0, DateTimeKind.Utc),
                     PaymentDate = new DateTime(2025, 06, 29, 0, 0, 0, DateTimeKind.Utc),
                     UvtQtyApplied = 38m,
@@ -69,12 +74,14 @@ namespace Entity.Infrastructure.DataInit.Business
                     TotalAmount = 6_783_000m,
                     DaysLate = 0,
                     LateAmount = 0m,
-                    Status = "PAID",
+
+                    Status = Status.Aprobada,   // ← ENUM
+
                     Locked = true,
                     CreatedAt = seedAt
                 },
 
-                // Contrato 2 (activo desde julio 2025)
+                // CONTRATO 2
                 new ObligationMonth
                 {
                     Id = 4,
@@ -91,10 +98,13 @@ namespace Entity.Infrastructure.DataInit.Business
                     TotalAmount = 8_449_000m,
                     DaysLate = 0,
                     LateAmount = 0m,
-                    Status = "PAID",
+
+                    Status = Status.Aprobada,
+
                     Locked = true,
                     CreatedAt = seedAt
                 },
+
                 new ObligationMonth
                 {
                     Id = 5,
@@ -111,10 +121,13 @@ namespace Entity.Infrastructure.DataInit.Business
                     TotalAmount = 8_449_000m,
                     DaysLate = 0,
                     LateAmount = 0m,
-                    Status = "PAID",
+
+                    Status = Status.Aprobada,
+
                     Locked = true,
                     CreatedAt = seedAt
                 },
+
                 new ObligationMonth
                 {
                     Id = 6,
@@ -131,7 +144,9 @@ namespace Entity.Infrastructure.DataInit.Business
                     TotalAmount = 8_449_000m,
                     DaysLate = 0,
                     LateAmount = 0m,
-                    Status = "PAID",
+
+                    Status = Status.Aprobada,
+
                     Locked = true,
                     CreatedAt = seedAt
                 }
