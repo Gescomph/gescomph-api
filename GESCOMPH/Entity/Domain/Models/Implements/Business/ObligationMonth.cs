@@ -1,4 +1,5 @@
 ﻿using Entity.Domain.Models.ModelBase;
+using Entity.Enum;
 
 namespace Entity.Domain.Models.Implements.Business
 {
@@ -32,7 +33,7 @@ namespace Entity.Domain.Models.Implements.Business
         public decimal? LateAmount { get; set; }
 
         // Estado
-        public string Status { get; set; }
+        public Status Status { get; set; }
 
         public bool Locked { get; set; } = false;
     }
