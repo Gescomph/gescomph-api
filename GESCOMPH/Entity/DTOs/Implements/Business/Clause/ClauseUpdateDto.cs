@@ -1,6 +1,8 @@
-﻿namespace Entity.DTOs.Implements.Business.Clause
+﻿using Entity.DTOs.Base;
+
+namespace Entity.DTOs.Implements.Business.Clause
 {
-    public class ClauseUpdateDto
+    public class ClauseUpdateDto : BaseDto
     {
 
         public string Name { get; set; }
