@@ -40,5 +40,25 @@ namespace Utilities.Messaging.Implements
         {
             return _inner.SendTwoFactorCodeEmailAsync(emailReceptor, verificationCode, validityMinutes, subject);
         }
+
+        public Task SendPaymentReminderAsync(string email, string fullName, DateTime dueDate, decimal totalAmount)
+        {
+            return _inner.SendPaymentReminderAsync(email, fullName, dueDate, totalAmount);
+        }
+
+        public Task SendOverdueNoticeAsync(string email, string fullName, DateTime dueDate, decimal totalAmount, int daysLate, decimal lateAmount)
+        {
+            return _inner.SendOverdueNoticeAsync(email, fullName, dueDate, totalAmount, daysLate, lateAmount);
+        }
+
+        public Task SendPreJudicialNoticeAsync(string email, string fullName, decimal totalDebt, DateTime paymentDeadline)
+        {
+            return _inner.SendPreJudicialNoticeAsync(email, fullName, totalDebt, paymentDeadline);
+        }
+
+        public Task SendJudicialNoticeAsync(string email, string fullName)
+        {
+            return _inner.SendJudicialNoticeAsync(email, fullName);
+        }
     }
 }
