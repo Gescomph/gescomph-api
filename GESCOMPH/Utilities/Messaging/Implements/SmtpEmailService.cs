@@ -22,6 +22,10 @@ namespace Utilities.Messaging.Implements
         private const string BrandMuted = "#6b7280";
         private const string BrandBorder = "#e5e7eb";
 
+        // Colores para estados críticos
+        private const string ColorWarning = "#c2410c"; // Naranja oscuro para Pre-Jurídico
+        private const string ColorDanger = "#b91c1c";  // Rojo para Jurídico
+
         public SmtpEmailService(IConfiguration config, ILogger<SmtpEmailService>? logger = null)
         {
             _config = config;
@@ -278,6 +282,99 @@ namespace Utilities.Messaging.Implements
                 _logger?.LogError(ex, "Error general enviando correo con adjunto a {To}", to);
                 throw;
             }
+        }
+
+        public async Task SendPaymentReminderAsync(string email, string fullName, DateTime dueDate, decimal totalAmount)
+        {
+            EnsureValidEmail(email, nameof(email));
+
+            var formattedDate = dueDate.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-CO"));
+            var formattedValue = totalAmount.ToString("N0", new System.Globalization.CultureInfo("es-CO"));
+
+            var content = $@"
+                <p>Hola <strong>{(fullName ?? "arrendatario")}</strong>,</p>
+                <p>Te recordamos que tu <strong>canon de arrendamiento</strong> vence el <strong>{formattedDate}</strong>.</p>
+                <div style='background:#f1f5f9; border-left:4px solid {BrandAccent}; padding:16px; margin:16px 0; border-radius:6px;'>
+                    <p style='margin:0; font-weight:600; color:{BrandText};'>💰 Valor a pagar: ${formattedValue} COP</p>
+                </div>
+                <p>Por favor realiza el pago antes de la fecha de vencimiento para evitar intereses moratorios.</p>
+                <p>Gracias por mantener tus obligaciones al día.</p>";
+
+            var html = WrapEmail("Recordatorio de pago próximo a vencer", content);
+            await SendEmailAsync(email, "GESCOMPH – Recordatorio de pago próximo a vencer", html);
+        }
+
+        public async Task SendOverdueNoticeAsync(string email, string fullName, DateTime dueDate, decimal totalAmount, int daysLate, decimal lateAmount)
+        {
+            EnsureValidEmail(email, nameof(email));
+
+            var formattedDue = dueDate.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-CO"));
+            var formattedTotal = totalAmount.ToString("N0", new System.Globalization.CultureInfo("es-CO"));
+            var formattedLate = lateAmount.ToString("N0", new System.Globalization.CultureInfo("es-CO"));
+
+            var content = $@"
+                <p>Hola <strong>{(fullName ?? "arrendatario")}</strong>,</p>
+                <p>Tu obligación de arrendamiento con fecha de vencimiento <strong>{formattedDue}</strong> se encuentra vencida.</p>
+                <div style='background:#fff7ed; border-left:4px solid #f97316; padding:16px; margin:16px 0; border-radius:6px;'>
+                    <p style='margin:0; font-weight:600; color:{BrandText};'>💰 Valor original: ${formattedTotal} COP</p>
+                    <p style='margin:4px 0 0 0; color:{BrandMuted}; font-size:14px;'>Días de mora: {daysLate}</p>
+                    <p style='margin:4px 0 0 0; color:{BrandMuted}; font-size:14px;'>Intereses acumulados: ${formattedLate} COP</p>
+                </div>
+                <p>Por favor regulariza tu pago lo antes posible para evitar procesos de cobro jurídico.</p>
+                <p>Si ya realizaste el pago, ignora este mensaje.</p>";
+
+            var html = WrapEmail("Notificación de obligación vencida", content);
+            await SendEmailAsync(email, "GESCOMPH – Notificación de pago vencido", html);
+        }
+
+        public async Task SendPreJudicialNoticeAsync(string email, string fullName, decimal totalDebt, DateTime paymentDeadline)
+        {
+            EnsureValidEmail(email, nameof(email));
+
+            var formattedDebt = totalDebt.ToString("N0", new System.Globalization.CultureInfo("es-CO"));
+            var formattedDate = paymentDeadline.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-CO"));
+
+            var content = $@"
+                <p>Señor(a) <strong>{(fullName ?? "Arrendatario")}</strong>,</p>
+                <p>Le informamos que su obligación presenta una mora superior a <strong>30 días</strong> y ha entrado en etapa de <strong>Cobro Pre-Jurídico</strong>.</p>
+                
+                <div style='background:#fff3e0; border-left:6px solid {ColorWarning}; padding:18px; margin:20px 0; border-radius:6px;'>
+                    <h3 style='margin:0 0 8px 0; color:{ColorWarning}; font-size:18px;'>⚠️ Aviso de Cobro Pre-Jurídico</h3>
+                    <p style='margin:4px 0; color:{BrandText}; font-size:16px;'><strong>Deuda Total Acumulada:</strong> ${formattedDebt} COP</p>
+                    <p style='margin:4px 0; color:{BrandText}; font-size:16px;'><strong>Fecha Límite de Pago:</strong> {formattedDate}</p>
+                </div>
+
+                <p>Tiene un plazo perentorio de <strong>5 días calendario</strong> (hasta el {formattedDate}) para cancelar la totalidad de la deuda.</p>
+                <p>De no recibir el pago en este plazo, su caso será trasladado automáticamente a nuestro <strong>Departamento Jurídico</strong> para iniciar las acciones legales correspondientes según el contrato de arrendamiento.</p>
+                <p>Evite costos adicionales de abogados y reportes negativos.</p>";
+
+            // Usamos el color de advertencia en el header
+            var html = WrapEmail("AVISO URGENTE: Cobro Pre-Jurídico", content);
+
+            await SendEmailAsync(email, "URGENTE: Notificación de Cobro Pre-Jurídico - GESCOMPH", html);
+        }
+
+        public async Task SendJudicialNoticeAsync(string email, string fullName)
+        {
+            EnsureValidEmail(email, nameof(email));
+
+            var content = $@"
+                <p>Señor(a) <strong>{(fullName ?? "Arrendatario")}</strong>,</p>
+                <p>Hacemos de su conocimiento que, al no haber recibido el pago de sus obligaciones pendientes dentro del plazo otorgado en la etapa pre-jurídica, su contrato ha pasado a la etapa de <strong>Cobro Jurídico</strong>.</p>
+                
+                <div style='background:#fef2f2; border-left:6px solid {ColorDanger}; padding:18px; margin:20px 0; border-radius:6px;'>
+                    <h3 style='margin:0 0 8px 0; color:{ColorDanger}; font-size:18px;'>⚖️ Notificación de Proceso Jurídico</h3>
+                    <p style='margin:4px 0; color:{BrandText};'>Su expediente ha sido remitido a nuestros asesores legales externos.</p>
+                </div>
+
+                <p>A partir de este momento, cualquier comunicación o acuerdo de pago deberá realizarse directamente a través de la firma de abogados asignada.</p>
+                <p>Esto implicará el cobro de honorarios profesionales y costas procesales adicionales a la deuda existente.</p>
+                <p style='font-weight:bold; color:{ColorDanger};'>Esta es una notificación informativa final por parte del sistema de gestión.</p>";
+
+            // Usamos el color de peligro (rojo) en el header
+            var html = WrapEmail("NOTIFICACIÓN LEGAL: Inicio Proceso Jurídico", content);
+
+            await SendEmailAsync(email, "NOTIFICACIÓN FINAL: Traslado a Cobro Jurídico - GESCOMPH", html);
         }
     }
 }

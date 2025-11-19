@@ -8,6 +8,8 @@ using WebGESCOMPH.Extensions.Presentation;
 using WebGESCOMPH.Extensions.RealTime;
 using WebGESCOMPH.Extensions.Validation;
 using WebGESCOMPH.RealTime;
+using WebGESCOMPH.RealTime.Collection;
+using WebGESCOMPH.RealTime.Collections;
 using WebGESCOMPH.RealTime.Contract;
 using WebGESCOMPH.RealTime.Obligations;
 
@@ -64,6 +66,8 @@ namespace WebGESCOMPH.Extensions.Infrastructure
 
             services.AddScoped<ObligationJobs>();
             services.AddScoped<ContractJobs>();
+            services.AddScoped<CollectionHub>();
+            services.AddScoped<CollectionJobs>();
 
             return services;
         }
