@@ -1,6 +1,7 @@
 using Hangfire;
 using Hangfire.SqlServer;
 using TimeZoneConverter;
+using WebGESCOMPH.RealTime.Collections;
 using WebGESCOMPH.RealTime.Contract;
 using WebGESCOMPH.RealTime.Obligations;
 using WebGESCOMPH.Security;
@@ -67,6 +68,15 @@ namespace WebGESCOMPH.Extensions.Infrastructure
                 j => j.GenerateForCurrentMonthAsync(JobCancellationToken.Null),
                 cronObligations,
                 new RecurringJobOptions { TimeZone = tz, QueueName = "maintenance" }
+            );
+
+            // Job recurrente: proceso automático de cobros (prejurídico, coactivo, jurídico)
+            var cronCollections = configuration["Hangfire:CronCollections"] ?? "*/1 * * * *"; // cada 1 min para pruebas
+            RecurringJob.AddOrUpdate<CollectionJobs>(
+                "collections-daily",
+                j => j.RunDailyCollectionsAsync(JobCancellationToken.Null),
+                cronCollections,
+                new RecurringJobOptions { TimeZone = tz, QueueName = "default" }
             );
 
             // Job recurrente: revisión periódica de contratos expirados

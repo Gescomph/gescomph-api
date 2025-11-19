@@ -1,7 +1,11 @@
 using Business.Interfaces.Implements.Business;
 using Business.Services.Business;
+using Business.Services.AdministrationSystem;
 using Data.Interfaz.IDataImplement.Business;
+using Data.Interfaz.IDataImplement.AdministrationSystem;
 using Data.Services.Business;
+using Data.Interfaz.DataBasic;
+using Business.Interfaces.Implements.AdministrationSystem;
 
 namespace WebGESCOMPH.Extensions.Modules.Business
 {
@@ -24,6 +28,8 @@ namespace WebGESCOMPH.Extensions.Modules.Business
             services.AddScoped<IEstablishmentService, EstablishmentService>();
             services.AddScoped<IObligationMonthService, ObligationMonthService>();
             services.AddScoped<IPlazaService, PlazaService>();
+            services.AddScoped<ICollectionService, CollectionService>();
+            services.AddScoped<ICollectionSettingServices, CollectionSettingServices>();
 
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddScoped<IContractRepository, ContractRepository>();
