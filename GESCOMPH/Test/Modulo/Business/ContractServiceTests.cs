@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using Utilities.Exceptions;
 using Utilities.Messaging.Interfaces;
 using Xunit;
+using Business.Interfaces.Implements.AdministrationSystem;
 
 namespace Test.Modulo.Business
 {
