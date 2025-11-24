@@ -86,6 +86,13 @@ namespace Business.Services.Business
             var existing = await _obligationRepository.GetByIdAsync(id)
                 ?? throw new BusinessException($"No existe obligación mensual con Id {id}.");
 
+            // Validación de idempotencia: si ya está pagada, no hacer nada
+            if (existing.Status == Status.Aprobada && existing.Locked)
+            {
+                // Ya está pagada, comportamiento idempotente (evita duplicados)
+                return;
+            }
+
             existing.PaymentDate = DateTime.UtcNow;
             existing.Status = Status.Aprobada;
             existing.Locked = true;

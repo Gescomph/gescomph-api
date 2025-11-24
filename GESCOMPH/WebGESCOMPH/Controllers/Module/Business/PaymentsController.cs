@@ -48,6 +48,9 @@ public class PaymentsController : ControllerBase
         if (obligation == null || obligation.ContractId != contract.Id)
             return NotFound(new { message = $"Obligación {obligationId} no encontrada para el contrato {contractId}." });
 
+        if (obligation.Status == "Aprobada" || obligation.Locked)
+            return BadRequest(new { message = $"La obligación {obligationId} ya ha sido pagada." });
+
         var pref = await _mercadoPagoService.CreateCheckoutPreferenceAsync(
             obligation,
             contract,
@@ -64,6 +67,9 @@ public class PaymentsController : ControllerBase
         var obligation = await _obligationService.GetByIdAsync(obligationId);
         if (obligation == null)
             return NotFound(new { message = $"Obligación {obligationId} no encontrada." });
+
+        if (obligation.Status == "Aprobada" || obligation.Locked)
+            return BadRequest(new { message = $"La obligación {obligationId} ya ha sido pagada." });
 
         var contract = await _contractService.GetByIdAsync(obligation.ContractId);
         if (contract == null)
@@ -149,6 +155,13 @@ public class PaymentsController : ControllerBase
         if (obligation == null)
         {
             _logger.LogWarning("Obligación {ObligationId} no existe.", obligationId);
+            return Ok();
+        }
+
+        // Validación de idempotencia: verificar si ya está pagada antes de procesar
+        if (obligation.Status == "Aprobada" && obligation.Locked)
+        {
+            _logger.LogInformation("Obligación {ObligationId} ya está pagada. Webhook duplicado ignorado.", obligationId);
             return Ok();
         }
 
