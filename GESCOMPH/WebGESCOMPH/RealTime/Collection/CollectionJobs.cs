@@ -1,11 +1,13 @@
 ﻿using Business.Interfaces.Implements.Business;
 using Hangfire;
 using Hangfire.Server;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using TimeZoneConverter;
+using WebGESCOMPH.RealTime.Obligations;
 
 namespace WebGESCOMPH.RealTime.Collections
 {
@@ -18,15 +20,18 @@ namespace WebGESCOMPH.RealTime.Collections
         private readonly ICollectionService _svc;
         private readonly ILogger<CollectionJobs> _log;
         private readonly IConfiguration _cfg;
+        private readonly IHubContext<ObligationHub> _hub;
 
         public CollectionJobs(
             ICollectionService svc,
             ILogger<CollectionJobs> log,
-            IConfiguration cfg)
+            IConfiguration cfg,
+            IHubContext<ObligationHub> hub)
         {
             _svc = svc;
             _log = log;
             _cfg = cfg;
+            _hub = hub;
         }
 
         /// <summary>
@@ -72,6 +77,9 @@ namespace WebGESCOMPH.RealTime.Collections
 
 
             _log.LogInformation("✅ Finalizó proceso de cobro automático {Date}", today);
+
+            // Notificar a todos los clientes que hubo actualización masiva
+            await _hub.Clients.All.SendAsync("ObligationsUpdated");
         }
     }
 }

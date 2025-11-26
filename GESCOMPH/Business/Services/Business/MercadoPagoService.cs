@@ -58,7 +58,7 @@ namespace Business.Services.Business.Payments
                     {
                         title = $"Contrato #{contract.Id:D6} - Obligación #{obligation.Id:D6}",
                         quantity = 1,
-                        unit_price = (int)Math.Round(obligation.TotalAmount, MidpointRounding.AwayFromZero),
+                        unit_price = (int)Math.Round(obligation.TotalAmount + (obligation.LateAmount ?? 0m), MidpointRounding.AwayFromZero),
                         currency_id = "COP"
                     }
                 },
