@@ -8,22 +8,28 @@ namespace Test.Modulo.Data;
 
 public class ModuleRepositoryTests
 {
-    private static ApplicationDbContext Ctx(string n)
+    private static ApplicationDbContext CreateContext(string name)
     {
-        var opt = new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(n).Options;
-        return new ApplicationDbContext(opt);
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(name)
+            .Options;
+
+        return new ApplicationDbContext(options);
     }
 
     [Fact]
-    public async Task Add_GetAll_Delete_Works()
+    public async Task AddGetAllDeleteWorks()
     {
         var db = Guid.NewGuid().ToString();
-        await using var ctx = Ctx(db);
+        await using var ctx = CreateContext(db);
         var repo = new DataGeneric<Module>(ctx);
 
         var m = await repo.AddAsync(new Module { Name = "M", Description = "D", Icon = "mdi-home" });
+
         (await repo.GetAllAsync()).Should().ContainSingle(x => x.Id == m.Id);
+
         (await repo.DeleteAsync(m.Id)).Should().BeTrue();
+
         (await repo.GetByIdAsync(m.Id)).Should().BeNull();
     }
 }

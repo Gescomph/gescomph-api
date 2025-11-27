@@ -19,13 +19,21 @@ public class ModuleServiceTests
     }
 
     [Fact]
-    public async Task GetAll_MapsDtos()
+    public async Task GetAllMapsDtos()
     {
         var entities = new List<Module> { new() { Id = 1, Name = "M" } };
-        _repo.Setup(r => r.GetAllAsync()).ReturnsAsync(entities);
-        _mapper.Setup(m => m.Map<IEnumerable<ModuleSelectDto>>(entities)).Returns(new List<ModuleSelectDto> { new() { Id = 1, Name = "M" } });
+
+        _repo.Setup(r => r.GetAllAsync())
+             .ReturnsAsync(entities);
+
+        _mapper.Setup(m => m.Map<IEnumerable<ModuleSelectDto>>(entities))
+               .Returns(new List<ModuleSelectDto>
+               {
+                   new() { Id = 1, Name = "M" }
+               });
+
         var res = await _service.GetAllAsync();
+
         Assert.Single(res);
     }
 }
-
