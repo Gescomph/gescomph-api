@@ -31,7 +31,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
@@ -43,12 +50,175 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Appointments.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Appointments1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Arriendo_Alcaldia.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Arriendo_Alcaldia.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Arriendo_Alcaldia.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
     <Compile Include="Arriendo_Alcaldia.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Arriendo_Alcaldia.edmx</DependentUpon>
     </Compile>
+    <Compile Include="Cities.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Cities1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="clauses.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Clauses1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CollectionSettings.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="contractClauses.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ContractClauses1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="contracts.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Contracts1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DATABASECHANGELOG.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DATABASECHANGELOGLOCK.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Departments.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Departments1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Establishments.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Establishments1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="FormModules.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="FormModules1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Forms.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Forms1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Images.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Images1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Modules.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Modules1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Notifications.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ObligationMonths.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ObligationMonths1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PasswordResetCodes.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PasswordResetCodes1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Permissions.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Permissions1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Persons.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Persons1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="plaza.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Plazas.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="premisesLeaseds.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="PremisesLeaseds1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RefreshToken.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="RefreshToken1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Roles.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Roles1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="RolFormPermissions.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="RolFormPermissions1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="RolUsers.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="RolUsers1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="systemParameters.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="SystemParameters1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="TwoFactorCodes.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Users.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Users1.cs">
+      <DependentUpon>Arriendo_Alcaldia.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EntityDeploy Include="Arriendo_Alcaldia.edmx">
@@ -61,6 +231,22 @@
     <None Include="Arriendo_Alcaldia.edmx.diagram">
       <DependentUpon>Arriendo_Alcaldia.edmx</DependentUpon>
     </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Arriendo_Alcaldia.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Arriendo_Alcaldia.Context.cs</LastGenOutput>
+      <DependentUpon>Arriendo_Alcaldia.edmx</DependentUpon>
+    </Content>
+    <Content Include="Arriendo_Alcaldia.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Arriendo_Alcaldia.cs</LastGenOutput>
+      <DependentUpon>Arriendo_Alcaldia.edmx</DependentUpon>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
