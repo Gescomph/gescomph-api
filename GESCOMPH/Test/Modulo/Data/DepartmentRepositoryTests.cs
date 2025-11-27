@@ -8,19 +8,20 @@ namespace Test.Modulo.Data;
 
 public class DepartmentRepositoryTests
 {
-    private static ApplicationDbContext Ctx(string name)
+    private static ApplicationDbContext CreateContext(string name)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(name)
             .Options;
+
         return new ApplicationDbContext(options);
     }
 
     [Fact]
-    public async Task Crud_WithSoftDelete_Works()
+    public async Task CrudWithSoftDeleteWorks()
     {
         var db = Guid.NewGuid().ToString();
-        await using var ctx = Ctx(db);
+        await using var ctx = CreateContext(db);
         var repo = new DataGeneric<Department>(ctx);
 
         var d = await repo.AddAsync(new Department { Name = "Dept" });
@@ -29,4 +30,3 @@ public class DepartmentRepositoryTests
         (await repo.GetByIdAsync(d.Id)).Should().BeNull();
     }
 }
-

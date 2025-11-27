@@ -8,17 +8,20 @@ namespace Test.Modulo.Data;
 
 public class FormRepositoryTests
 {
-    private static ApplicationDbContext Ctx(string n)
+    private static ApplicationDbContext CreateContext(string name)
     {
-        var opt = new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(n).Options;
-        return new ApplicationDbContext(opt);
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(name)
+            .Options;
+
+        return new ApplicationDbContext(options);
     }
 
     [Fact]
-    public async Task Add_Update_DeleteLogic_Works()
+    public async Task AddUpdateDeleteLogicWorks()
     {
         var db = Guid.NewGuid().ToString();
-        await using var ctx = Ctx(db);
+        await using var ctx = CreateContext(db);
         var repo = new DataGeneric<Form>(ctx);
 
         var f = await repo.AddAsync(new Form { Name = "Menu", Description = "D", Route = "/home" });
@@ -32,4 +35,3 @@ public class FormRepositoryTests
         (await repo.GetByIdAsync(f.Id)).Should().BeNull();
     }
 }
-

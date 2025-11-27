@@ -8,19 +8,21 @@ namespace Test.Modulo.Data;
 
 public class FormModuleRepositoryTests
 {
-    private static ApplicationDbContext Ctx()
+    private static ApplicationDbContext CreateContext()
     {
-        var opt = new DbContextOptionsBuilder<ApplicationDbContext>()
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
-        return new ApplicationDbContext(opt);
+
+        return new ApplicationDbContext(options);
     }
 
     [Fact]
-    public async Task Crud_Works()
+    public async Task CrudWorks()
     {
-        await using var ctx = Ctx();
+        await using var ctx = CreateContext();
         var repo = new FormModuleRepository(ctx);
+
         ctx.Modules.Add(new Module { Id = 1, Name = "M", Description = "D", Icon = "i" });
         ctx.Forms.Add(new Form { Id = 2, Name = "F", Description = "D", Route = "/f" });
         await ctx.SaveChangesAsync();
@@ -38,4 +40,3 @@ public class FormModuleRepositoryTests
         (await repo.GetByIdAsync(fm.Id)).Should().BeNull();
     }
 }
-

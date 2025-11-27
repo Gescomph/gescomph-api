@@ -22,11 +22,13 @@ namespace Data.Services.SecurityAuthentication
         public override async Task<RolFormPermission?> GetByIdAsync(int id)
         {
             return await _dbSet.AsNoTracking()
+                .Where(e => e.Id == id && !e.IsDeleted)
                 .Include(e => e.Rol)
                 .Include(e => e.Form)
                 .Include(e => e.Permission)
-                .FirstOrDefaultAsync(e => e.Id == id);
+                .FirstOrDefaultAsync();
         }
+
 
         public async Task<IEnumerable<RolFormPermission>> GetByRolAndFormAsync(int rolId, int formId)
         {

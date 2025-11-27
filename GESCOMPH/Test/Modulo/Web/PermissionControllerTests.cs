@@ -15,7 +15,7 @@ public class PermissionControllerTests
     private PermissionController CreateController() => new(_service.Object, _logger.Object);
 
     [Fact]
-    public async Task DeleteLogic_ReturnsNoContent_WhenDeleted()
+    public async Task DeleteLogicReturnsNoContentWhenDeleted()
     {
         _service.Setup(s => s.DeleteLogicAsync(5)).ReturnsAsync(true);
         var result = await CreateController().DeleteLogic(5);
@@ -23,51 +23,71 @@ public class PermissionControllerTests
     }
 
     [Fact]
-    public async Task Get_ReturnsOk()
+    public async Task GetReturnsOk()
     {
-        _service.Setup(s => s.GetAllAsync()).ReturnsAsync(new List<PermissionSelectDto> { new() { Id = 1, Name = "P" } });
+        _service.Setup(s => s.GetAllAsync())
+            .ReturnsAsync(new List<PermissionSelectDto> { new() { Id = 1, Name = "P" } });
+
         var res = await CreateController().Get();
+
         Assert.IsType<OkObjectResult>(res.Result);
     }
 
     [Fact]
-    public async Task GetById_NotFound()
+    public async Task GetByIdReturnsNotFound()
     {
-        _service.Setup(s => s.GetByIdAsync(10)).ReturnsAsync((PermissionSelectDto?)null);
+        _service.Setup(s => s.GetByIdAsync(10))
+            .ReturnsAsync((PermissionSelectDto?)null);
+
         var res = await CreateController().GetById(10);
+
         Assert.IsType<NotFoundResult>(res.Result);
     }
 
     [Fact]
-    public async Task Post_CreatedAt()
+    public async Task PostReturnsCreatedAt()
     {
         var created = new PermissionSelectDto { Id = 3, Name = "P" };
-        _service.Setup(s => s.CreateAsync(It.IsAny<PermissionCreateDto>())).ReturnsAsync(created);
+
+        _service.Setup(s => s.CreateAsync(It.IsAny<PermissionCreateDto>()))
+            .ReturnsAsync(created);
+
         var res = await CreateController().Post(new PermissionCreateDto { Name = "P" });
+
         Assert.IsType<CreatedAtActionResult>(res.Result);
     }
 
     [Fact]
-    public async Task Put_Ok()
+    public async Task PutReturnsOk()
     {
         var updated = new PermissionSelectDto { Id = 4, Name = "UP" };
-        _service.Setup(s => s.UpdateAsync(It.IsAny<PermissionUpdateDto>())).ReturnsAsync(updated);
+
+        _service.Setup(s => s.UpdateAsync(It.IsAny<PermissionUpdateDto>()))
+            .ReturnsAsync(updated);
+
         var res = await CreateController().Put(4, new PermissionUpdateDto { Id = 4, Name = "UP" });
+
         Assert.IsType<OkObjectResult>(res.Result);
     }
 
     [Fact]
-    public async Task Delete_NoContent_WhenDeleted()
+    public async Task DeleteReturnsNoContentWhenDeleted()
     {
         _service.Setup(s => s.DeleteAsync(6)).ReturnsAsync(true);
+
         var res = await CreateController().Delete(6);
+
         Assert.IsType<NoContentResult>(res);
     }
 
     [Fact]
-    public async Task ChangeActiveStatus_NoContent()
+    public async Task ChangeActiveStatusReturnsNoContent()
     {
-        var res = await CreateController().ChangeActiveStatus(7, new WebGESCOMPH.Contracts.Requests.ChangeActiveStatusRequest { Active = true });
+        var res = await CreateController().ChangeActiveStatus(
+            7,
+            new WebGESCOMPH.Contracts.Requests.ChangeActiveStatusRequest { Active = true }
+        );
+
         Assert.IsType<NoContentResult>(res);
     }
 }
