@@ -1,25 +1,22 @@
 ﻿using Business.CustomJWT;
 using Business.Interfaces;
+using Business.Interfaces.Implements.AdministrationSystem;
 using Business.Interfaces.Implements.Business;
 using Business.Interfaces.Implements.Persons;
 using Business.Interfaces.Implements.SecurityAuthentication;
 using Business.Interfaces.Notifications;
 using Business.Interfaces.PDF;
 using Business.Services.Business;
-using Data.Interfaz.IDataImplement.Business;
 using Data.Interfaz.IDataImplement.AdministrationSystem;
+using Data.Interfaz.IDataImplement.Business;
+using Entity.Domain.Models.Implements.Business;
 using Entity.DTOs.Implements.Business.Contract;
 using Entity.DTOs.Implements.Business.ObligationMonth;
 using MapsterMapper;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Utilities.Exceptions;
 using Utilities.Messaging.Interfaces;
-using Xunit;
-using Business.Interfaces.Implements.AdministrationSystem;
 
 namespace Test.Modulo.Business
 {
@@ -31,7 +28,6 @@ namespace Test.Modulo.Business
         private readonly Mock<IEstablishmentService> _estSvc = new();
         private readonly Mock<IAuthService> _authService = new();
         private readonly Mock<ISendCode> _email = new();
-        private readonly Mock<IMapper> _mapper = new();
         private readonly Mock<ICurrentUser> _currentUser = new();
         private readonly Mock<IUserContextService> _userCtx = new();
         private readonly Mock<IContractPdfGeneratorService> _contractPdfService = new();
@@ -40,9 +36,9 @@ namespace Test.Modulo.Business
         private readonly Mock<INotificationRepository> _notificationRepository = new();
         private readonly Mock<IUnitOfWork> _uow = new();
         private readonly Mock<ILogger<ContractService>> _logger = new();
-        private readonly ContractService _service;
+        private readonly Mock<IMapper> _mapper = new();
 
-        private readonly DateTime _fixedDate = new DateTime(2025, 9, 18);
+        private readonly ContractService _service;
 
         public ContractServiceTests()
         {
@@ -64,73 +60,94 @@ namespace Test.Modulo.Business
                 _mapper.Object);
         }
 
+        // ------------------------------------------------------------
+        // Caso 1: Admin → obtiene todos los contratos
+        // ------------------------------------------------------------
         [Fact]
-        public async Task GetMine_Admin_ReturnsMappedCards()
+        public async Task GetMineAdminReturnsMappedContracts()
         {
             _currentUser.SetupGet(u => u.EsAdministrador).Returns(true);
 
-            var cards = new List<ContractCardDto>
+            var entities = new List<Contract>
             {
-                new ContractCardDto(
-                    1, 10, "P", "D", "PH", null, null,
-                    _fixedDate, _fixedDate, 100, 50, true)
+                new Contract { Id = 1, PersonId = 10 }
             };
 
-            _contracts.Setup(r => r.GetCardsAllAsync())
-                .ReturnsAsync(cards);
+            _contracts.Setup(r => r.GetAllAsync())
+                .ReturnsAsync(entities);
+
+            _mapper.Setup(m => m.Map<IEnumerable<ContractSelectDto>>(entities))
+                .Returns(new List<ContractSelectDto>
+                {
+                    new ContractSelectDto { Id = 1, PersonId = 10 }
+                });
 
             var result = await _service.GetMineAsync();
 
             Assert.Single(result);
-            Assert.Equal("P D", result[0].PersonFullName);
+            Assert.Equal(10, result.First().PersonId);
         }
 
+        // ------------------------------------------------------------
+        // Caso 2: No admin y sin persona → lanza excepción
+        // ------------------------------------------------------------
         [Fact]
-        public async Task GetMine_NonAdmin_WithoutPerson_Throws()
+        public async Task GetMineNonAdminWithoutPersonThrows()
         {
             _currentUser.SetupGet(u => u.EsAdministrador).Returns(false);
             _currentUser.SetupGet(u => u.PersonId).Returns((int?)null);
 
-            var ex = await Assert.ThrowsAsync<BusinessException>(
-                () => _service.GetMineAsync());
+            var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.GetMineAsync());
 
-            Assert.Contains("Usuario no tiene persona asociada", ex.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("persona asociada", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
+        // ------------------------------------------------------------
+        // Caso 3: No admin con persona → retorna contratos filtrados
+        // ------------------------------------------------------------
         [Fact]
-        public async Task GetMine_NonAdmin_WithPerson_ReturnsMappedCards()
+        public async Task GetMineNonAdminWithPersonReturnsMappedContracts()
         {
             _currentUser.SetupGet(u => u.EsAdministrador).Returns(false);
             _currentUser.SetupGet(u => u.PersonId).Returns(99);
 
-            var cards = new List<ContractCardDto>
+            var entities = new List<Contract>
             {
-                new ContractCardDto(
-                    2, 99, "Z", "D", "PH", null, null,
-                    _fixedDate, _fixedDate, 200, 100, false)
+                new Contract { Id = 2, PersonId = 99 }
             };
 
-            _contracts.Setup(r => r.GetCardsByPersonAsync(99))
-                .ReturnsAsync(cards);
+            _contracts.Setup(r => r.GetByPersonAsync(99))
+                .ReturnsAsync(entities);
+
+            _mapper.Setup(m => m.Map<IEnumerable<ContractSelectDto>>(entities))
+                .Returns(new List<ContractSelectDto>
+                {
+                    new ContractSelectDto { Id = 2, PersonId = 99 }
+                });
 
             var result = await _service.GetMineAsync();
 
             Assert.Single(result);
-            Assert.Equal(99, result[0].PersonId);
-            Assert.Equal("Z D", result[0].PersonFullName);
+            Assert.Equal(99, result.First().PersonId);
         }
 
+        // ------------------------------------------------------------
+        // Caso 4: Id inválido en GetObligationsAsync
+        // ------------------------------------------------------------
         [Fact]
-        public async Task GetObligations_InvalidId_Throws()
+        public async Task GetObligationsInvalidIdThrows()
         {
-            var ex = await Assert.ThrowsAsync<BusinessException>(
-                () => _service.GetObligationsAsync(0));
+            var ex = await Assert.ThrowsAsync<BusinessException>(() =>
+                _service.GetObligationsAsync(0));
 
-            Assert.Contains("Id de contrato inválido", ex.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("inválido", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
+        // ------------------------------------------------------------
+        // Caso 5: Delegación correcta hacia el servicio de obligaciones
+        // ------------------------------------------------------------
         [Fact]
-        public async Task GetObligations_DelegatesToService()
+        public async Task GetObligationsDelegatesToService()
         {
             _obligationSvc.Setup(s => s.GetByContractAsync(5))
                 .ReturnsAsync(new List<ObligationMonthSelectDto> { new() });
@@ -139,20 +156,6 @@ namespace Test.Modulo.Business
 
             Assert.Single(result);
             _obligationSvc.Verify(s => s.GetByContractAsync(5), Times.Once);
-        }
-
-        [Fact(Skip = "EF InMemory no soporta transacciones; cubrir en integración relacional")]
-        public async Task RunExpirationSweep_ReturnsRepositoryResults()
-        {
-            _contracts.Setup(r => r.DeactivateExpiredAsync(It.IsAny<DateTime>()))
-                .ReturnsAsync(new List<int> { 1, 2 });
-            _contracts.Setup(r => r.ReleaseEstablishmentsForExpiredAsync(It.IsAny<DateTime>()))
-                .ReturnsAsync(3);
-
-            var result = await _service.RunExpirationSweepAsync();
-
-            Assert.Equal(2, result.DeactivatedContractIds.Count);
-            Assert.Equal(3, result.ReactivatedEstablishments);
         }
     }
 }

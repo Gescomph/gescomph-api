@@ -14,60 +14,82 @@ public class ModuleControllerTests
     private ModuleController Create() => new(_service.Object, _logger.Object);
 
     [Fact]
-    public async Task Post_ReturnsCreatedAt()
+    public async Task PostReturnsCreatedAt()
     {
         var input = new ModuleCreateDto { Name = "M" };
         var created = new ModuleSelectDto { Id = 2, Name = "M" };
+
         _service.Setup(s => s.CreateAsync(input)).ReturnsAsync(created);
+
         var res = await Create().Post(input);
+
         Assert.IsType<CreatedAtActionResult>(res.Result);
     }
 
     [Fact]
-    public async Task Get_ReturnsOk()
+    public async Task GetReturnsOk()
     {
-        _service.Setup(s => s.GetAllAsync()).ReturnsAsync(new List<ModuleSelectDto> { new() { Id = 1 } });
+        _service.Setup(s => s.GetAllAsync()).ReturnsAsync(
+            new List<ModuleSelectDto> { new() { Id = 1 } }
+        );
+
         var res = await Create().Get();
+
         Assert.IsType<OkObjectResult>(res.Result);
     }
 
     [Fact]
-    public async Task Delete_NoContent_WhenDeleted()
+    public async Task DeleteReturnsNoContentWhenDeleted()
     {
         _service.Setup(s => s.DeleteAsync(1)).ReturnsAsync(true);
+
         var res = await Create().Delete(1);
+
         Assert.IsType<NoContentResult>(res);
     }
 
     [Fact]
-    public async Task GetById_NotFound()
+    public async Task GetByIdReturnsNotFound()
     {
-        _service.Setup(s => s.GetByIdAsync(9)).ReturnsAsync((ModuleSelectDto?)null);
+        _service.Setup(s => s.GetByIdAsync(9))
+                .ReturnsAsync((ModuleSelectDto?)null);
+
         var res = await Create().GetById(9);
+
         Assert.IsType<NotFoundResult>(res.Result);
     }
 
     [Fact]
-    public async Task Put_Ok()
+    public async Task PutReturnsOk()
     {
         var updated = new ModuleSelectDto { Id = 3, Name = "M" };
-        _service.Setup(s => s.UpdateAsync(It.IsAny<ModuleUpdateDto>())).ReturnsAsync(updated);
+
+        _service.Setup(s => s.UpdateAsync(It.IsAny<ModuleUpdateDto>()))
+                .ReturnsAsync(updated);
+
         var res = await Create().Put(3, new ModuleUpdateDto { Id = 3, Name = "M" });
+
         Assert.IsType<OkObjectResult>(res.Result);
     }
 
     [Fact]
-    public async Task DeleteLogic_NoContent()
+    public async Task DeleteLogicReturnsNoContent()
     {
         _service.Setup(s => s.DeleteLogicAsync(4)).ReturnsAsync(true);
+
         var res = await Create().DeleteLogic(4);
+
         Assert.IsType<NoContentResult>(res);
     }
 
     [Fact]
-    public async Task ChangeActiveStatus_NoContent()
+    public async Task ChangeActiveStatusReturnsNoContent()
     {
-        var res = await Create().ChangeActiveStatus(6, new WebGESCOMPH.Contracts.Requests.ChangeActiveStatusRequest { Active = true });
+        var res = await Create().ChangeActiveStatus(
+            6,
+            new WebGESCOMPH.Contracts.Requests.ChangeActiveStatusRequest { Active = true }
+        );
+
         Assert.IsType<NoContentResult>(res);
     }
 }

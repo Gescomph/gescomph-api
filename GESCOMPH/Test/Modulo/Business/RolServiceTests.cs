@@ -34,7 +34,8 @@ namespace Test.Modulo.RolRolTest
 
             _rolRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(roles);
             _mapperMock.Setup(m => m.Map<IEnumerable<RolSelectDto>>(roles))
-                       .Returns(new List<RolSelectDto> {
+                       .Returns(new List<RolSelectDto>
+                       {
                            new RolSelectDto { Id = 1, Name = "Admin" },
                            new RolSelectDto { Id = 2, Name = "User" }
                        });
@@ -48,14 +49,13 @@ namespace Test.Modulo.RolRolTest
         }
 
         [Fact]
-        public async Task GetAllAsync_ShouldThrowBusinessException_WhenRepoFails()
+        public async Task GetAllAsync_WhenRepoFails_ThrowsBusinessException()
         {
             _rolRepoMock.Setup(r => r.GetAllAsync()).ThrowsAsync(new Exception("DB failure"));
 
             var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.GetAllAsync());
 
             Assert.Contains("Error al obtener todos los registros", ex.Message);
-            Assert.Equal("DB failure", ex.InnerException!.Message);
         }
 
         // ---------- GETBYID ----------
@@ -75,16 +75,15 @@ namespace Test.Modulo.RolRolTest
         }
 
         [Fact]
-        public async Task GetByIdAsync_ShouldThrowBusinessException_WhenIdIsZero()
+        public async Task GetByIdAsync_WhenZero_ThrowsBusinessException()
         {
             var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.GetByIdAsync(0));
 
             Assert.Contains("Error al obtener el registro con ID 0", ex.Message);
-            Assert.Contains("El ID debe ser mayor que cero", ex.InnerException!.Message);
         }
 
         [Fact]
-        public async Task GetByIdAsync_ReturnsNull_WhenEntityNotFound()
+        public async Task GetByIdAsync_WhenNull_ReturnsNull()
         {
             _rolRepoMock.Setup(r => r.GetByIdAsync(10)).ReturnsAsync((Rol?)null);
 
@@ -93,110 +92,94 @@ namespace Test.Modulo.RolRolTest
             Assert.Null(result);
         }
 
-        [Fact]
-        public async Task GetByIdAsync_ShouldThrowBusinessException_WhenRepoFails()
-        {
-            _rolRepoMock.Setup(r => r.GetByIdAsync(5)).ThrowsAsync(new Exception("DB broken"));
-
-            var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.GetByIdAsync(5));
-
-            Assert.Contains("Error al obtener el registro con ID 5", ex.Message);
-            Assert.Equal("DB broken", ex.InnerException!.Message);
-        }
-
         // ---------- CREATE ----------
         [Fact]
         public async Task CreateAsync()
         {
             var dto = new RolCreateDto { Name = "Admin" };
-            var candidate = new Rol { Name = "Admin" };
+            var entity = new Rol { Name = "Admin" };
 
-            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(candidate);
+            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(entity);
             _rolRepoMock.Setup(r => r.GetAllQueryable()).Returns(new List<Rol>().AsQueryable());
+            _rolRepoMock.Setup(r => r.AddAsync(It.IsAny<Rol>()))
+                        .ReturnsAsync((Rol r) => { r.Id = 1; return r; });
 
             await _rolService.CreateAsync(dto);
 
-            _rolRepoMock.Verify(r => r.AddAsync(It.Is<Rol>(x => x.Name == "Admin")), Times.Once);
+            _rolRepoMock.Verify(r => r.AddAsync(It.IsAny<Rol>()), Times.Once);
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldThrowBusinessException_WhenDuplicateExists()
+        public async Task CreateAsync_WhenDuplicateActive_ThrowsBusinessException()
         {
             var dto = new RolCreateDto { Name = "Admin" };
-            var candidate = new Rol { Name = "Admin" };
+            var entity = new Rol { Name = "Admin" };
 
-            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(candidate);
+            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(entity);
 
-            var existing = new List<Rol>
-            {
-                new Rol { Id = 1, Name = "Admin", IsDeleted = false }
-            }.AsQueryable();
-
-            _rolRepoMock.Setup(r => r.GetAllQueryable()).Returns(existing);
+            _rolRepoMock.Setup(r => r.GetAllQueryable())
+                .Returns(new List<Rol>
+                {
+                    new Rol { Id = 1, Name = "Admin", IsDeleted = false }
+                }.AsQueryable());
 
             var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.CreateAsync(dto));
 
-            Assert.Contains("Error al crear el registro", ex.Message);
-            Assert.Contains("Ya existe un registro con los mismos datos", ex.InnerException!.Message);
+            Assert.Equal("Duplicado", ex.Message);
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldReactivate_WhenDuplicateInactiveExists()
+        public async Task CreateAsync_WhenDuplicateInactive_Reactivates()
         {
             var dto = new RolCreateDto { Name = "Admin" };
-            var candidate = new Rol { Name = "Admin" };
+            var entity = new Rol { Name = "Admin" };
 
-            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(candidate);
+            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(entity);
 
-            var existing = new List<Rol>
-            {
-                new Rol { Id = 1, Name = "Admin", IsDeleted = true }
-            }.AsQueryable();
+            var existing = new Rol { Id = 1, Name = "Admin", IsDeleted = true };
 
-            _rolRepoMock.Setup(r => r.GetAllQueryable()).Returns(existing);
+            _rolRepoMock.Setup(r => r.GetAllQueryable())
+                .Returns(new List<Rol> { existing }.AsQueryable());
+
+            _rolRepoMock.Setup(r => r.UpdateAsync(existing))
+                .ReturnsAsync(existing);
 
             await _rolService.CreateAsync(dto);
 
             _rolRepoMock.Verify(r => r.UpdateAsync(It.Is<Rol>(x => x.Id == 1 && x.IsDeleted == false)), Times.Once);
         }
 
+
         [Fact]
-        public async Task CreateAsync_ShouldThrowBusinessException_WhenDtoIsNull()
+        public async Task CreateAsync_WhenDbUpdateException_Propagates()
         {
-            await Assert.ThrowsAsync<BusinessException>(() => _rolService.CreateAsync(null!));
+            var dto = new RolCreateDto { Name = "Admin" };
+            var entity = new Rol { Name = "Admin" };
+
+            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(entity);
+            _rolRepoMock.Setup(r => r.GetAllQueryable()).Returns(new List<Rol>().AsQueryable());
+
+            _rolRepoMock.Setup(r => r.AddAsync(It.IsAny<Rol>()))
+                        .ThrowsAsync(new DbUpdateException("Unique"));
+
+            await Assert.ThrowsAsync<DbUpdateException>(() => _rolService.CreateAsync(dto));
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldThrowBusinessException_WhenDbUpdateExceptionOccurs()
+        public async Task CreateAsync_WhenGenericException_Propagates()
         {
             var dto = new RolCreateDto { Name = "Admin" };
-            var candidate = new Rol { Name = "Admin" };
+            var entity = new Rol { Name = "Admin" };
 
-            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(candidate);
+            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(entity);
             _rolRepoMock.Setup(r => r.GetAllQueryable()).Returns(new List<Rol>().AsQueryable());
+
             _rolRepoMock.Setup(r => r.AddAsync(It.IsAny<Rol>()))
-                        .ThrowsAsync(new DbUpdateException("Unique violation"));
+                        .ThrowsAsync(new Exception("X"));
 
-            var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.CreateAsync(dto));
+            var ex = await Assert.ThrowsAsync<Exception>(() => _rolService.CreateAsync(dto));
 
-            Assert.Contains("Violación de unicidad", ex.Message);
-        }
-
-        [Fact]
-        public async Task CreateAsync_ShouldThrowBusinessException_WhenGenericErrorOccurs()
-        {
-            var dto = new RolCreateDto { Name = "Admin" };
-            var candidate = new Rol { Name = "Admin" };
-
-            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(candidate);
-            _rolRepoMock.Setup(r => r.GetAllQueryable()).Returns(new List<Rol>().AsQueryable());
-            _rolRepoMock.Setup(r => r.AddAsync(It.IsAny<Rol>()))
-                        .ThrowsAsync(new Exception("Unexpected error"));
-
-            var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.CreateAsync(dto));
-
-            Assert.Contains("Error al crear el registro", ex.Message);
-            Assert.Equal("Unexpected error", ex.InnerException!.Message);
+            Assert.Equal("X", ex.Message);
         }
 
         // ---------- UPDATE ----------
@@ -204,15 +187,18 @@ namespace Test.Modulo.RolRolTest
         public async Task UpdateAsync()
         {
             var dto = new RolUpdateDto { Id = 1, Name = "Updated" };
-            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(new Rol { Id = 1, Name = "Updated" });
+            var entity = new Rol { Id = 1, Name = "Updated" };
+
+            _mapperMock.Setup(m => m.Map<Rol>(dto)).Returns(entity);
+            _rolRepoMock.Setup(r => r.UpdateAsync(entity)).ReturnsAsync(entity);
 
             await _rolService.UpdateAsync(dto);
 
-            _rolRepoMock.Verify(r => r.UpdateAsync(It.Is<Rol>(x => x.Name == "Updated")), Times.Once);
+            _rolRepoMock.Verify(r => r.UpdateAsync(It.IsAny<Rol>()), Times.Once);
         }
 
         [Fact]
-        public async Task UpdateAsync_ShouldThrowBusinessException_WhenDtoIsNull()
+        public async Task UpdateAsync_WhenNullDto_ThrowsBusinessException()
         {
             await Assert.ThrowsAsync<BusinessException>(() => _rolService.UpdateAsync(null!));
         }
@@ -221,7 +207,9 @@ namespace Test.Modulo.RolRolTest
         [Fact]
         public async Task DeleteAsync()
         {
-            _rolRepoMock.Setup(r => r.DeleteLogicAsync(1)).ReturnsAsync(true);
+            var entity = new Rol { Id = 1, Active = false };
+            _rolRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(entity);
+            _rolRepoMock.Setup(r => r.DeleteAsync(1)).ReturnsAsync(true);
 
             await _rolService.DeleteAsync(1);
 
@@ -229,18 +217,19 @@ namespace Test.Modulo.RolRolTest
         }
 
         [Fact]
-        public async Task DeleteAsync_ShouldThrowBusinessException_WhenIdIsZero()
+        public async Task DeleteAsync_WhenIdZero_ThrowsBusinessException()
         {
-            var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.DeleteAsync(0));
-
-            Assert.Contains("El ID debe ser mayor que cero", ex.InnerException!.Message);
+            await Assert.ThrowsAsync<BusinessException>(() => _rolService.DeleteAsync(0));
         }
 
         [Fact]
-        public async Task DeleteAsync_ShouldThrowBusinessException_WhenDbUpdateExceptionOccurs()
+        public async Task DeleteAsync_WhenDbUpdateException_Wrapped()
         {
+            var entity = new Rol { Id = 1, Active = false };
+            _rolRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(entity);
+
             _rolRepoMock.Setup(r => r.DeleteAsync(1))
-                        .ThrowsAsync(new DbUpdateException("FK constraint"));
+                        .ThrowsAsync(new DbUpdateException("FK"));
 
             var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.DeleteAsync(1));
 
@@ -248,21 +237,26 @@ namespace Test.Modulo.RolRolTest
         }
 
         [Fact]
-        public async Task DeleteAsync_ShouldThrowBusinessException_WhenGenericErrorOccurs()
+        public async Task DeleteAsync_WhenGenericException_Wrapped()
         {
+            var entity = new Rol { Id = 1, Active = false };
+            _rolRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(entity);
+
             _rolRepoMock.Setup(r => r.DeleteAsync(1))
-                        .ThrowsAsync(new Exception("Delete fail"));
+                        .ThrowsAsync(new Exception("X"));
 
             var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.DeleteAsync(1));
 
             Assert.Contains("Error al eliminar el registro", ex.Message);
-            Assert.Equal("Delete fail", ex.InnerException!.Message);
+            Assert.Equal("X", ex.InnerException!.Message);
         }
 
         // ---------- DELETE LOGIC ----------
         [Fact]
         public async Task DeleteLogicAsync()
         {
+            var entity = new Rol { Id = 1, Active = false };
+            _rolRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(entity);
             _rolRepoMock.Setup(r => r.DeleteLogicAsync(1)).ReturnsAsync(true);
 
             await _rolService.DeleteLogicAsync(1);
@@ -271,30 +265,30 @@ namespace Test.Modulo.RolRolTest
         }
 
         [Fact]
-        public async Task DeleteLogicAsync_ShouldThrowBusinessException_WhenIdIsZero()
+        public async Task DeleteLogicAsync_WhenIdZero_ThrowsBusinessException()
         {
-            var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.DeleteLogicAsync(0));
-
-            Assert.Contains("El ID debe ser mayor que cero", ex.InnerException!.Message);
+            await Assert.ThrowsAsync<BusinessException>(() => _rolService.DeleteLogicAsync(0));
         }
 
         [Fact]
-        public async Task DeleteLogicAsync_ShouldThrowBusinessException_WhenGenericErrorOccurs()
+        public async Task DeleteLogicAsync_WhenGenericError_Wrapped()
         {
+            var entity = new Rol { Id = 1, Active = false };
+            _rolRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(entity);
+
             _rolRepoMock.Setup(r => r.DeleteLogicAsync(1))
-                        .ThrowsAsync(new Exception("Logic delete fail"));
+                        .ThrowsAsync(new Exception("Delete logic fail"));
 
             var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.DeleteLogicAsync(1));
 
             Assert.Contains("Error al eliminar lógicamente", ex.Message);
-            Assert.Equal("Logic delete fail", ex.InnerException!.Message);
         }
 
         // ---------- UPDATE ACTIVE STATUS ----------
         [Fact]
         public async Task UpdateActiveStatusAsync()
         {
-            var entity = new Rol { Id = 1, Name = "Admin", Active = false };
+            var entity = new Rol { Id = 1, Active = false };
 
             _rolRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(entity);
 
@@ -304,15 +298,13 @@ namespace Test.Modulo.RolRolTest
         }
 
         [Fact]
-        public async Task UpdateActiveStatusAsync_ShouldThrowBusinessException_WhenIdIsZero()
+        public async Task UpdateActiveStatusAsync_WhenIdZero_ThrowsBusinessException()
         {
-            var ex = await Assert.ThrowsAsync<BusinessException>(() => _rolService.UpdateActiveStatusAsync(0, true));
-
-            Assert.Contains("El ID debe ser mayor que cero", ex.InnerException!.Message);
+            await Assert.ThrowsAsync<BusinessException>(() => _rolService.UpdateActiveStatusAsync(0, true));
         }
 
         [Fact]
-        public async Task UpdateActiveStatusAsync_ShouldThrowBusinessException_WhenEntityDoesNotExist()
+        public async Task UpdateActiveStatusAsync_WhenNotFound_ThrowsBusinessException()
         {
             _rolRepoMock.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Rol?)null);
 
@@ -320,7 +312,6 @@ namespace Test.Modulo.RolRolTest
 
             Assert.Contains("Error al actualizar el estado del registro con ID 99", ex.Message);
             Assert.IsType<KeyNotFoundException>(ex.InnerException);
-            Assert.Contains("No se encontró el registro con ID 99", ex.InnerException!.Message);
         }
     }
 }

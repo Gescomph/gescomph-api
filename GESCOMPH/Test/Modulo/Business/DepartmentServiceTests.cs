@@ -20,60 +20,87 @@ public class DepartmentServiceTests
     }
 
     [Fact]
-    public async Task GetAll_ReturnsDtos()
+    public async Task GetAllReturnsDtos()
     {
         var entities = new List<Department> { new() { Id = 1, Name = "Huila" } };
+
         _repo.Setup(r => r.GetAllAsync()).ReturnsAsync(entities);
+
         _mapper.Setup(m => m.Map<IEnumerable<DepartmentSelectDto>>(entities))
-               .Returns(new List<DepartmentSelectDto> { new() { Id = 1, Name = "Huila", Active = true } });
+               .Returns(new List<DepartmentSelectDto>
+               {
+                   new() { Id = 1, Name = "Huila", Active = true }
+               });
 
         var result = await _service.GetAllAsync();
+
         Assert.Single(result);
     }
 
     [Fact]
-    public async Task GetById_Throws_WhenIdZero()
+    public async Task GetByIdThrowsWhenIdZero()
     {
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.GetByIdAsync(0));
+
         Assert.Contains("ID 0", ex.Message);
     }
 
     [Fact]
-    public async Task UpdateActiveStatus_Throws_WhenNotFound()
+    public async Task UpdateActiveStatusThrowsWhenNotFound()
     {
         _repo.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Department?)null);
+
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.UpdateActiveStatusAsync(99, true));
+
         Assert.IsType<KeyNotFoundException>(ex.InnerException);
     }
 
     [Fact]
-    public async Task UpdateActiveStatus_Updates_WhenFound()
+    public async Task UpdateActiveStatusUpdatesWhenFound()
     {
         var dep = new Department { Id = 5, Name = "D", Active = false };
+
         _repo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(dep);
+
         await _service.UpdateActiveStatusAsync(5, true);
-        _repo.Verify(r => r.UpdateAsync(It.Is<Department>(d => d.Id == 5 && d.Active == true)), Times.Once);
+
+        _repo.Verify(r =>
+            r.UpdateAsync(It.Is<Department>(d => d.Id == 5 && d.Active == true)),
+            Times.Once);
     }
 
     [Fact]
-    public async Task Delete_Throws_WhenIdZero()
+    public async Task DeleteThrowsWhenIdZero()
     {
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.DeleteAsync(0));
+
         Assert.Contains("mayor que cero", ex.InnerException!.Message);
     }
 
     [Fact]
-    public async Task Delete_Wraps_DbUpdateException()
+    public async Task DeleteWrapsDbUpdateException()
     {
-        _repo.Setup(r => r.DeleteAsync(1)).ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException("FK"));
+        _repo.Setup(r => r.GetByIdAsync(1))
+             .ReturnsAsync(new Department
+             {
+                 Id = 1,
+                 Name = "D",
+                 Active = false
+             });
+
+        _repo.Setup(r => r.DeleteAsync(1))
+             .ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException("FK"));
+
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.DeleteAsync(1));
+
         Assert.Contains("restricciones de datos", ex.Message);
     }
 
     [Fact]
-    public async Task DeleteLogic_Throws_WhenIdZero()
+    public async Task DeleteLogicThrowsWhenIdZero()
     {
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.DeleteLogicAsync(0));
+
         Assert.Contains("mayor que cero", ex.InnerException!.Message);
     }
 }

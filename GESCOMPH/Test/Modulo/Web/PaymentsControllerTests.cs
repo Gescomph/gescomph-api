@@ -3,13 +3,10 @@ using Business.Services.Business.Payments;
 using Entity.DTOs.Implements.Business.Contract;
 using Entity.DTOs.Implements.Business.ObligationMonth;
 using Entity.DTOs.Implements.Payments;
-using Entity.Domain.Models.Implements.Business;
-using Entity.Enum;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WebGESCOMPH.Controllers.Module.Business;
-using Xunit;
 
 namespace Test.Modulo.Web;
 
@@ -27,118 +24,147 @@ public class PaymentsControllerTests
         _logger.Object
     );
 
+    // =====================================================================
+    // CreateCheckout
+    // =====================================================================
     [Fact]
-    public async Task CreateCheckout_ReturnsBadRequest_WhenObligationIsPaid()
+    public async Task CreateCheckoutReturnsBadRequestWhenObligationIsPaid()
     {
-        // Arrange
         int contractId = 1;
         int obligationId = 10;
-        var contract = new ContractSelectDto { Id = contractId, Email = "test@test.com", Document = "123" };
-        var obligation = new ObligationMonthSelectDto 
-        { 
-            Id = obligationId, 
-            ContractId = contractId, 
-            Status = Status.Aprobada, // Already paid
-            Locked = true 
+
+        var contract = new ContractSelectDto
+        {
+            Id = contractId,
+            Email = "test@test.com",
+            Document = "123"
+        };
+
+        var obligation = new ObligationMonthSelectDto
+        {
+            Id = obligationId,
+            ContractId = contractId,
+            Status = "Aprobada",
+            Locked = true
         };
 
         _contractService.Setup(s => s.GetByIdAsync(contractId)).ReturnsAsync(contract);
         _obligationService.Setup(s => s.GetByIdAsync(obligationId)).ReturnsAsync(obligation);
 
-        // Act
         var result = await Create().CreateCheckout(contractId, obligationId);
 
-        // Assert
-        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.Contains("ya ha sido pagada", badRequest.Value.ToString());
+        var bad = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Contains("ya ha sido pagada", bad.Value!.ToString());
     }
 
     [Fact]
-    public async Task CreateCheckout_ReturnsOk_WhenObligationIsPending()
+    public async Task CreateCheckoutReturnsOkWhenObligationIsPending()
     {
-        // Arrange
         int contractId = 1;
         int obligationId = 10;
-        var contract = new ContractSelectDto { Id = contractId, Email = "test@test.com", Document = "123" };
-        var obligation = new ObligationMonthSelectDto 
-        { 
-            Id = obligationId, 
-            ContractId = contractId, 
-            Status = Status.Pendiente, 
-            Locked = false,
-            TotalAmount = 10000
+
+        var contract = new ContractSelectDto
+        {
+            Id = contractId,
+            Email = "test@test.com",
+            Document = "123"
+        };
+
+        var obligation = new ObligationMonthSelectDto
+        {
+            Id = obligationId,
+            ContractId = contractId,
+            Status = "Pendiente",
+            Locked = false
         };
 
         _contractService.Setup(s => s.GetByIdAsync(contractId)).ReturnsAsync(contract);
         _obligationService.Setup(s => s.GetByIdAsync(obligationId)).ReturnsAsync(obligation);
-        
-        _mercadoPagoService.Setup(s => s.CreateCheckoutPreferenceAsync(
-            It.IsAny<ObligationMonthSelectDto>(),
-            It.IsAny<ContractSelectDto>(),
-            It.IsAny<string>(),
-            It.IsAny<string>()
-        )).ReturnsAsync(new MercadoPagoPreferenceResult { InitPoint = "https://mercadopago.com/checkout" });
 
-        // Act
+        _mercadoPagoService
+            .Setup(s => s.CreateCheckoutPreferenceAsync(
+                It.IsAny<ObligationMonthSelectDto>(),
+                It.IsAny<ContractSelectDto>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()
+            ))
+            .ReturnsAsync(new MercadoPagoPreferenceResult
+            {
+                InitPoint = "https://mp.com/checkout",
+                PreferenceId = "pref-001",
+                ObligationId = obligationId,
+                ContractId = contractId,
+                Amount = 10000
+            });
+
         var result = await Create().CreateCheckout(contractId, obligationId);
 
-        // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        // We can check the value if needed, but type check is good for now
+        Assert.IsType<OkObjectResult>(result);
     }
 
+    // =====================================================================
+    // CheckoutObligation
+    // =====================================================================
     [Fact]
-    public async Task CheckoutObligation_ReturnsBadRequest_WhenObligationIsPaid()
+    public async Task CheckoutObligationReturnsBadRequestWhenPaid()
     {
-        // Arrange
         int obligationId = 20;
-        var obligation = new ObligationMonthSelectDto 
-        { 
-            Id = obligationId, 
-            ContractId = 2, 
-            Status = Status.Aprobada, 
-            Locked = true 
+
+        var obligation = new ObligationMonthSelectDto
+        {
+            Id = obligationId,
+            ContractId = 2,
+            Status = "Aprobada",
+            Locked = true
         };
 
         _obligationService.Setup(s => s.GetByIdAsync(obligationId)).ReturnsAsync(obligation);
 
-        // Act
         var result = await Create().CheckoutObligation(obligationId);
 
-        // Assert
-        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.Contains("ya ha sido pagada", badRequest.Value.ToString());
+        var bad = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Contains("ya ha sido pagada", bad.Value!.ToString());
     }
 
     [Fact]
-    public async Task CheckoutObligation_ReturnsOk_WhenObligationPending()
+    public async Task CheckoutObligationReturnsOkWhenPending()
     {
-        // Arrange
         int obligationId = 30;
+
         var obligation = new ObligationMonthSelectDto
         {
             Id = obligationId,
             ContractId = 3,
-            Status = Status.Pendiente,
-            Locked = false,
-            TotalAmount = 5000
+            Status = "Pendiete",
+            Locked = false
         };
 
-        var contract = new ContractSelectDto { Id = 3, Email = "user@test.com", Document = "456" };
+        var contract = new ContractSelectDto
+        {
+            Id = 3,
+            Email = "user@test.com",
+            Document = "456"
+        };
 
         _obligationService.Setup(s => s.GetByIdAsync(obligationId)).ReturnsAsync(obligation);
         _contractService.Setup(s => s.GetByIdAsync(3)).ReturnsAsync(contract);
+
         _mercadoPagoService.Setup(s => s.CreateCheckoutPreferenceAsync(
             It.IsAny<ObligationMonthSelectDto>(),
             It.IsAny<ContractSelectDto>(),
             It.IsAny<string>(),
             It.IsAny<string>()
-        )).ReturnsAsync(new MercadoPagoPreferenceResult { InitPoint = "https://mercadopago.com/checkout" });
+        )).ReturnsAsync(new MercadoPagoPreferenceResult
+        {
+            InitPoint = "https://mp.com/checkout",
+            PreferenceId = "pref-XYZ",
+            ObligationId = obligationId,
+            ContractId = 3,
+            Amount = 5000
+        });
 
-        // Act
         var result = await Create().CheckoutObligation(obligationId);
 
-        // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.IsType<OkObjectResult>(result);
     }
 }

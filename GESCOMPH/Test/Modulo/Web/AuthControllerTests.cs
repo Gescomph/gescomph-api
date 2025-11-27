@@ -1,14 +1,14 @@
-using Business.Interfaces;
+﻿using Business.Interfaces;
 using Business.Interfaces.Implements.SecurityAuthentication;
+using Entity.Domain.Models.Implements.SecurityAuthentication;
 using Entity.DTOs.Implements.SecurityAuthentication.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Entity.Domain.Models.Implements.SecurityAuthentication;
-using WebGESCOMPH.Infrastructure;
 using WebGESCOMPH.Controllers.Module.SecurityAuthentication;
+using WebGESCOMPH.Infrastructure;
 
 namespace Test.Modulo.Web;
 
@@ -36,9 +36,12 @@ public class AuthControllerTests
             CsrfCookieName = "csrf"
         });
 
-        _cookies.Setup(c => c.AccessCookieOptions(It.IsAny<DateTimeOffset>())).Returns(new CookieOptions());
-        _cookies.Setup(c => c.RefreshCookieOptions(It.IsAny<DateTimeOffset>())).Returns(new CookieOptions());
-        _cookies.Setup(c => c.CsrfCookieOptions(It.IsAny<DateTimeOffset>())).Returns(new CookieOptions());
+        _cookies.Setup(c => c.AccessCookieOptions(It.IsAny<DateTimeOffset>()))
+            .Returns(new CookieOptions());
+        _cookies.Setup(c => c.RefreshCookieOptions(It.IsAny<DateTimeOffset>()))
+            .Returns(new CookieOptions());
+        _cookies.Setup(c => c.CsrfCookieOptions(It.IsAny<DateTimeOffset>()))
+            .Returns(new CookieOptions());
 
         return new AuthController(
             _auth.Object,
@@ -48,63 +51,89 @@ public class AuthControllerTests
             _cookieOpts.Object,
             _logger.Object)
         {
-            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            }
         };
     }
 
+    // ======================================================
+    // 1. Refresh sin refresh token -> 401
+    // ======================================================
     [Fact]
-    public async Task Refresh_Unauthorized_WhenNoRefreshCookie()
+    public async Task RefreshUnauthorizedWhenNoRefreshCookie()
     {
         var ctrl = Create();
+
         var res = await ctrl.Refresh();
+
         Assert.IsType<UnauthorizedObjectResult>(res);
     }
 
+    // ======================================================
+    // 2. CSRF ausente -> 401
+    // ======================================================
     [Fact]
-    public async Task Refresh_Forbid_WhenCsrfHeaderMissing()
+    public async Task RefreshUnauthorizedWhenCsrfHeaderMissing()
     {
         var ctrl = Create();
-        // ? Simular cookies reales mediante el header "Cookie"
-        ctrl.ControllerContext.HttpContext.Request.Headers["Cookie"] = "rt=value; csrf=abc";
+
+        ctrl.ControllerContext.HttpContext.Request.Headers["Cookie"] =
+            "rt=value; csrf=abc";
 
         var res = await ctrl.Refresh();
-        Assert.IsType<ForbidResult>(res);
+
+        Assert.IsType<UnauthorizedObjectResult>(res);
     }
 
+    // ======================================================
+    // 3. Login correcto coloca cookies
+    // ======================================================
     [Fact]
-    public async Task Login_Ok_SetsCookies()
+    public async Task LoginOkSetsCookies()
     {
-        // Arrange
-        var tokenResponse = new TokenResponseDto
+        var tokens = new TokenResponseDto
         {
             AccessToken = "acc",
             RefreshToken = "ref",
             CsrfToken = "csrf"
         };
 
-        _auth.Setup(a => a.LoginAsync(It.IsAny<LoginDto>()))
-             .ReturnsAsync(tokenResponse);
+        var loginResult = new LoginResultDto
+        {
+            RequiresTwoFactor = false,
+            Tokens = tokens
+        };
 
+        _auth.Setup(a => a.LoginAsync(It.IsAny<LoginDto>()))
+             .ReturnsAsync(loginResult);
 
         var ctrl = Create();
 
-        // Act
         var res = await ctrl.Login(new LoginDto { Email = "a@mail", Password = "x" });
         var ok = Assert.IsType<OkObjectResult>(res);
 
-        // Assert
-        var headers = ctrl.ControllerContext.HttpContext.Response.Headers["Set-Cookie"].ToString();
+        var setCookieHeader = ctrl.ControllerContext.HttpContext.Response.Headers["Set-Cookie"].ToString();
 
-        Assert.Contains("at=acc", headers);
-        Assert.Contains("rt=ref", headers);
-        Assert.Contains("csrf=csrf", headers);
-        Assert.True(((dynamic)ok.Value).isSuccess);
+        Assert.Contains("at=acc", setCookieHeader);
+        Assert.Contains("rt=ref", setCookieHeader);
+        Assert.Contains("csrf=csrf", setCookieHeader);
+
+        var dict = ok.Value!
+            .GetType()
+            .GetProperties()
+            .ToDictionary(p => p.Name, p => p.GetValue(ok.Value)!);
+
+        Assert.True((bool)dict["isSuccess"]);
     }
 
+    // ======================================================
+    // 4. Refresh correcto: rota cookies y devuelve OK
+    // ======================================================
     [Fact]
-    public async Task Refresh_Ok_ReturnsNewTokens_AndSetsCookies()
+    public async Task RefreshOkReturnsNewTokensAndSetsCookies()
     {
-        // Arrange
         var refreshResponse = new TokenRefreshResponseDto
         {
             AccessToken = "newAcc",
@@ -117,20 +146,25 @@ public class AuthControllerTests
 
         var ctrl = Create();
 
-        // ? Simular cookies y header CSRF
-        ctrl.ControllerContext.HttpContext.Request.Headers["Cookie"] = "rt=oldRefresh; csrf=abc";
+        ctrl.ControllerContext.HttpContext.Request.Headers["Cookie"] =
+            "rt=oldRefresh; csrf=abc";
+
         ctrl.ControllerContext.HttpContext.Request.Headers["X-XSRF-TOKEN"] = "abc";
 
-        // Act
         var res = await ctrl.Refresh();
         var ok = Assert.IsType<OkObjectResult>(res);
 
-        // Assert
-        var headers = ctrl.ControllerContext.HttpContext.Response.Headers["Set-Cookie"].ToString();
-        Assert.Contains("at=newAcc", headers);
-        Assert.Contains("rt=newRef", headers);
+        var setCookieHeader = ctrl.ControllerContext.HttpContext.Response.Headers["Set-Cookie"].ToString();
 
-        var value = (dynamic)ok.Value;
-        Assert.True(value.isSuccess);
+        Assert.Contains("at=newAcc", setCookieHeader);
+        Assert.Contains("rt=newRef", setCookieHeader);
+
+        var dict = ok.Value!
+            .GetType()
+            .GetProperties()
+            .ToDictionary(p => p.Name, p => p.GetValue(ok.Value)!);
+
+        Assert.True((bool)dict["isSuccess"]);
     }
+
 }
