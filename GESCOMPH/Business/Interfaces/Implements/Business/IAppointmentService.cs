@@ -7,5 +7,8 @@ namespace Business.Interfaces.Implements.Business
     public interface IAppointmentService : IBusiness<AppointmentSelectDto, AppointmentCreateDto, AppointmentUpdateDto>
     {
         //Task<AppointmentSelectDto> UpdateDateAsigned();
+        Task<IEnumerable<AppointmentSelectDto>> GetAppointmentByDate(DateOnly date);
+        Task<IEnumerable<AppointmentSelectDto>> GetAllByPersonId(int personId);
+
     }
 }
