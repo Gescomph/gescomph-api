@@ -389,6 +389,32 @@ namespace Business.Services.SecurityAuthentication
             return new string(digits);
         }
 
+        public async Task<TokenResponseDto> LoginMobileAsync(LoginDto dto)
+        {
+            if (dto == null)
+                throw new BusinessException("Payload inválido.");
+
+            var email = dto.Email.Trim().ToLowerInvariant();
+
+            var user = await _userRepository.GetAuthUserByEmailAsync(email)
+                ?? throw new UnauthorizedAccessException("Usuario o contraseña inválida.");
+
+            if (user.IsDeleted)
+                throw new UnauthorizedAccessException("La cuenta está eliminada o bloqueada.");
+
+            if (!user.Active)
+                throw new UnauthorizedAccessException("La cuenta está inactiva. Contacta al administrador.");
+
+            var result = _passwordHasher.VerifyHashedPassword(user, user.Password, dto.Password);
+            if (result == PasswordVerificationResult.Failed)
+                throw new UnauthorizedAccessException("Usuario o contraseña inválida.");
+
+            var roles = await _rolUserData.GetRoleNamesByUserIdAsync(user.Id);
+            var userDto = BuildUserAuthDto(user, roles);
+
+            return await _tokenService.GenerateTokensAsync(userDto);
+        }
+
         private static string NormalizeEmail(string? email)
             => string.IsNullOrWhiteSpace(email) ? string.Empty : email.Trim().ToLowerInvariant();
 
