@@ -10,6 +10,7 @@ using Entity.DTOs.Implements.Business.Appointment;
 using Entity.DTOs.Implements.Persons.Person;
 using Entity.DTOs.Implements.SecurityAuthentication.Auth;
 using Entity.Infrastructure.Context;
+using Humanizer;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,7 @@ using System.Linq.Expressions;
 using Utilities.Exceptions;
 using Utilities.Helpers.Business;
 using Utilities.Messaging.Interfaces;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Business.Services.Business
 {
@@ -118,10 +120,68 @@ namespace Business.Services.Business
             });
         }
 
+        public async Task<IEnumerable<AppointmentSelectDto>> GetAppointmentByDate(DateOnly date)
+        {
+            try
+            {
+                // Validación: la fecha no puede ser la fecha por defecto
+                if (date == default)
+                {
+                    _logger.LogWarning("Se intentó buscar citas con una fecha inválida");
+                    throw new ArgumentException("La fecha proporcionada no es válida", nameof(date));
+                }
 
+                int year = date.Year;
+                int month = date.Month;
+                int day = date.Day;
 
+                var appointments = await _data.GetAppointmentByDate(year, month, day);
 
+                if (appointments == null || !appointments.Any())
+                {
+                    _logger.LogInformation("No se encontraron citas para la fecha: {date:yyyy-MM-dd}", date);
+                    return Enumerable.Empty<AppointmentSelectDto>();
+                }
 
+                return _mapper.Map<IEnumerable<AppointmentSelectDto>>(appointments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al traer las citas con la fecha {date}", date);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<AppointmentSelectDto>> GetAllByPersonId(int personId)
+        {
+            try
+            {
+                if (personId <= 0)
+                {
+                    _logger.LogWarning("Se intentó buscar citas con un personId inválido: {personId}", personId);
+                    throw new ArgumentException("El ID de la persona debe ser mayor a 0", nameof(personId));
+                }
+
+                var appointments = await _data.GetAllByPersonId(personId);
+
+                if (appointments == null || !appointments.Any())
+                {
+                    _logger.LogInformation("No se encontraron citas para la persona con ID: {personId}", personId);
+                    return Enumerable.Empty<AppointmentSelectDto>();
+                }
+
+                return _mapper.Map<IEnumerable<AppointmentSelectDto>>(appointments);
+            }
+            catch (ArgumentException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener las citas para la persona con ID: {personId}", personId);
+                throw;
+            }
+        }
 
         protected override Expression<Func<Appointment, string>>[] SearchableFields() =>
         [

@@ -18,5 +18,6 @@ namespace Business.Interfaces.Implements.SecurityAuthentication
         Task ToggleTwoFactorAsync(int userId, bool enabled);
         Task<TokenResponseDto> ConfirmTwoFactorAsync(TwoFactorVerifyDto dto);
         Task<TwoFactorChallengeDto> ResendTwoFactorCodeAsync(string email);
+        Task<TokenResponseDto> LoginMobileAsync(LoginDto dto);
     }
 }

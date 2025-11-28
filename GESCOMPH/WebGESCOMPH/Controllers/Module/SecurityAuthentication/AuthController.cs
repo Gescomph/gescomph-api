@@ -301,6 +301,36 @@ namespace WebGESCOMPH.Controllers.Module.SecurityAuthentication
             return now;
         }
 
+        [HttpPost("mobile/login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> LoginMobile([FromBody] LoginDto dto)
+        {
+            var tokens = await _authService.LoginMobileAsync(dto);
+
+            return Ok(new
+            {
+                isSuccess = true,
+                message = "Inicio de sesión móvil exitoso.",
+                data = tokens
+            });
+        }
+
+        [HttpPost("mobile/refresh")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RefreshMobile([FromBody] TokenRefreshRequestDto dto)
+        {
+            var result = await _tokenService.RefreshAsync(dto);
+
+            return Ok(new
+            {
+                isSuccess = true,
+                message = "Tokens refrescados correctamente.",
+                expiresAt = result.ExpiresAt
+            });
+        }
+
+
+
         private bool TryGetUserId(out int userId)
         {
             userId = 0;
