@@ -1,4 +1,5 @@
 ﻿using Entity.Domain.Models.ModelBase;
+using Entity.Enum;
 
 namespace Entity.Domain.Models.Implements.Business
 {
@@ -27,12 +28,27 @@ namespace Entity.Domain.Models.Implements.Business
         public decimal VatAmount { get; set; }
         public decimal TotalAmount { get; set; }
 
+
+        // Fecha cuando se envió aviso previo al vencimiento
+        public DateTime? NotifiedDueSoonAt { get; set; }
+
+        // Fecha cuando se notificó que está en mora
+        public DateTime? NotifiedOverdueAt { get; set; }
+
+        // Fecha notificación cobro pre-jurídico (30 días mora)
+        public DateTime? NotifiedPreJudicialAt { get; set; }
+
+        // Fecha notificación cobro jurídico (tras plazo de gracia)
+        public DateTime? NotifiedJudicialAt { get; set; }
+
+
         // Mora
         public int? DaysLate { get; set; }
         public decimal? LateAmount { get; set; }
+        public decimal? LateFeeAmount { get; set; } // Valor acumulado por mora
 
         // Estado
-        public string Status { get; set; }
+        public Status Status { get; set; }
 
         public bool Locked { get; set; } = false;
     }

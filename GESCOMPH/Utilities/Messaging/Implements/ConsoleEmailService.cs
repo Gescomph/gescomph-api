@@ -40,6 +40,37 @@ namespace Utilities.Messaging.Implements
                 emailReceptor, verificationCode, validityMinutes, subject);
             return Task.CompletedTask;
         }
+
+        public Task SendPaymentReminderAsync(string email, string fullName, DateTime dueDate, decimal totalAmount)
+        {
+            _logger.LogInformation("[ConsoleEmail] PaymentReminder -> {Email} ({Name}): Vence el {DueDate:dd/MM/yyyy}, Monto: {TotalAmount:C}",
+                email, fullName, dueDate, totalAmount);
+            return Task.CompletedTask;
+        }
+
+        public Task SendOverdueNoticeAsync(string email, string fullName, DateTime dueDate, decimal totalAmount, int daysLate, decimal lateAmount)
+        {
+            _logger.LogInformation("[ConsoleEmail] OverdueNotice -> {Email} ({Name}): Vencido el {DueDate:dd/MM/yyyy}, Monto: {Total:C}, Días Mora: {DaysLate}, Intereses: {LateAmount:C}",
+                email, fullName, dueDate, totalAmount, daysLate, lateAmount);
+            return Task.CompletedTask;
+        }
+
+        public Task SendPreJudicialNoticeAsync(string email, string fullName, decimal totalDebt, DateTime paymentDeadline)
+        {
+            // Simulamos el envío de la notificación Pre-Jurídica
+            _logger.LogWarning("[ConsoleEmail] Enviando ultimátum a {Email}. Deuda Total: {Debt:C0}. Pagar antes de: {Date}",
+                email, totalDebt, paymentDeadline.ToShortDateString());
+
+            return Task.CompletedTask;
+        }
+
+        public Task SendJudicialNoticeAsync(string email, string fullName)
+        {
+            // Simulamos el envío de la notificación Jurídica
+            _logger.LogError("[ConsoleEmail] Notificación legal final enviada a {Email}. El caso pasa a abogados.", email);
+
+            return Task.CompletedTask;
+        }
     }
 }
 

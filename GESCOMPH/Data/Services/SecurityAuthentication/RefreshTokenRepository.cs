@@ -42,6 +42,9 @@ namespace Data.Services.SecurityAuthentication
 
             return await _dbSet
                 .AsNoTracking()
+                .Include(t => t.User)
+                    .ThenInclude(u => u.RolUsers)
+                        .ThenInclude(ru => ru.Rol)
                 .FirstOrDefaultAsync(t => t.TokenHash == tokenHash);
         }
 

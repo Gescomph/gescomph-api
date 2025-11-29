@@ -8,26 +8,40 @@ namespace Test.Modulo.Data;
 
 public class PremisesLeasedRepositoryTests
 {
-    private static ApplicationDbContext Ctx()
+    private static ApplicationDbContext CreateContext()
     {
-        var opt = new DbContextOptionsBuilder<ApplicationDbContext>()
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
-        return new ApplicationDbContext(opt);
+
+        return new ApplicationDbContext(options);
     }
 
     [Fact]
-    public async Task Crud_AndAddRange_Works()
+    public async Task CrudAndAddRangeWorks()
     {
-        await using var ctx = Ctx();
+        await using var ctx = CreateContext();
         var repo = new PremisesLeasedRepository(ctx);
 
-        // Seed establishment and contract minimal
-        ctx.Contracts.Add(new Contract { Id = 1, PersonId = 1, StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow });
-        ctx.Establishments.Add(new Establishment { Id = 2, Name = "E", Description = "" });
+        ctx.Contracts.Add(new Contract
+        {
+            Id = 1,
+            PersonId = 1,
+            StartDate = DateTime.UtcNow,
+            EndDate = DateTime.UtcNow
+        });
+
+        ctx.Establishments.Add(new Establishment
+        {
+            Id = 2,
+            Name = "E",
+            Description = ""
+        });
+
         await ctx.SaveChangesAsync();
 
         var p = await repo.AddAsync(new PremisesLeased { ContractId = 1, EstablishmentId = 2 });
+
         p.Id.Should().BeGreaterThan(0);
 
         var list = await repo.GetAllAsync();
@@ -36,21 +50,26 @@ public class PremisesLeasedRepositoryTests
         var byId = await repo.GetByIdAsync(p.Id);
         byId.Should().NotBeNull();
 
-        // Update
-        await repo.UpdateAsync(new PremisesLeased { Id = p.Id, ContractId = 1, EstablishmentId = 2 });
+        await repo.UpdateAsync(new PremisesLeased
+        {
+            Id = p.Id,
+            ContractId = 1,
+            EstablishmentId = 2
+        });
+
         (await repo.GetByIdAsync(p.Id)).Should().NotBeNull();
 
-        // AddRange
-        await repo.AddRangeAsync(new [] { new PremisesLeased { ContractId = 1, EstablishmentId = 2 } });
+        await repo.AddRangeAsync(new[]
+        {
+            new PremisesLeased { ContractId = 1, EstablishmentId = 2 }
+        });
+
         (await ctx.PremisesLeaseds.CountAsync()).Should().BeGreaterThan(1);
 
-        // Delete logic
         (await repo.DeleteLogicAsync(p.Id)).Should().BeTrue();
         (await repo.GetByIdAsync(p.Id)).Should().BeNull();
 
-        // Delete physical of another
         var second = await ctx.PremisesLeaseds.OrderByDescending(x => x.Id).FirstAsync();
         (await repo.DeleteAsync(second.Id)).Should().BeTrue();
     }
 }
-
