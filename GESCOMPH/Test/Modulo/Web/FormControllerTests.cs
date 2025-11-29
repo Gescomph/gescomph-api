@@ -11,21 +11,28 @@ public class FormControllerTests
 {
     private readonly Mock<IFormService> _service = new();
     private readonly Mock<ILogger<FormController>> _logger = new();
+
     private FormController Create() => new(_service.Object, _logger.Object);
 
     [Fact]
-    public async Task Get_ReturnsOk()
+    public async Task GetReturnsOk()
     {
-        _service.Setup(s => s.GetAllAsync()).ReturnsAsync(new List<FormSelectDto> { new() { Id = 1 } });
+        _service.Setup(s => s.GetAllAsync())
+                .ReturnsAsync(new List<FormSelectDto> { new() { Id = 1 } });
+
         var res = await Create().Get();
+
         Assert.IsType<OkObjectResult>(res.Result);
     }
 
     [Fact]
-    public async Task DeleteLogic_NoContent()
+    public async Task DeleteLogicNoContent()
     {
-        _service.Setup(s => s.DeleteLogicAsync(8)).ReturnsAsync(true);
+        _service.Setup(s => s.DeleteLogicAsync(8))
+                .ReturnsAsync(true);
+
         var res = await Create().DeleteLogic(8);
+
         Assert.IsType<NoContentResult>(res);
     }
 }

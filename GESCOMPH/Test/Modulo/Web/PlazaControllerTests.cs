@@ -14,7 +14,7 @@ public class PlazaControllerTests
     private PlazaController Create() => new(_service.Object, _logger.Object);
 
     [Fact]
-    public async Task DeleteLogic_NotFound_WhenServiceReturnsFalse()
+    public async Task DeleteLogicNotFoundWhenServiceReturnsFalse()
     {
         _service.Setup(s => s.DeleteLogicAsync(123)).ReturnsAsync(false);
         var res = await Create().DeleteLogic(123);
@@ -22,51 +22,71 @@ public class PlazaControllerTests
     }
 
     [Fact]
-    public async Task Get_ReturnsOk()
+    public async Task GetReturnsOk()
     {
-        _service.Setup(s => s.GetAllAsync()).ReturnsAsync(new List<PlazaSelectDto> { new() { Id = 1, Name = "P" } });
+        _service.Setup(s => s.GetAllAsync())
+            .ReturnsAsync(new List<PlazaSelectDto> { new() { Id = 1, Name = "P" } });
+
         var res = await Create().Get();
+
         Assert.IsType<OkObjectResult>(res.Result);
     }
 
     [Fact]
-    public async Task GetById_NotFound_WhenMissing()
+    public async Task GetByIdNotFoundWhenMissing()
     {
-        _service.Setup(s => s.GetByIdAsync(9)).ReturnsAsync((PlazaSelectDto?)null);
+        _service.Setup(s => s.GetByIdAsync(9))
+            .ReturnsAsync((PlazaSelectDto?)null);
+
         var res = await Create().GetById(9);
+
         Assert.IsType<NotFoundResult>(res.Result);
     }
 
     [Fact]
-    public async Task Post_CreatedAt()
+    public async Task PostCreatedAt()
     {
         var created = new PlazaSelectDto { Id = 2, Name = "NP" };
-        _service.Setup(s => s.CreateAsync(It.IsAny<PlazaCreateDto>())).ReturnsAsync(created);
+
+        _service.Setup(s => s.CreateAsync(It.IsAny<PlazaCreateDto>()))
+            .ReturnsAsync(created);
+
         var res = await Create().Post(new PlazaCreateDto { Name = "NP" });
+
         Assert.IsType<CreatedAtActionResult>(res.Result);
     }
 
     [Fact]
-    public async Task Put_Ok()
+    public async Task PutOk()
     {
         var updated = new PlazaSelectDto { Id = 3, Name = "UP" };
-        _service.Setup(s => s.UpdateAsync(It.IsAny<PlazaUpdateDto>())).ReturnsAsync(updated);
+
+        _service.Setup(s => s.UpdateAsync(It.IsAny<PlazaUpdateDto>()))
+            .ReturnsAsync(updated);
+
         var res = await Create().Put(3, new PlazaUpdateDto { Id = 3, Name = "UP" });
+
         Assert.IsType<OkObjectResult>(res.Result);
     }
 
     [Fact]
-    public async Task Delete_NoContent_WhenDeleted()
+    public async Task DeleteNoContentWhenDeleted()
     {
         _service.Setup(s => s.DeleteAsync(4)).ReturnsAsync(true);
+
         var res = await Create().Delete(4);
+
         Assert.IsType<NoContentResult>(res);
     }
 
     [Fact]
-    public async Task ChangeActiveStatus_NoContent()
+    public async Task ChangeActiveStatusNoContent()
     {
-        var res = await Create().ChangeActiveStatus(7, new WebGESCOMPH.Contracts.Requests.ChangeActiveStatusRequest { Active = true });
+        var res = await Create().ChangeActiveStatus(
+            7,
+            new WebGESCOMPH.Contracts.Requests.ChangeActiveStatusRequest { Active = true }
+        );
+
         Assert.IsType<NoContentResult>(res);
     }
 }
