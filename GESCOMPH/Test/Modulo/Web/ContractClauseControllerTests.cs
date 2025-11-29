@@ -14,7 +14,7 @@ public class ContractClauseControllerTests
     private ContractClauseController Create() => new(_service.Object, _logger.Object);
 
     [Fact]
-    public async Task Get_ReturnsOk()
+    public async Task GetReturnsOk()
     {
         _service.Setup(s => s.GetAllAsync()).ReturnsAsync(new List<ContractClauseSelectDto> { new() { Id = 1 } });
         var res = await Create().Get();
@@ -22,7 +22,7 @@ public class ContractClauseControllerTests
     }
 
     [Fact]
-    public async Task GetById_Ok_WhenFound()
+    public async Task GetByIdOkWhenFound()
     {
         _service.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(new ContractClauseSelectDto { Id = 1 });
         var res = await Create().GetById(1);
@@ -30,7 +30,7 @@ public class ContractClauseControllerTests
     }
 
     [Fact]
-    public async Task GetById_NotFound_WhenMissing()
+    public async Task GetByIdNotFoundWhenMissing()
     {
         _service.Setup(s => s.GetByIdAsync(9)).ReturnsAsync((ContractClauseSelectDto?)null);
         var res = await Create().GetById(9);
@@ -38,7 +38,7 @@ public class ContractClauseControllerTests
     }
 
     [Fact]
-    public async Task Post_CreatedAt()
+    public async Task PostCreatedAt()
     {
         var created = new ContractClauseSelectDto { Id = 3 };
         _service.Setup(s => s.CreateAsync(It.IsAny<ContractClauseDto>())).ReturnsAsync(created);
@@ -47,7 +47,7 @@ public class ContractClauseControllerTests
     }
 
     [Fact]
-    public async Task Put_ReturnsOk()
+    public async Task PutReturnsOk()
     {
         var updated = new ContractClauseSelectDto { Id = 2 };
         _service.Setup(s => s.UpdateAsync(It.IsAny<ContractClauseUpdateDto>())).ReturnsAsync(updated);
@@ -56,7 +56,7 @@ public class ContractClauseControllerTests
     }
 
     [Fact]
-    public async Task Put_NotFound_WhenNull()
+    public async Task PutNotFoundWhenNull()
     {
         _service.Setup(s => s.UpdateAsync(It.IsAny<ContractClauseUpdateDto>())).ReturnsAsync((ContractClauseSelectDto?)null);
         var res = await Create().Put(2, new ContractClauseUpdateDto { Id = 2 });
@@ -64,7 +64,7 @@ public class ContractClauseControllerTests
     }
 
     [Fact]
-    public async Task Delete_NoContent_WhenDeleted()
+    public async Task DeleteNoContentWhenDeleted()
     {
         _service.Setup(s => s.DeleteAsync(2)).ReturnsAsync(true);
         var res = await Create().Delete(2);
@@ -72,7 +72,7 @@ public class ContractClauseControllerTests
     }
 
     [Fact]
-    public async Task Delete_NotFound_WhenMissing()
+    public async Task DeleteNotFoundWhenMissing()
     {
         _service.Setup(s => s.DeleteAsync(22)).ReturnsAsync(false);
         var res = await Create().Delete(22);
@@ -80,7 +80,7 @@ public class ContractClauseControllerTests
     }
 
     [Fact]
-    public async Task DeleteLogic_NoContent()
+    public async Task DeleteLogicNoContent()
     {
         _service.Setup(s => s.DeleteLogicAsync(5)).ReturnsAsync(true);
         var res = await Create().DeleteLogic(5);
@@ -88,9 +88,12 @@ public class ContractClauseControllerTests
     }
 
     [Fact]
-    public async Task ChangeActiveStatus_NoContent()
+    public async Task ChangeActiveStatusNoContent()
     {
-        var res = await Create().ChangeActiveStatus(7, new WebGESCOMPH.Contracts.Requests.ChangeActiveStatusRequest { Active = true });
+        var res = await Create().ChangeActiveStatus(
+            7,
+            new WebGESCOMPH.Contracts.Requests.ChangeActiveStatusRequest { Active = true }
+        );
         Assert.IsType<NoContentResult>(res);
     }
 }

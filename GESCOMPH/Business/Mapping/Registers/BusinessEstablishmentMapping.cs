@@ -13,13 +13,11 @@ namespace Business.Mapping.Registers
         public void Register(TypeAdapterConfig config)
         {
             // Establishment -> Select
-            config.NewConfig<Establishment, EstablishmentSelectDto>()
-                  .Map(dest => dest.Images, src => src.Images.Adapt<List<ImageSelectDto>>());
+            config.NewConfig<Establishment, EstablishmentSelectDto>();
 
             // Establishment Create -> Entity
             config.NewConfig<EstablishmentCreateDto, Establishment>()
                   .Ignore(dest => dest.Id)
-                  .Ignore(dest => dest.Images)
                   .Ignore(dest => dest.Active)
                   .Ignore(dest => dest.IsDeleted)
                   .Ignore(dest => dest.CreatedAt)
@@ -33,7 +31,6 @@ namespace Business.Mapping.Registers
 
             // Establishment Update -> Entity
             config.NewConfig<EstablishmentUpdateDto, Establishment>()
-                  .Ignore(dest => dest.Images)
                   .Ignore(dest => dest.Active)
                   .Ignore(dest => dest.IsDeleted)
                   .Ignore(dest => dest.CreatedAt)

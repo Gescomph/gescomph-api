@@ -1,4 +1,5 @@
 using WebGESCOMPH.RealTime;
+using WebGESCOMPH.RealTime.Collection;
 using WebGESCOMPH.RealTime.Contract;
 using WebGESCOMPH.RealTime.Notifications;
 using WebGESCOMPH.RealTime.Obligations;
@@ -32,10 +33,21 @@ namespace WebGESCOMPH.Extensions.RealTime
         /// </summary>
         public static IEndpointRouteBuilder MapAppSignalRHubs(this IEndpointRouteBuilder endpoints)
         {
+            // Contratos
             endpoints.MapHub<ContractsHub>("/api/hubs/contracts");
+
+            // Seguridad
             endpoints.MapHub<SecurityHub>("/api/hubs/security");
+
+            // Notificaciones
             endpoints.MapHub<NotificationsHub>("/api/hubs/notifications");
+
+            // Cobros (prejurídico, coactivo, jurídico)
+            endpoints.MapHub<CollectionHub>("/api/hubs/collections");
+
+            // Obligaciones mensuakes
             endpoints.MapHub<ObligationHub>("/api/hubs/obligations");
+
             return endpoints;
         }
     }

@@ -15,6 +15,10 @@ namespace Entity.Enum
         Asignada = 2,
         Aprobada = 3,   // Generó contrato
         Finalizada = 4, // Terminó sin contrato
-        Rechazada = 5
+        Rechazada = 5,
+        Vencida = 6,
+        Pagada = 7,
+        PreJuridico = 8,
+        Juridico = 9,
     }
 }

@@ -104,36 +104,48 @@ namespace WebGESCOMPH.Controllers.Module.SecurityAuthentication
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Refresh()
         {
-            // 1️⃣ Validar existencia de cookies
+            // 1️⃣ Validar existencia del refresh token
             var refreshCookie = Request.Cookies[_cookieSettings.RefreshTokenName];
             if (string.IsNullOrWhiteSpace(refreshCookie))
                 return Unauthorized("No se encontró el refresh token.");
 
-            // 2️⃣ Validar token CSRF (double submit cookie pattern)
-            if (!Request.Headers.TryGetValue("X-XSRF-TOKEN", out var headerValue))
-                return Forbid("Falta el encabezado CSRF.");
+            // 2️⃣ Detectar si la petición viene de Swagger UI (bypass CSRF)
+            var isSwaggerRequest =
+                Request.Path.StartsWithSegments("/swagger") ||
+                (Request.Headers["Referer"].Any(r =>
+                    r.Contains("/swagger", StringComparison.OrdinalIgnoreCase)));
 
-            var csrfCookie = Request.Cookies[_cookieSettings.CsrfCookieName];
-            if (string.IsNullOrWhiteSpace(csrfCookie) || csrfCookie != headerValue)
-                return Forbid("CSRF token inválido o ausente.");
+            if (!isSwaggerRequest)
+            {
+                // 👉 CSRF VALIDATION (solo frontend real)
+                if (!Request.Headers.TryGetValue("X-XSRF-TOKEN", out var headerValue))
+                    return Unauthorized("Falta el encabezado CSRF.");
 
-            // 3️⃣ Preparar DTO para el servicio
+                var csrfCookie = Request.Cookies[_cookieSettings.CsrfCookieName];
+                if (string.IsNullOrWhiteSpace(csrfCookie) || csrfCookie != headerValue)
+                    return Forbid("CSRF token inválido o ausente.");
+            }
+            else
+            {
+                _logger.LogWarning("CSRF bypassed for Swagger UI.");
+            }
+
+            // 3️⃣ Preparar datos
             var dto = new TokenRefreshRequestDto
             {
                 RefreshToken = refreshCookie,
                 RemoteIp = HttpContext.Connection.RemoteIpAddress?.ToString()
             };
 
-            // 4️⃣ Llamar al servicio
+            // 4️⃣ Ejecutar lógica business
             var result = await _tokenService.RefreshAsync(dto);
 
             var now = DateTime.UtcNow;
 
-            // 5️⃣ Eliminar cookies previas (rotación)
+            // 5️⃣ Rotar cookies
             Response.Cookies.Delete(_cookieSettings.AccessTokenName, _cookieFactory.AccessCookieOptions(now));
             Response.Cookies.Delete(_cookieSettings.RefreshTokenName, _cookieFactory.RefreshCookieOptions(now));
 
-            // 6️⃣ Reasignar nuevas cookies
             Response.Cookies.Append(
                 _cookieSettings.AccessTokenName,
                 result.AccessToken,
@@ -146,7 +158,7 @@ namespace WebGESCOMPH.Controllers.Module.SecurityAuthentication
 
             _logger.LogInformation("Tokens refrescados correctamente para la IP {Ip}.", dto.RemoteIp);
 
-            // 7️⃣ Retornar respuesta tipada
+            // 6️⃣ Respuesta
             return Ok(new
             {
                 isSuccess = true,
@@ -278,7 +290,7 @@ namespace WebGESCOMPH.Controllers.Module.SecurityAuthentication
             await _authService.ChangePasswordAsync(dto);
             return Ok(new { message = "Contraseña actualizada correctamente." });
         }
-        
+
         private DateTime WriteAuthCookies(TokenResponseDto tokens)
         {
             var now = DateTime.UtcNow;
@@ -300,6 +312,36 @@ namespace WebGESCOMPH.Controllers.Module.SecurityAuthentication
 
             return now;
         }
+
+        [HttpPost("mobile/login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> LoginMobile([FromBody] LoginDto dto)
+        {
+            var tokens = await _authService.LoginMobileAsync(dto);
+
+            return Ok(new
+            {
+                isSuccess = true,
+                message = "Inicio de sesión móvil exitoso.",
+                data = tokens
+            });
+        }
+
+        [HttpPost("mobile/refresh")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RefreshMobile([FromBody] TokenRefreshRequestDto dto)
+        {
+            var result = await _tokenService.RefreshAsync(dto);
+
+            return Ok(new
+            {
+                isSuccess = true,
+                message = "Tokens refrescados correctamente.",
+                expiresAt = result.ExpiresAt
+            });
+        }
+
+
 
         private bool TryGetUserId(out int userId)
         {

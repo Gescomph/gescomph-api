@@ -38,6 +38,20 @@ namespace WebGESCOMPH.Controllers.Module.Business
             return Ok(appointment);
         }
 
+        [HttpGet("GetByDate")]
+        public async Task<ActionResult<AppointmentSelectDto>> GetByDate(DateOnly date) 
+        {
+            var appointment = await _appointmentService.GetAppointmentByDate(date);
+            return Ok(appointment);
+        }
+
+        [HttpGet("GetByPersonId")]
+        public async Task<ActionResult<AppointmentSelectDto>> GetByPersonId(int personId)
+        {
+            var appointment = await _appointmentService.GetAllByPersonId(personId);
+            return Ok(appointment);
+        }
+
         [HttpPost]
         public async Task<ActionResult<AppointmentCreateDto>> Create([FromBody] AppointmentCreateDto dto)
         {
