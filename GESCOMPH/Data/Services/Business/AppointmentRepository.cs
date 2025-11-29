@@ -29,5 +29,26 @@ namespace Data.Services.Business
 
         }
 
+        public async Task<IEnumerable<Appointment>> GetAppointmentByDate(int year, int month, int day)
+        {
+            return await _dbSet
+                .Include(e => e.Establishment)
+                .Include(e => e.Person)
+                .Where(e => e.DateTimeAssigned != null
+                     && e.DateTimeAssigned.Value.Year == year
+                     && e.DateTimeAssigned.Value.Month == month
+                     && e.DateTimeAssigned.Value.Day == day)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Appointment>> GetAllByPersonId(int personId)
+        {
+            return await _dbSet
+                .Include(e => e.Establishment)
+                .Include(e => e.Person)
+                .Where(e => e.PersonId == personId)
+                .ToListAsync();
+        }
+
     }
 }
