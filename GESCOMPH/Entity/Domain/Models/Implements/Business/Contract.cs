@@ -18,6 +18,12 @@ namespace Entity.Domain.Models.Implements.Business
 
         public decimal TotalBaseRentAgreed { get; set; }   
         public decimal TotalUvtQtyAgreed { get; set; }
+
+        /// <summary>
+        /// Monto acumulado del primer mes parcial que aún no se ha cobrado.
+        /// Se suma a la primera obligación de mes completo.
+        /// </summary>
+        public decimal? AccumulatedFirstMonth { get; set; }
     }
 
 }

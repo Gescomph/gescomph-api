@@ -9,19 +9,20 @@ namespace Test.Modulo.Data;
 
 public class RolRepositoryTests
 {
-    private static ApplicationDbContext NewContext(string dbName)
+    private static ApplicationDbContext CreateContext(string dbName)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(databaseName: dbName)
             .Options;
+
         return new ApplicationDbContext(options);
     }
 
     [Fact]
-    public async Task AddAndGetById_Works_AndRespectsSoftDelete()
+    public async Task AddAndGetByIdWorksAndRespectsSoftDelete()
     {
         var dbName = Guid.NewGuid().ToString();
-        await using var ctx = NewContext(dbName);
+        await using var ctx = CreateContext(dbName);
         var repo = new DataGeneric<Rol>(ctx);
 
         var created = await repo.AddAsync(new Rol { Name = "Admin", Description = "desc" });
@@ -37,38 +38,63 @@ public class RolRepositoryTests
     }
 
     [Fact]
-    public async Task GetAll_ExcludesDeleted_AndOrdersByCreatedAtDescThenIdDesc()
+    public async Task GetAllExcludesDeletedAndOrdersByCreatedAtDescThenIdDesc()
     {
         var dbName = Guid.NewGuid().ToString();
-        await using var ctx = NewContext(dbName);
+        await using var ctx = CreateContext(dbName);
         var repo = new DataGeneric<Rol>(ctx);
 
-        // Insertamos con CreatedAt controlado
-        var older = await repo.AddAsync(new Rol { Name = "A", Description = "", CreatedAt = DateTime.UtcNow.AddDays(-1) });
-        var newer1 = await repo.AddAsync(new Rol { Name = "B", Description = "", CreatedAt = DateTime.UtcNow });
-        var newer2 = await repo.AddAsync(new Rol { Name = "C", Description = "", CreatedAt = DateTime.UtcNow });
+        var older = await repo.AddAsync(new Rol
+        {
+            Name = "A",
+            Description = "",
+            CreatedAt = DateTime.UtcNow.AddDays(-1)
+        });
 
-        // Marcar uno como borrado lógico
+        var newer1 = await repo.AddAsync(new Rol
+        {
+            Name = "B",
+            Description = "",
+            CreatedAt = DateTime.UtcNow
+        });
+
+        var newer2 = await repo.AddAsync(new Rol
+        {
+            Name = "C",
+            Description = "",
+            CreatedAt = DateTime.UtcNow
+        });
+
         await repo.DeleteLogicAsync(older.Id);
 
         var all = (await repo.GetAllAsync()).ToList();
         all.Should().HaveCount(2);
-        // newer2 debe ir antes que newer1 si Id mayor, ambos CreatedAt similares
-        all.Select(x => x.Name).Should().Equal(new[] { newer2.Name, newer1.Name });
+
+        all.Select(x => x.Name).Should().Equal(new[]
+        {
+            newer2.Name,
+            newer1.Name
+        });
     }
 
     [Fact]
-    public async Task Update_PreservesIdAndCreatedAt()
+    public async Task UpdatePreservesIdAndCreatedAt()
     {
         var dbName = Guid.NewGuid().ToString();
-        await using var ctx = NewContext(dbName);
+        await using var ctx = CreateContext(dbName);
         var repo = new DataGeneric<Rol>(ctx);
 
         var created = await repo.AddAsync(new Rol { Name = "Old", Description = "D" });
         var originalId = created.Id;
         var originalCreatedAt = created.CreatedAt;
 
-        var updated = await repo.UpdateAsync(new Rol { Id = originalId, Name = "New", Description = "ND", CreatedAt = DateTime.UtcNow.AddYears(-10) });
+        var updated = await repo.UpdateAsync(new Rol
+        {
+            Id = originalId,
+            Name = "New",
+            Description = "ND",
+            CreatedAt = DateTime.UtcNow.AddYears(-10)
+        });
 
         updated.Id.Should().Be(originalId);
         updated.CreatedAt.Should().Be(originalCreatedAt);
@@ -77,13 +103,14 @@ public class RolRepositoryTests
     }
 
     [Fact]
-    public async Task Delete_RemovesEntity()
+    public async Task DeleteRemovesEntity()
     {
         var dbName = Guid.NewGuid().ToString();
-        await using var ctx = NewContext(dbName);
+        await using var ctx = CreateContext(dbName);
         var repo = new DataGeneric<Rol>(ctx);
 
         var created = await repo.AddAsync(new Rol { Name = "X", Description = "Y" });
+
         (await repo.DeleteAsync(created.Id)).Should().BeTrue();
         (await repo.DeleteAsync(created.Id)).Should().BeFalse();
     }

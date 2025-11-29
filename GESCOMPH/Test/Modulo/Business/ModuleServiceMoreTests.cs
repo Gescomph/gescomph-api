@@ -20,33 +20,46 @@ public class ModuleServiceMoreTests
     }
 
     [Fact]
-    public async Task Delete_Throws_WhenIdZero()
+    public async Task DeleteThrowsWhenIdZero()
     {
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.DeleteAsync(0));
         Assert.Contains("mayor que cero", ex.InnerException!.Message);
     }
 
     [Fact]
-    public async Task Delete_Wraps_DbUpdateException()
+    public async Task DeleteWrapsDbUpdateException()
     {
-        _repo.Setup(r => r.DeleteAsync(1)).ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException("FK"));
+        _repo.Setup(r => r.GetByIdAsync(1))
+             .ReturnsAsync(new Module
+             {
+                 Id = 1,
+                 Name = "Test",
+                 Active = false
+             });
+
+        _repo.Setup(r => r.DeleteAsync(1))
+             .ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException("FK"));
+
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.DeleteAsync(1));
+
         Assert.Contains("restricciones de datos", ex.Message);
     }
 
     [Fact]
-    public async Task DeleteLogic_Throws_WhenIdZero()
+    public async Task DeleteLogicThrowsWhenIdZero()
     {
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.DeleteLogicAsync(0));
         Assert.Contains("mayor que cero", ex.InnerException!.Message);
     }
 
     [Fact]
-    public async Task UpdateActiveStatus_Updates_WhenFound()
+    public async Task UpdateActiveStatusUpdatesWhenFound()
     {
         var entity = new Module { Id = 3, Name = "M", Description = "D", Active = false, Icon = "i" };
         _repo.Setup(r => r.GetByIdAsync(3)).ReturnsAsync(entity);
+
         await _service.UpdateActiveStatusAsync(3, true);
+
         _repo.Verify(r => r.UpdateAsync(It.Is<Module>(m => m.Id == 3 && m.Active == true)), Times.Once);
     }
 }

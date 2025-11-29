@@ -15,7 +15,7 @@ public class RolControllerTests
     private RolController CreateController() => new(_service.Object, _logger.Object);
 
     [Fact]
-    public async Task Get_ReturnsOk_WithList()
+    public async Task GetReturnsOkWithList()
     {
         // Arrange
         var items = new List<RolSelectDto> { new() { Id = 1, Name = "Admin" } };
@@ -32,9 +32,11 @@ public class RolControllerTests
     }
 
     [Fact]
-    public async Task GetById_ReturnsOk_WhenFound()
+    public async Task GetByIdReturnsOkWhenFound()
     {
-        _service.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(new RolSelectDto { Id = 1, Name = "Admin" });
+        _service.Setup(s => s.GetByIdAsync(1))
+                .ReturnsAsync(new RolSelectDto { Id = 1, Name = "Admin" });
+
         var controller = CreateController();
 
         var result = await controller.GetById(1);
@@ -45,9 +47,10 @@ public class RolControllerTests
     }
 
     [Fact]
-    public async Task GetById_ReturnsNotFound_WhenMissing()
+    public async Task GetByIdReturnsNotFoundWhenMissing()
     {
         _service.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((RolSelectDto?)null);
+
         var controller = CreateController();
 
         var result = await controller.GetById(99);
@@ -56,11 +59,13 @@ public class RolControllerTests
     }
 
     [Fact]
-    public async Task Post_ReturnsCreatedAt_WithLocationHeader()
+    public async Task PostReturnsCreatedAtWithLocationHeader()
     {
         var input = new RolCreateDto { Name = "New" };
         var created = new RolSelectDto { Id = 10, Name = "New" };
+
         _service.Setup(s => s.CreateAsync(input)).ReturnsAsync(created);
+
         var controller = CreateController();
 
         var result = await controller.Post(input);
@@ -72,37 +77,45 @@ public class RolControllerTests
     }
 
     [Fact]
-    public async Task Put_ReturnsOk_WhenUpdated()
+    public async Task PutReturnsOkWhenUpdated()
     {
         var update = new RolUpdateDto { Id = 5, Name = "Upd" };
         var updated = new RolSelectDto { Id = 5, Name = "Upd" };
-        _service.Setup(s => s.UpdateAsync(It.IsAny<RolUpdateDto>())).ReturnsAsync(updated);
+
+        _service.Setup(s => s.UpdateAsync(It.IsAny<RolUpdateDto>()))
+                .ReturnsAsync(updated);
+
         var controller = CreateController();
 
         var result = await controller.Put(5, update);
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Same(updated, ok.Value);
+
         _service.Verify(s => s.UpdateAsync(It.Is<RolUpdateDto>(d => d.Id == 5)), Times.Once);
     }
 
     [Fact]
-    public async Task Delete_ReturnsNoContent_WhenDeleted()
+    public async Task DeleteReturnsNoContentWhenDeleted()
     {
         _service.Setup(s => s.DeleteAsync(3)).ReturnsAsync(true);
         var controller = CreateController();
 
+        var controller = CreateController();
         var result = await controller.Delete(3);
+
         Assert.IsType<NoContentResult>(result);
     }
 
     [Fact]
-    public async Task Delete_ReturnsNotFound_WhenMissing()
+    public async Task DeleteReturnsNotFoundWhenMissing()
     {
         _service.Setup(s => s.DeleteAsync(33)).ReturnsAsync(false);
         var controller = CreateController();
 
+        var controller = CreateController();
         var result = await controller.Delete(33);
+
         Assert.IsType<NotFoundResult>(result);
     }
 }

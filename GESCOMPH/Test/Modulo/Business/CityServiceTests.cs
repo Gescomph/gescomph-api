@@ -21,14 +21,23 @@ public class CityServiceTests
     }
 
     [Fact]
-    public async Task GetCityByDepartment_MapsEntities()
+    public async Task GetCityByDepartmentMapsEntities()
     {
         var entities = new List<City> { new() { Id = 1, Name = "Neiva" } };
-        _cityRepo.Setup(r => r.GetCityByDepartmentAsync(41)).ReturnsAsync(entities);
-        _mapper.Setup(m => m.Map<IEnumerable<CitySelectDto>>(entities))
-               .Returns(new List<CitySelectDto> { new() { Id = 1, Name = "Neiva" } });
+
+        _cityRepo
+            .Setup(r => r.GetCityByDepartmentAsync(41))
+            .ReturnsAsync(entities);
+
+        _mapper
+            .Setup(m => m.Map<IEnumerable<CitySelectDto>>(entities))
+            .Returns(new List<CitySelectDto>
+            {
+                new() { Id = 1, Name = "Neiva" }
+            });
 
         var result = await _service.GetCityByDepartment(41);
+
         Assert.Single(result);
     }
 }

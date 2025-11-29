@@ -8,25 +8,29 @@ namespace Test.Modulo.Data;
 
 public class CityRepositoryTests
 {
-    private static ApplicationDbContext Ctx()
+    private static ApplicationDbContext CreateContext()
     {
-        var opt = new DbContextOptionsBuilder<ApplicationDbContext>()
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
-        return new ApplicationDbContext(opt);
+
+        return new ApplicationDbContext(options);
     }
 
     [Fact]
-    public async Task GetCityByDepartmentAsync_FiltersByDepartment()
+    public async Task GetCityByDepartmentAsyncFiltersByDepartment()
     {
-        await using var ctx = Ctx();
+        await using var ctx = CreateContext();
         var repo = new CityRepository(ctx);
+
         ctx.Set<Department>().Add(new Department { Id = 1, Name = "Huila" });
         ctx.Set<Department>().Add(new Department { Id = 2, Name = "Antioquia" });
+
         ctx.Set<City>().AddRange(
             new City { Id = 1, Name = "Neiva", DepartmentId = 1 },
             new City { Id = 2, Name = "Medellin", DepartmentId = 2 }
         );
+
         await ctx.SaveChangesAsync();
 
         var list = await repo.GetCityByDepartmentAsync(1);

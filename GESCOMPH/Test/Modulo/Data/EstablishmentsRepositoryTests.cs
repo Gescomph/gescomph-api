@@ -8,26 +8,29 @@ namespace Test.Modulo.Data;
 
 public class EstablishmentsRepositoryTests
 {
-    private static ApplicationDbContext Ctx()
+    private static ApplicationDbContext CreateContext()
     {
-        var opt = new DbContextOptionsBuilder<ApplicationDbContext>()
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
-        return new ApplicationDbContext(opt);
+
+        return new ApplicationDbContext(options);
     }
 
     [Fact]
-    public async Task GetAllAsync_FiltersByActiveOnly()
+    public async Task GetAllAsyncFiltersByActiveOnly()
     {
-        await using var ctx = Ctx();
+        await using var ctx = CreateContext();
         var repo = new EstablishmentsRepository(ctx);
 
         var plaza = new Plaza { Id = 1, Name = "P", Description = "", Active = true, Location = "L" };
         ctx.Plazas.Add(plaza);
+
         ctx.Establishments.AddRange(
             new Establishment { Id = 1, Name = "A", Description = "", Active = true, PlazaId = 1, Plaza = plaza },
             new Establishment { Id = 2, Name = "B", Description = "", Active = false, PlazaId = 1, Plaza = plaza }
         );
+
         await ctx.SaveChangesAsync();
 
         var all = await repo.GetAllAsync(Entity.Enum.ActivityFilter.Any);
@@ -39,36 +42,48 @@ public class EstablishmentsRepositoryTests
     }
 
     [Fact]
-    public async Task GetBasicsByIdsAsync_ProjectsValues()
+    public async Task GetBasicsByIdsAsyncProjectsValues()
     {
-        await using var ctx = Ctx();
+        await using var ctx = CreateContext();
         var repo = new EstablishmentsRepository(ctx);
+
         var plaza = new Plaza { Id = 1, Name = "P", Description = "", Active = true, Location = "L" };
         ctx.Plazas.Add(plaza);
+
         ctx.Establishments.AddRange(
             new Establishment { Id = 10, Name = "A", Description = "", Active = true, PlazaId = 1, Plaza = plaza, RentValueBase = 100, UvtQty = 2 },
             new Establishment { Id = 11, Name = "B", Description = "", Active = false, PlazaId = 1, Plaza = plaza, RentValueBase = 200, UvtQty = 3 }
         );
+
         await ctx.SaveChangesAsync();
 
-        var basics = await repo.GetBasicsByIdsAsync(new[] { 10, 11 });
-        basics.Should().ContainSingle(x => x.Id == 10 && x.RentValueBase == 100 && x.UvtQty == 2);
+        var basics = await repo.GetBasicsByIdsAsync([10, 11]);
+
+        basics.Should().ContainSingle(x =>
+            x.Id == 10 &&
+            x.RentValueBase == 100 &&
+            x.UvtQty == 2
+        );
     }
 
     [Fact]
-    public async Task GetInactiveIdsAsync_ReturnsOnlyInactive()
+    public async Task GetInactiveIdsAsyncReturnsOnlyInactive()
     {
-        await using var ctx = Ctx();
+        await using var ctx = CreateContext();
         var repo = new EstablishmentsRepository(ctx);
+
         var plaza = new Plaza { Id = 1, Name = "P", Description = "", Active = true, Location = "L" };
         ctx.Plazas.Add(plaza);
+
         ctx.Establishments.AddRange(
             new Establishment { Id = 20, Name = "A", Description = "", Active = true, PlazaId = 1, Plaza = plaza },
             new Establishment { Id = 21, Name = "B", Description = "", Active = false, PlazaId = 1, Plaza = plaza }
         );
+
         await ctx.SaveChangesAsync();
 
-        var inactive = await repo.GetInactiveIdsAsync(new[] { 20, 21 });
+        var inactive = await repo.GetInactiveIdsAsync([20, 21]);
+
         inactive.Should().ContainSingle(i => i == 21);
     }
 

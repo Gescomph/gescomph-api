@@ -10,39 +10,41 @@ namespace Test.Modulo.Data;
 
 public class ContractRepositoryTests
 {
-    private static ApplicationDbContext Ctx()
+    private static ApplicationDbContext CreateContext()
     {
-        var opt = new DbContextOptionsBuilder<ApplicationDbContext>()
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
-        return new ApplicationDbContext(opt);
+
+        return new ApplicationDbContext(options);
     }
 
-    private static Person NewPerson(int id)
-        => new Person { Id = id, FirstName = $"P{id}", LastName = "L", CityId = 1 };
+    private static Person CreatePerson(int id)
+        => new Person
+        {
+            Id = id,
+            FirstName = $"P{id}",
+            LastName = "L",
+            CityId = 1
+        };
 
     [Fact]
-    public async Task GetCards_ProjectsFields()
+    public async Task GetByPersonAsyncFiltersByPersonAndLoadsRelations()
     {
-        await using var ctx = Ctx();
+        await using var ctx = CreateContext();
         var repo = new ContractRepository(ctx);
 
-        var p = NewPerson(1);
-        var u = new User { Id = 1, Email = "p@mail", Password = "x", PersonId = 1, Person = p };
-        p.User = u;
-        var c = new Contract { Id = 1, Person = p, PersonId = 1, StartDate = DateTime.Today, EndDate = DateTime.Today, TotalBaseRentAgreed = 10, TotalUvtQtyAgreed = 2, Active = true };
+        var p1 = CreatePerson(1);
+        var p2 = CreatePerson(2);
 
-        ctx.Persons.Add(p);
-        ctx.Users.Add(u);
-        ctx.Contracts.Add(c);
-        await ctx.SaveChangesAsync();
+        var u1 = new User { Id = 1, Email = "p1@mail", Password = "x", Person = p1 };
+        var u2 = new User { Id = 2, Email = "p2@mail", Password = "x", Person = p2 };
 
-        var all = await repo.GetCardsAllAsync();
-        all.Should().ContainSingle(x => x.Id == 1 && x.PersonEmail == "p@mail");
+        p1.User = u1;
+        p2.User = u2;
 
-        var byPerson = await repo.GetCardsByPersonAsync(1);
-        byPerson.Should().ContainSingle(x => x.PersonId == 1);
-    }
+        ctx.Persons.AddRange(p1, p2);
+        ctx.Users.AddRange(u1, u2);
 
     [Fact(Skip="EFCore.InMemory no soporta ExecuteUpdate/ExecuteUpdateAsync")]
     public async Task DeactivateExpiredAsync_DisablesActiveEndedContracts()
@@ -53,30 +55,28 @@ public class ContractRepositoryTests
 
         ctx.Persons.Add(NewPerson(1));
         ctx.Contracts.AddRange(
-            new Contract { Id = 1, PersonId = 1, StartDate = now.AddMonths(-2), EndDate = now.AddDays(-1), Active = true },
-            new Contract { Id = 2, PersonId = 1, StartDate = now.AddMonths(-2), EndDate = now.AddDays(10), Active = true },
-            new Contract { Id = 3, PersonId = 1, StartDate = now.AddMonths(-3), EndDate = now.AddDays(-2), Active = false }
-        );
-        await ctx.SaveChangesAsync();
-
-        var ids = await repo.DeactivateExpiredAsync(now);
-        ids.Should().ContainSingle(i => i == 1);
-
-        (await ctx.Contracts.FindAsync(1))!.Active.Should().BeFalse();
-        (await ctx.Contracts.FindAsync(2))!.Active.Should().BeTrue();
-    }
-
-    [Fact(Skip="EFCore.InMemory no soporta ExecuteUpdate/ExecuteUpdateAsync")]
-    public async Task ReleaseEstablishments_ActivatesOnlyFreeOnes()
-    {
-        await using var ctx = Ctx();
-        var repo = new ContractRepository(ctx);
-        var now = DateTime.UtcNow;
-
-        ctx.Persons.Add(NewPerson(1));
-        ctx.Establishments.AddRange(
-            new Establishment { Id = 10, Name = "E1", Description = "", Active = false },
-            new Establishment { Id = 11, Name = "E2", Description = "", Active = false }
+            new Contract
+            {
+                Id = 1,
+                PersonId = 1,
+                Person = p1,
+                StartDate = now.AddMonths(-2),
+                EndDate = now.AddMonths(1),
+                Active = true,
+                IsDeleted = false,
+                CreatedAt = now.AddDays(-1)
+            },
+            new Contract
+            {
+                Id = 2,
+                PersonId = 2,
+                Person = p2,
+                StartDate = now.AddMonths(-1),
+                EndDate = now.AddMonths(2),
+                Active = true,
+                IsDeleted = false,
+                CreatedAt = now
+            }
         );
 
         // Contract 1 expired and inactive on est 10
@@ -89,10 +89,9 @@ public class ContractRepositoryTests
 
         await ctx.SaveChangesAsync();
 
-        var changed = await repo.ReleaseEstablishmentsForExpiredAsync(now);
-        changed.Should().Be(1);
+        var result = (await repo.GetByPersonAsync(1)).ToList();
 
-        (await ctx.Establishments.FindAsync(10))!.Active.Should().BeTrue();
-        (await ctx.Establishments.FindAsync(11))!.Active.Should().BeFalse();
+        result.Should().ContainSingle();
+        result.Single().Person!.User!.Email.Should().Be("p1@mail");
     }
 }

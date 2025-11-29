@@ -8,17 +8,20 @@ namespace Test.Modulo.Data;
 
 public class ClauseRepositoryTests
 {
-    private static ApplicationDbContext Ctx(string n)
+    private static ApplicationDbContext CreateContext(string name)
     {
-        var opt = new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(n).Options;
-        return new ApplicationDbContext(opt);
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(name)
+            .Options;
+
+        return new ApplicationDbContext(options);
     }
 
     [Fact]
-    public async Task Add_Update_SoftDelete_Works()
+    public async Task AddUpdateSoftDeleteWorks()
     {
         var db = Guid.NewGuid().ToString();
-        await using var ctx = Ctx(db);
+        await using var ctx = CreateContext(db);
         var repo = new DataGeneric<Clause>(ctx);
 
         var created = await repo.AddAsync(new Clause { Name = "N", Description = "D" });

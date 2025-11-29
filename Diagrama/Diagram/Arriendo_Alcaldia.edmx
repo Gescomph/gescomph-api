@@ -4,27 +4,829 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl" Namespace="Model1.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2005">
-        <EntityContainer Name="Model1TargetContainer" >
+    <Schema Namespace="Model1.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012.Azure" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="CollectionSettings">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="300" />
+          <Property Name="Value" Type="float" Nullable="false" />
+          <Property Name="TimeUnit" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="FormModules">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="FormId" Type="int" Nullable="false" />
+          <Property Name="ModuleId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Forms">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="300" />
+          <Property Name="Route" Type="nvarchar" MaxLength="200" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Modules">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="300" />
+          <Property Name="Icon" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Notifications">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Title" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="Message" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Type" Type="int" Nullable="false" />
+          <Property Name="Priority" Type="int" Nullable="false" />
+          <Property Name="Status" Type="int" Nullable="false" />
+          <Property Name="RecipientUserId" Type="int" Nullable="false" />
+          <Property Name="ActionRoute" Type="nvarchar" MaxLength="400" />
+          <Property Name="ReadAt" Type="datetime2" Precision="7" />
+          <Property Name="ExpiresAt" Type="datetime2" Precision="7" />
+        </EntityType>
+        <EntityType Name="SystemParameters">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Key" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Value" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="EffectiveFrom" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="EffectiveTo" Type="datetime2" Precision="7" />
+        </EntityType>
+        <EntityType Name="Appointments">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="RequestDate" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="DateTimeAssigned" Type="datetime2" Precision="7" />
+          <Property Name="Observation" Type="nvarchar" MaxLength="500" />
+          <Property Name="PersonId" Type="int" Nullable="false" />
+          <Property Name="EstablishmentId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Clauses">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="300" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ContractClauses">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="ContractId" Type="int" Nullable="false" />
+          <Property Name="ClauseId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Contracts">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="StartDate" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="EndDate" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="PersonId" Type="int" Nullable="false" />
+          <Property Name="TotalBaseRentAgreed" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="TotalUvtQtyAgreed" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="AccumulatedFirstMonth" Type="decimal" Precision="18" Scale="2" />
+        </EntityType>
+        <EntityType Name="Establishments">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="300" />
+          <Property Name="AreaM2" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="RentValueBase" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="Address" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="UvtQty" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="PlazaId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ObligationMonths">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="ContractId" Type="int" Nullable="false" />
+          <Property Name="Year" Type="int" Nullable="false" />
+          <Property Name="Month" Type="int" Nullable="false" />
+          <Property Name="DueDate" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="PaymentDate" Type="datetime2" Precision="7" />
+          <Property Name="UvtQtyApplied" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="UvtValueApplied" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="VatRateApplied" Type="decimal" Precision="5" Scale="4" Nullable="false" />
+          <Property Name="BaseAmount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="VatAmount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="TotalAmount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="DaysLate" Type="int" />
+          <Property Name="LateAmount" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="Status" Type="int" Nullable="false" />
+          <Property Name="Locked" Type="bit" Nullable="false" />
+          <Property Name="LateFeeAmount" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="NotifiedDueSoonAt" Type="datetime2" Precision="7" />
+          <Property Name="NotifiedOverdueAt" Type="datetime2" Precision="7" />
+          <Property Name="NotifiedPreJudicialAt" Type="datetime2" Precision="7" />
+          <Property Name="NotifiedJudicialAt" Type="datetime2" Precision="7" />
+        </EntityType>
+        <EntityType Name="Plazas">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="300" />
+          <Property Name="Location" Type="nvarchar" MaxLength="200" Nullable="false" />
+        </EntityType>
+        <EntityType Name="PremisesLeaseds">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="ContractId" Type="int" Nullable="false" />
+          <Property Name="EstablishmentId" Type="int" Nullable="false" />
+        </EntityType>
+        <!--Errores durante la generación:
+advertencia 6002: La tabla o vista 'gescomph_develop.dbo.DATABASECHANGELOG' no tiene definida ninguna clave principal. Se ha inferido la clave y la definición se creado como una vista o tabla de solo lectura.-->
+        <EntityType Name="DATABASECHANGELOG">
+          <Key>
+            <PropertyRef Name="ID" />
+            <PropertyRef Name="AUTHOR" />
+            <PropertyRef Name="FILENAME" />
+            <PropertyRef Name="DATEEXECUTED" />
+            <PropertyRef Name="ORDEREXECUTED" />
+            <PropertyRef Name="EXECTYPE" />
+          </Key>
+          <Property Name="ID" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="AUTHOR" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="FILENAME" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="DATEEXECUTED" Type="datetime2" Precision="3" Nullable="false" />
+          <Property Name="ORDEREXECUTED" Type="int" Nullable="false" />
+          <Property Name="EXECTYPE" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="MD5SUM" Type="nvarchar" MaxLength="35" />
+          <Property Name="DESCRIPTION" Type="nvarchar" MaxLength="255" />
+          <Property Name="COMMENTS" Type="nvarchar" MaxLength="255" />
+          <Property Name="TAG" Type="nvarchar" MaxLength="255" />
+          <Property Name="LIQUIBASE" Type="nvarchar" MaxLength="20" />
+          <Property Name="CONTEXTS" Type="nvarchar" MaxLength="255" />
+          <Property Name="LABELS" Type="nvarchar" MaxLength="255" />
+          <Property Name="DEPLOYMENT_ID" Type="nvarchar" MaxLength="10" />
+        </EntityType>
+        <EntityType Name="DATABASECHANGELOGLOCK">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" Nullable="false" />
+          <Property Name="LOCKED" Type="bit" Nullable="false" />
+          <Property Name="LOCKGRANTED" Type="datetime2" Precision="3" />
+          <Property Name="LOCKEDBY" Type="nvarchar" MaxLength="255" />
+        </EntityType>
+        <EntityType Name="Cities">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="DepartmentId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Departments">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Persons">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="FirstName" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="LastName" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Document" Type="nvarchar" MaxLength="20" />
+          <Property Name="Address" Type="nvarchar" MaxLength="200" />
+          <Property Name="Phone" Type="nvarchar" MaxLength="20" />
+          <Property Name="CityId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="PasswordResetCodes">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Email" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="Expiration" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="IsUsed" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Permissions">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="300" />
+        </EntityType>
+        <EntityType Name="RefreshToken">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="TokenHash" Type="varchar" MaxLength="128" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="ExpiresAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="IsRevoked" Type="bit" Nullable="false" />
+          <Property Name="ReplacedByTokenHash" Type="varchar" MaxLength="128" />
+        </EntityType>
+        <EntityType Name="Roles">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Description" Type="nvarchar" MaxLength="300" />
+        </EntityType>
+        <EntityType Name="RolFormPermissions">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="RolId" Type="int" Nullable="false" />
+          <Property Name="FormId" Type="int" Nullable="false" />
+          <Property Name="PermissionId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="RolUsers">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="RolId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TwoFactorCodes">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="Code" Type="nvarchar" MaxLength="16" Nullable="false" />
+          <Property Name="ExpiresAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="IsUsed" Type="bit" Nullable="false" />
+          <Property Name="UsedAt" Type="datetime2" Precision="7" />
+        </EntityType>
+        <EntityType Name="Users">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Email" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="Password" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="PersonId" Type="int" Nullable="false" />
+          <Property Name="TwoFactorEnabled" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Images">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
+          <Property Name="IsDeleted" Type="bit" Nullable="false" />
+          <Property Name="CreatedAt" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="FileName" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="FilePath" Type="nvarchar" MaxLength="512" Nullable="false" />
+          <Property Name="PublicId" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="EntityType" Type="int" Nullable="false" />
+          <Property Name="EntityId" Type="int" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_Appointments_Establishments">
+          <End Role="Establishments" Type="Self.Establishments" Multiplicity="1" />
+          <End Role="Appointments" Type="Self.Appointments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Establishments">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Appointments">
+              <PropertyRef Name="EstablishmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Appointments_Persons">
+          <End Role="Persons" Type="Self.Persons" Multiplicity="1" />
+          <End Role="Appointments" Type="Self.Appointments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Persons">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Appointments">
+              <PropertyRef Name="PersonId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Cities_Departments">
+          <End Role="Departments" Type="Self.Departments" Multiplicity="1" />
+          <End Role="Cities" Type="Self.Cities" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Departments">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Cities">
+              <PropertyRef Name="DepartmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ContractClauses_Clauses">
+          <End Role="Clauses" Type="Self.Clauses" Multiplicity="1" />
+          <End Role="ContractClauses" Type="Self.ContractClauses" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Clauses">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ContractClauses">
+              <PropertyRef Name="ClauseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ContractClauses_Contracts">
+          <End Role="Contracts" Type="Self.Contracts" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ContractClauses" Type="Self.ContractClauses" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Contracts">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ContractClauses">
+              <PropertyRef Name="ContractId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Contracts_Persons">
+          <End Role="Persons" Type="Self.Persons" Multiplicity="1" />
+          <End Role="Contracts" Type="Self.Contracts" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Persons">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Contracts">
+              <PropertyRef Name="PersonId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Establishments_Plazas">
+          <End Role="Plazas" Type="Self.Plazas" Multiplicity="1" />
+          <End Role="Establishments" Type="Self.Establishments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Plazas">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Establishments">
+              <PropertyRef Name="PlazaId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FormModules_Forms">
+          <End Role="Forms" Type="Self.Forms" Multiplicity="1" />
+          <End Role="FormModules" Type="Self.FormModules" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Forms">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="FormModules">
+              <PropertyRef Name="FormId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FormModules_Modules">
+          <End Role="Modules" Type="Self.Modules" Multiplicity="1" />
+          <End Role="FormModules" Type="Self.FormModules" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Modules">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="FormModules">
+              <PropertyRef Name="ModuleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Notifications_Users">
+          <End Role="Users" Type="Self.Users" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Notifications" Type="Self.Notifications" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Notifications">
+              <PropertyRef Name="RecipientUserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ObligationMonths_Contracts">
+          <End Role="Contracts" Type="Self.Contracts" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ObligationMonths" Type="Self.ObligationMonths" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Contracts">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ObligationMonths">
+              <PropertyRef Name="ContractId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Persons_Cities">
+          <End Role="Cities" Type="Self.Cities" Multiplicity="1" />
+          <End Role="Persons" Type="Self.Persons" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Cities">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Persons">
+              <PropertyRef Name="CityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PremisesLeaseds_Contracts">
+          <End Role="Contracts" Type="Self.Contracts" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="PremisesLeaseds" Type="Self.PremisesLeaseds" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Contracts">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PremisesLeaseds">
+              <PropertyRef Name="ContractId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PremisesLeaseds_Establishments">
+          <End Role="Establishments" Type="Self.Establishments" Multiplicity="1" />
+          <End Role="PremisesLeaseds" Type="Self.PremisesLeaseds" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Establishments">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PremisesLeaseds">
+              <PropertyRef Name="EstablishmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RefreshToken_Users">
+          <End Role="Users" Type="Self.Users" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RefreshToken" Type="Self.RefreshToken" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RefreshToken">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RolFormPermissions_Forms">
+          <End Role="Forms" Type="Self.Forms" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RolFormPermissions" Type="Self.RolFormPermissions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Forms">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RolFormPermissions">
+              <PropertyRef Name="FormId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RolFormPermissions_Permissions">
+          <End Role="Permissions" Type="Self.Permissions" Multiplicity="1" />
+          <End Role="RolFormPermissions" Type="Self.RolFormPermissions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Permissions">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RolFormPermissions">
+              <PropertyRef Name="PermissionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RolFormPermissions_Roles">
+          <End Role="Roles" Type="Self.Roles" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RolFormPermissions" Type="Self.RolFormPermissions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Roles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RolFormPermissions">
+              <PropertyRef Name="RolId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RolUsers_Roles">
+          <End Role="Roles" Type="Self.Roles" Multiplicity="1" />
+          <End Role="RolUsers" Type="Self.RolUsers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Roles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RolUsers">
+              <PropertyRef Name="RolId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RolUsers_Users">
+          <End Role="Users" Type="Self.Users" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RolUsers" Type="Self.RolUsers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RolUsers">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TwoFactorCodes_Users">
+          <End Role="Users" Type="Self.Users" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="TwoFactorCodes" Type="Self.TwoFactorCodes" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TwoFactorCodes">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Users_Persons">
+          <End Role="Persons" Type="Self.Persons" Multiplicity="1" />
+          <End Role="Users" Type="Self.Users" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Persons">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Users">
+              <PropertyRef Name="PersonId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="Model1StoreContainer">
+          <EntitySet Name="CollectionSettings" EntityType="Self.CollectionSettings" Schema="AdministrationSystem" store:Type="Tables" />
+          <EntitySet Name="FormModules" EntityType="Self.FormModules" Schema="AdministrationSystem" store:Type="Tables" />
+          <EntitySet Name="Forms" EntityType="Self.Forms" Schema="AdministrationSystem" store:Type="Tables" />
+          <EntitySet Name="Modules" EntityType="Self.Modules" Schema="AdministrationSystem" store:Type="Tables" />
+          <EntitySet Name="Notifications" EntityType="Self.Notifications" Schema="AdministrationSystem" store:Type="Tables" />
+          <EntitySet Name="SystemParameters" EntityType="Self.SystemParameters" Schema="AdministrationSystem" store:Type="Tables" />
+          <EntitySet Name="Appointments" EntityType="Self.Appointments" Schema="Business" store:Type="Tables" />
+          <EntitySet Name="Clauses" EntityType="Self.Clauses" Schema="Business" store:Type="Tables" />
+          <EntitySet Name="ContractClauses" EntityType="Self.ContractClauses" Schema="Business" store:Type="Tables" />
+          <EntitySet Name="Contracts" EntityType="Self.Contracts" Schema="Business" store:Type="Tables" />
+          <EntitySet Name="Establishments" EntityType="Self.Establishments" Schema="Business" store:Type="Tables" />
+          <EntitySet Name="ObligationMonths" EntityType="Self.ObligationMonths" Schema="Business" store:Type="Tables" />
+          <EntitySet Name="Plazas" EntityType="Self.Plazas" Schema="Business" store:Type="Tables" />
+          <EntitySet Name="PremisesLeaseds" EntityType="Self.PremisesLeaseds" Schema="Business" store:Type="Tables" />
+          <EntitySet Name="DATABASECHANGELOGLOCK" EntityType="Self.DATABASECHANGELOGLOCK" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Cities" EntityType="Self.Cities" Schema="Location" store:Type="Tables" />
+          <EntitySet Name="Departments" EntityType="Self.Departments" Schema="Location" store:Type="Tables" />
+          <EntitySet Name="Persons" EntityType="Self.Persons" Schema="Persons" store:Type="Tables" />
+          <EntitySet Name="PasswordResetCodes" EntityType="Self.PasswordResetCodes" Schema="SecurityAuthentication" store:Type="Tables" />
+          <EntitySet Name="Permissions" EntityType="Self.Permissions" Schema="SecurityAuthentication" store:Type="Tables" />
+          <EntitySet Name="RefreshToken" EntityType="Self.RefreshToken" Schema="SecurityAuthentication" store:Type="Tables" />
+          <EntitySet Name="Roles" EntityType="Self.Roles" Schema="SecurityAuthentication" store:Type="Tables" />
+          <EntitySet Name="RolFormPermissions" EntityType="Self.RolFormPermissions" Schema="SecurityAuthentication" store:Type="Tables" />
+          <EntitySet Name="RolUsers" EntityType="Self.RolUsers" Schema="SecurityAuthentication" store:Type="Tables" />
+          <EntitySet Name="TwoFactorCodes" EntityType="Self.TwoFactorCodes" Schema="SecurityAuthentication" store:Type="Tables" />
+          <EntitySet Name="Users" EntityType="Self.Users" Schema="SecurityAuthentication" store:Type="Tables" />
+          <EntitySet Name="Images" EntityType="Self.Images" Schema="Utilities" store:Type="Tables" />
+          <EntitySet Name="DATABASECHANGELOG" EntityType="Self.DATABASECHANGELOG" store:Type="Tables" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [DATABASECHANGELOG].[ID] AS [ID], 
+    [DATABASECHANGELOG].[AUTHOR] AS [AUTHOR], 
+    [DATABASECHANGELOG].[FILENAME] AS [FILENAME], 
+    [DATABASECHANGELOG].[DATEEXECUTED] AS [DATEEXECUTED], 
+    [DATABASECHANGELOG].[ORDEREXECUTED] AS [ORDEREXECUTED], 
+    [DATABASECHANGELOG].[EXECTYPE] AS [EXECTYPE], 
+    [DATABASECHANGELOG].[MD5SUM] AS [MD5SUM], 
+    [DATABASECHANGELOG].[DESCRIPTION] AS [DESCRIPTION], 
+    [DATABASECHANGELOG].[COMMENTS] AS [COMMENTS], 
+    [DATABASECHANGELOG].[TAG] AS [TAG], 
+    [DATABASECHANGELOG].[LIQUIBASE] AS [LIQUIBASE], 
+    [DATABASECHANGELOG].[CONTEXTS] AS [CONTEXTS], 
+    [DATABASECHANGELOG].[LABELS] AS [LABELS], 
+    [DATABASECHANGELOG].[DEPLOYMENT_ID] AS [DEPLOYMENT_ID]
+    FROM [dbo].[DATABASECHANGELOG] AS [DATABASECHANGELOG]</DefiningQuery>
+          </EntitySet>
+          <AssociationSet Name="FK_Appointments_Establishments" Association="Self.FK_Appointments_Establishments">
+            <End Role="Establishments" EntitySet="Establishments" />
+            <End Role="Appointments" EntitySet="Appointments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Appointments_Persons" Association="Self.FK_Appointments_Persons">
+            <End Role="Persons" EntitySet="Persons" />
+            <End Role="Appointments" EntitySet="Appointments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Cities_Departments" Association="Self.FK_Cities_Departments">
+            <End Role="Departments" EntitySet="Departments" />
+            <End Role="Cities" EntitySet="Cities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ContractClauses_Clauses" Association="Self.FK_ContractClauses_Clauses">
+            <End Role="Clauses" EntitySet="Clauses" />
+            <End Role="ContractClauses" EntitySet="ContractClauses" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ContractClauses_Contracts" Association="Self.FK_ContractClauses_Contracts">
+            <End Role="Contracts" EntitySet="Contracts" />
+            <End Role="ContractClauses" EntitySet="ContractClauses" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Contracts_Persons" Association="Self.FK_Contracts_Persons">
+            <End Role="Persons" EntitySet="Persons" />
+            <End Role="Contracts" EntitySet="Contracts" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Establishments_Plazas" Association="Self.FK_Establishments_Plazas">
+            <End Role="Plazas" EntitySet="Plazas" />
+            <End Role="Establishments" EntitySet="Establishments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FormModules_Forms" Association="Self.FK_FormModules_Forms">
+            <End Role="Forms" EntitySet="Forms" />
+            <End Role="FormModules" EntitySet="FormModules" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FormModules_Modules" Association="Self.FK_FormModules_Modules">
+            <End Role="Modules" EntitySet="Modules" />
+            <End Role="FormModules" EntitySet="FormModules" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Notifications_Users" Association="Self.FK_Notifications_Users">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Notifications" EntitySet="Notifications" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ObligationMonths_Contracts" Association="Self.FK_ObligationMonths_Contracts">
+            <End Role="Contracts" EntitySet="Contracts" />
+            <End Role="ObligationMonths" EntitySet="ObligationMonths" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Persons_Cities" Association="Self.FK_Persons_Cities">
+            <End Role="Cities" EntitySet="Cities" />
+            <End Role="Persons" EntitySet="Persons" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PremisesLeaseds_Contracts" Association="Self.FK_PremisesLeaseds_Contracts">
+            <End Role="Contracts" EntitySet="Contracts" />
+            <End Role="PremisesLeaseds" EntitySet="PremisesLeaseds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PremisesLeaseds_Establishments" Association="Self.FK_PremisesLeaseds_Establishments">
+            <End Role="Establishments" EntitySet="Establishments" />
+            <End Role="PremisesLeaseds" EntitySet="PremisesLeaseds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RefreshToken_Users" Association="Self.FK_RefreshToken_Users">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="RefreshToken" EntitySet="RefreshToken" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RolFormPermissions_Forms" Association="Self.FK_RolFormPermissions_Forms">
+            <End Role="Forms" EntitySet="Forms" />
+            <End Role="RolFormPermissions" EntitySet="RolFormPermissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RolFormPermissions_Permissions" Association="Self.FK_RolFormPermissions_Permissions">
+            <End Role="Permissions" EntitySet="Permissions" />
+            <End Role="RolFormPermissions" EntitySet="RolFormPermissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RolFormPermissions_Roles" Association="Self.FK_RolFormPermissions_Roles">
+            <End Role="Roles" EntitySet="Roles" />
+            <End Role="RolFormPermissions" EntitySet="RolFormPermissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RolUsers_Roles" Association="Self.FK_RolUsers_Roles">
+            <End Role="Roles" EntitySet="Roles" />
+            <End Role="RolUsers" EntitySet="RolUsers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RolUsers_Users" Association="Self.FK_RolUsers_Users">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="RolUsers" EntitySet="RolUsers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TwoFactorCodes_Users" Association="Self.FK_TwoFactorCodes_Users">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="TwoFactorCodes" EntitySet="TwoFactorCodes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Users_Persons" Association="Self.FK_Users_Persons">
+            <End Role="Persons" EntitySet="Persons" />
+            <End Role="Users" EntitySet="Users" />
+          </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema xmlns="http://schemas.microsoft.com/ado/2009/11/edm" xmlns:cg="http://schemas.microsoft.com/ado/2006/04/codegeneration" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" Namespace="Model1" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" annotation:UseStrongSpatialTypes="false">
         <EntityContainer Name="Model1Container" annotation:LazyLoadingEnabled="true">
-          <EntitySet Name="Appointments" EntityType="Model1.Appointments" />
-          <EntitySet Name="Cities" EntityType="Model1.Cities" />
-          <EntitySet Name="clauses" EntityType="Model1.clauses" />
-          <EntitySet Name="contractClauses" EntityType="Model1.contractClauses" />
-          <EntitySet Name="contracts" EntityType="Model1.contracts" />
-          <EntitySet Name="Departments" EntityType="Model1.Departments" />
-          <EntitySet Name="Establishments" EntityType="Model1.Establishments" />
+          <EntitySet Name="CollectionSettings" EntityType="Model1.CollectionSettings" />
           <EntitySet Name="FormModules" EntityType="Model1.FormModules" />
           <EntitySet Name="Forms" EntityType="Model1.Forms" />
           <EntitySet Name="Images" EntityType="Model1.Images" />
           <EntitySet Name="Modules" EntityType="Model1.Modules" />
+          <EntitySet Name="Notifications" EntityType="Model1.Notifications" />
+          <EntitySet Name="SystemParameters" EntityType="Model1.SystemParameters" />
+          <EntitySet Name="Appointments" EntityType="Model1.Appointments" />
+          <EntitySet Name="Clauses" EntityType="Model1.Clauses" />
+          <EntitySet Name="ContractClauses" EntityType="Model1.ContractClauses" />
+          <EntitySet Name="Contracts" EntityType="Model1.Contracts" />
+          <EntitySet Name="Establishments" EntityType="Model1.Establishments" />
           <EntitySet Name="ObligationMonths" EntityType="Model1.ObligationMonths" />
+          <EntitySet Name="Plazas" EntityType="Model1.Plazas" />
+          <EntitySet Name="PremisesLeaseds" EntityType="Model1.PremisesLeaseds" />
+          <EntitySet Name="DATABASECHANGELOGLOCK" EntityType="Model1.DATABASECHANGELOGLOCK" />
+          <EntitySet Name="Cities" EntityType="Model1.Cities" />
+          <EntitySet Name="Departments" EntityType="Model1.Departments" />
+          <EntitySet Name="Persons" EntityType="Model1.Persons" />
           <EntitySet Name="PasswordResetCodes" EntityType="Model1.PasswordResetCodes" />
           <EntitySet Name="Permissions" EntityType="Model1.Permissions" />
           <EntitySet Name="Persons" EntityType="Model1.Persons" />
@@ -34,86 +836,100 @@
           <EntitySet Name="Roles" EntityType="Model1.Roles" />
           <EntitySet Name="RolFormPermissions" EntityType="Model1.RolFormPermissions" />
           <EntitySet Name="RolUsers" EntityType="Model1.RolUsers" />
-          <EntitySet Name="systemParameters" EntityType="Model1.systemParameters" />
+          <EntitySet Name="TwoFactorCodes" EntityType="Model1.TwoFactorCodes" />
           <EntitySet Name="Users" EntityType="Model1.Users" />
-          <AssociationSet Name="FK_Appointments_Establishments_EstablishmentId" Association="Model1.FK_Appointments_Establishments_EstablishmentId">
-            <End Role="Establishments" EntitySet="Establishments" />
-            <End Role="Appointments" EntitySet="Appointments" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Appointments_Persons_PersonId" Association="Model1.FK_Appointments_Persons_PersonId">
-            <End Role="Persons" EntitySet="Persons" />
-            <End Role="Appointments" EntitySet="Appointments" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Cities_Departments_DepartmentId" Association="Model1.FK_Cities_Departments_DepartmentId">
-            <End Role="Departments" EntitySet="Departments" />
-            <End Role="Cities" EntitySet="Cities" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Persons_Cities_CityId" Association="Model1.FK_Persons_Cities_CityId">
-            <End Role="Cities" EntitySet="Cities" />
-            <End Role="Persons" EntitySet="Persons" />
-          </AssociationSet>
-          <AssociationSet Name="FK_contractClauses_clauses_ClauseId" Association="Model1.FK_contractClauses_clauses_ClauseId">
-            <End Role="clauses" EntitySet="clauses" />
-            <End Role="contractClauses" EntitySet="contractClauses" />
-          </AssociationSet>
-          <AssociationSet Name="FK_contractClauses_contracts_ContractId" Association="Model1.FK_contractClauses_contracts_ContractId">
-            <End Role="contracts" EntitySet="contracts" />
-            <End Role="contractClauses" EntitySet="contractClauses" />
-          </AssociationSet>
-          <AssociationSet Name="FK_contracts_Persons_PersonId" Association="Model1.FK_contracts_Persons_PersonId">
-            <End Role="Persons" EntitySet="Persons" />
-            <End Role="contracts" EntitySet="contracts" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ObligationMonths_contracts_ContractId" Association="Model1.FK_ObligationMonths_contracts_ContractId">
-            <End Role="contracts" EntitySet="contracts" />
-            <End Role="ObligationMonths" EntitySet="ObligationMonths" />
-          </AssociationSet>
-          <AssociationSet Name="FK_premisesLeaseds_contracts_ContractId" Association="Model1.FK_premisesLeaseds_contracts_ContractId">
-            <End Role="contracts" EntitySet="contracts" />
-            <End Role="premisesLeaseds" EntitySet="premisesLeaseds" />
-          </AssociationSet>
-          <AssociationSet Name="FK_FormModules_Forms_FormId" Association="Model1.FK_FormModules_Forms_FormId">
+          <EntitySet Name="Images" EntityType="Model1.Images" />
+          <EntitySet Name="DATABASECHANGELOG" EntityType="Model1.DATABASECHANGELOG" />
+          <AssociationSet Name="FK_FormModules_Forms" Association="Model1.FK_FormModules_Forms">
             <End Role="Forms" EntitySet="Forms" />
             <End Role="FormModules" EntitySet="FormModules" />
           </AssociationSet>
-          <AssociationSet Name="FK_FormModules_Modules_ModuleId" Association="Model1.FK_FormModules_Modules_ModuleId">
+          <AssociationSet Name="FK_FormModules_Modules" Association="Model1.FK_FormModules_Modules">
             <End Role="Modules" EntitySet="Modules" />
             <End Role="FormModules" EntitySet="FormModules" />
           </AssociationSet>
-          <AssociationSet Name="FK_Images_Establishments_EstablishmentId" Association="Model1.FK_Images_Establishments_EstablishmentId">
-            <End Role="Establishments" EntitySet="Establishments" />
-            <End Role="Images" EntitySet="Images" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RolFormPermissions_Permissions_PermissionId" Association="Model1.FK_RolFormPermissions_Permissions_PermissionId">
-            <End Role="Permissions" EntitySet="Permissions" />
-            <End Role="RolFormPermissions" EntitySet="RolFormPermissions" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Establishments_plaza_PlazaId" Association="Model1.FK_Establishments_plaza_PlazaId">
-            <End Role="plaza" EntitySet="plaza" />
-            <End Role="Establishments" EntitySet="Establishments" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RolFormPermissions_Roles_RolId" Association="Model1.FK_RolFormPermissions_Roles_RolId">
-            <End Role="Roles" EntitySet="Roles" />
-            <End Role="RolFormPermissions" EntitySet="RolFormPermissions" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RolUsers_Roles_RolId" Association="Model1.FK_RolUsers_Roles_RolId">
-            <End Role="Roles" EntitySet="Roles" />
-            <End Role="RolUsers" EntitySet="RolUsers" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RolFormPermissions_Forms_FormId" Association="Model1.FK_RolFormPermissions_Forms_FormId">
+          <AssociationSet Name="FK_RolFormPermissions_Forms" Association="Model1.FK_RolFormPermissions_Forms">
             <End Role="Forms" EntitySet="Forms" />
             <End Role="RolFormPermissions" EntitySet="RolFormPermissions" />
           </AssociationSet>
-          <AssociationSet Name="FK_Users_Persons_PersonId" Association="Model1.FK_Users_Persons_PersonId">
+          <AssociationSet Name="FK_Notifications_Users" Association="Model1.FK_Notifications_Users">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Notifications" EntitySet="Notifications" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Appointments_Establishments" Association="Model1.FK_Appointments_Establishments">
+            <End Role="Establishments" EntitySet="Establishments" />
+            <End Role="Appointments" EntitySet="Appointments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Appointments_Persons" Association="Model1.FK_Appointments_Persons">
+            <End Role="Persons" EntitySet="Persons" />
+            <End Role="Appointments" EntitySet="Appointments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ContractClauses_Clauses" Association="Model1.FK_ContractClauses_Clauses">
+            <End Role="Clauses" EntitySet="Clauses" />
+            <End Role="ContractClauses" EntitySet="ContractClauses" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ContractClauses_Contracts" Association="Model1.FK_ContractClauses_Contracts">
+            <End Role="Contracts" EntitySet="Contracts" />
+            <End Role="ContractClauses" EntitySet="ContractClauses" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Contracts_Persons" Association="Model1.FK_Contracts_Persons">
+            <End Role="Persons" EntitySet="Persons" />
+            <End Role="Contracts" EntitySet="Contracts" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ObligationMonths_Contracts" Association="Model1.FK_ObligationMonths_Contracts">
+            <End Role="Contracts" EntitySet="Contracts" />
+            <End Role="ObligationMonths" EntitySet="ObligationMonths" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PremisesLeaseds_Contracts" Association="Model1.FK_PremisesLeaseds_Contracts">
+            <End Role="Contracts" EntitySet="Contracts" />
+            <End Role="PremisesLeaseds" EntitySet="PremisesLeaseds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Establishments_Plazas" Association="Model1.FK_Establishments_Plazas">
+            <End Role="Plazas" EntitySet="Plazas" />
+            <End Role="Establishments" EntitySet="Establishments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PremisesLeaseds_Establishments" Association="Model1.FK_PremisesLeaseds_Establishments">
+            <End Role="Establishments" EntitySet="Establishments" />
+            <End Role="PremisesLeaseds" EntitySet="PremisesLeaseds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Cities_Departments" Association="Model1.FK_Cities_Departments">
+            <End Role="Departments" EntitySet="Departments" />
+            <End Role="Cities" EntitySet="Cities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Persons_Cities" Association="Model1.FK_Persons_Cities">
+            <End Role="Cities" EntitySet="Cities" />
+            <End Role="Persons" EntitySet="Persons" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Users_Persons" Association="Model1.FK_Users_Persons">
             <End Role="Persons" EntitySet="Persons" />
             <End Role="Users" EntitySet="Users" />
           </AssociationSet>
-          <AssociationSet Name="FK_RolUsers_Users_UserId" Association="Model1.FK_RolUsers_Users_UserId">
+          <AssociationSet Name="FK_RolFormPermissions_Permissions" Association="Model1.FK_RolFormPermissions_Permissions">
+            <End Role="Permissions" EntitySet="Permissions" />
+            <End Role="RolFormPermissions" EntitySet="RolFormPermissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RefreshToken_Users" Association="Model1.FK_RefreshToken_Users">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="RefreshToken" EntitySet="RefreshToken" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RolFormPermissions_Roles" Association="Model1.FK_RolFormPermissions_Roles">
+            <End Role="Roles" EntitySet="Roles" />
+            <End Role="RolFormPermissions" EntitySet="RolFormPermissions" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RolUsers_Roles" Association="Model1.FK_RolUsers_Roles">
+            <End Role="Roles" EntitySet="Roles" />
+            <End Role="RolUsers" EntitySet="RolUsers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RolUsers_Users" Association="Model1.FK_RolUsers_Users">
             <End Role="Users" EntitySet="Users" />
             <End Role="RolUsers" EntitySet="RolUsers" />
           </AssociationSet>
+          <AssociationSet Name="FK_TwoFactorCodes_Users" Association="Model1.FK_TwoFactorCodes_Users">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="TwoFactorCodes" EntitySet="TwoFactorCodes" />
+          </AssociationSet>
         </EntityContainer>
-        <EntityType Name="Appointments">
+        <EntityType Name="CollectionSettings">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -127,10 +943,12 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="Establishments" Relationship="Model1.FK_Appointments_Establishments_EstablishmentId" FromRole="Appointments" ToRole="Establishments" />
-          <NavigationProperty Name="Persons" Relationship="Model1.FK_Appointments_Persons_PersonId" FromRole="Appointments" ToRole="Persons" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="Value" Type="Double" Nullable="false" />
+          <Property Name="TimeUnit" Type="Int32" Nullable="false" />
         </EntityType>
-        <EntityType Name="Cities">
+        <EntityType Name="FormModules">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -140,10 +958,12 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="Departments" Relationship="Model1.FK_Cities_Departments_DepartmentId" FromRole="Cities" ToRole="Departments" />
-          <NavigationProperty Name="Persons" Relationship="Model1.FK_Persons_Cities_CityId" FromRole="Cities" ToRole="Persons" />
+          <Property Name="FormId" Type="Int32" Nullable="false" />
+          <Property Name="ModuleId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Forms" Relationship="Model1.FK_FormModules_Forms" FromRole="FormModules" ToRole="Forms" />
+          <NavigationProperty Name="Modules" Relationship="Model1.FK_FormModules_Modules" FromRole="FormModules" ToRole="Modules" />
         </EntityType>
-        <EntityType Name="clauses">
+        <EntityType Name="Forms">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -152,10 +972,13 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <Property Name="Name" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="contractClauses" Relationship="Model1.FK_contractClauses_clauses_ClauseId" FromRole="clauses" ToRole="contractClauses" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="Route" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="FormModules" Relationship="Model1.FK_FormModules_Forms" FromRole="Forms" ToRole="FormModules" />
+          <NavigationProperty Name="RolFormPermissions" Relationship="Model1.FK_RolFormPermissions_Forms" FromRole="Forms" ToRole="RolFormPermissions" />
         </EntityType>
-        <EntityType Name="contractClauses">
+        <EntityType Name="Modules">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -165,10 +988,12 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="clauses" Relationship="Model1.FK_contractClauses_clauses_ClauseId" FromRole="contractClauses" ToRole="clauses" />
-          <NavigationProperty Name="contracts" Relationship="Model1.FK_contractClauses_contracts_ContractId" FromRole="contractClauses" ToRole="contracts" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="Icon" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="FormModules" Relationship="Model1.FK_FormModules_Modules" FromRole="Modules" ToRole="FormModules" />
         </EntityType>
-        <EntityType Name="contracts">
+        <EntityType Name="Notifications">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -181,12 +1006,18 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="contractClauses" Relationship="Model1.FK_contractClauses_contracts_ContractId" FromRole="contracts" ToRole="contractClauses" />
-          <NavigationProperty Name="Persons" Relationship="Model1.FK_contracts_Persons_PersonId" FromRole="contracts" ToRole="Persons" />
-          <NavigationProperty Name="ObligationMonths" Relationship="Model1.FK_ObligationMonths_contracts_ContractId" FromRole="contracts" ToRole="ObligationMonths" />
-          <NavigationProperty Name="premisesLeaseds" Relationship="Model1.FK_premisesLeaseds_contracts_ContractId" FromRole="contracts" ToRole="premisesLeaseds" />
+          <Property Name="Title" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Message" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Type" Type="Int32" Nullable="false" />
+          <Property Name="Priority" Type="Int32" Nullable="false" />
+          <Property Name="Status" Type="Int32" Nullable="false" />
+          <Property Name="RecipientUserId" Type="Int32" Nullable="false" />
+          <Property Name="ActionRoute" Type="String" MaxLength="400" FixedLength="false" Unicode="true" />
+          <Property Name="ReadAt" Type="DateTime" Precision="7" />
+          <Property Name="ExpiresAt" Type="DateTime" Precision="7" />
+          <NavigationProperty Name="Users" Relationship="Model1.FK_Notifications_Users" FromRole="Notifications" ToRole="Users" />
         </EntityType>
-        <EntityType Name="Departments">
+        <EntityType Name="SystemParameters">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -195,9 +1026,12 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="Cities" Relationship="Model1.FK_Cities_Departments_DepartmentId" FromRole="Departments" ToRole="Cities" />
+          <Property Name="Key" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Value" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="EffectiveFrom" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="EffectiveTo" Type="DateTime" Precision="7" />
         </EntityType>
-        <EntityType Name="Establishments">
+        <EntityType Name="Appointments">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -210,13 +1044,16 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <Property Name="Name" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="Appointments" Relationship="Model1.FK_Appointments_Establishments_EstablishmentId" FromRole="Establishments" ToRole="Appointments" />
-          <NavigationProperty Name="Images" Relationship="Model1.FK_Images_Establishments_EstablishmentId" FromRole="Establishments" ToRole="Images" />
-          <NavigationProperty Name="plaza" Relationship="Model1.FK_Establishments_plaza_PlazaId" FromRole="Establishments" ToRole="plaza" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="RequestDate" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="DateTimeAssigned" Type="DateTime" Precision="7" />
+          <Property Name="Observation" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="PersonId" Type="Int32" Nullable="false" />
+          <Property Name="EstablishmentId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Establishments" Relationship="Model1.FK_Appointments_Establishments" FromRole="Appointments" ToRole="Establishments" />
+          <NavigationProperty Name="Persons" Relationship="Model1.FK_Appointments_Persons" FromRole="Appointments" ToRole="Persons" />
         </EntityType>
-        <EntityType Name="FormModules">
+        <EntityType Name="Clauses">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -226,10 +1063,11 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="Forms" Relationship="Model1.FK_FormModules_Forms_FormId" FromRole="FormModules" ToRole="Forms" />
-          <NavigationProperty Name="Modules" Relationship="Model1.FK_FormModules_Modules_ModuleId" FromRole="FormModules" ToRole="Modules" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="ContractClauses" Relationship="Model1.FK_ContractClauses_Clauses" FromRole="Clauses" ToRole="ContractClauses" />
         </EntityType>
-        <EntityType Name="Forms">
+        <EntityType Name="ContractClauses">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -238,12 +1076,12 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Description" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="FormModules" Relationship="Model1.FK_FormModules_Forms_FormId" FromRole="Forms" ToRole="FormModules" />
-          <NavigationProperty Name="RolFormPermissions" Relationship="Model1.FK_RolFormPermissions_Forms_FormId" FromRole="Forms" ToRole="RolFormPermissions" />
+          <Property Name="ContractId" Type="Int32" Nullable="false" />
+          <Property Name="ClauseId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Clauses" Relationship="Model1.FK_ContractClauses_Clauses" FromRole="ContractClauses" ToRole="Clauses" />
+          <NavigationProperty Name="Contracts" Relationship="Model1.FK_ContractClauses_Contracts" FromRole="ContractClauses" ToRole="Contracts" />
         </EntityType>
-        <EntityType Name="Images">
+        <EntityType Name="Contracts">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -255,9 +1093,18 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="Establishments" Relationship="Model1.FK_Images_Establishments_EstablishmentId" FromRole="Images" ToRole="Establishments" />
+          <Property Name="StartDate" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="EndDate" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="PersonId" Type="Int32" Nullable="false" />
+          <Property Name="TotalBaseRentAgreed" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="TotalUvtQtyAgreed" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="AccumulatedFirstMonth" Type="Decimal" Precision="18" Scale="2" />
+          <NavigationProperty Name="ContractClauses" Relationship="Model1.FK_ContractClauses_Contracts" FromRole="Contracts" ToRole="ContractClauses" />
+          <NavigationProperty Name="Persons" Relationship="Model1.FK_Contracts_Persons" FromRole="Contracts" ToRole="Persons" />
+          <NavigationProperty Name="ObligationMonths" Relationship="Model1.FK_ObligationMonths_Contracts" FromRole="Contracts" ToRole="ObligationMonths" />
+          <NavigationProperty Name="PremisesLeaseds" Relationship="Model1.FK_PremisesLeaseds_Contracts" FromRole="Contracts" ToRole="PremisesLeaseds" />
         </EntityType>
-        <EntityType Name="Modules">
+        <EntityType Name="Establishments">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -267,34 +1114,82 @@
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
           <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Description" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="FormModules" Relationship="Model1.FK_FormModules_Modules_ModuleId" FromRole="Modules" ToRole="FormModules" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="AreaM2" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="RentValueBase" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="Address" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="UvtQty" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="PlazaId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Appointments" Relationship="Model1.FK_Appointments_Establishments" FromRole="Establishments" ToRole="Appointments" />
+          <NavigationProperty Name="Plazas" Relationship="Model1.FK_Establishments_Plazas" FromRole="Establishments" ToRole="Plazas" />
+          <NavigationProperty Name="PremisesLeaseds" Relationship="Model1.FK_PremisesLeaseds_Establishments" FromRole="Establishments" ToRole="PremisesLeaseds" />
         </EntityType>
         <EntityType Name="ObligationMonths">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Active" Type="Boolean" Nullable="false" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
           <Property Name="ContractId" Type="Int32" Nullable="false" />
           <Property Name="Year" Type="Int32" Nullable="false" />
           <Property Name="Month" Type="Int32" Nullable="false" />
           <Property Name="DueDate" Type="DateTime" Nullable="false" Precision="7" />
-          <Property Name="UvtQtyApplied" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="UvtValueApplied" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="PaymentDate" Type="DateTime" Precision="7" />
+          <Property Name="UvtQtyApplied" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="UvtValueApplied" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
           <Property Name="VatRateApplied" Type="Decimal" Nullable="false" Precision="5" Scale="4" />
-          <Property Name="BaseAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="VatAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
-          <Property Name="TotalAmount" Type="Decimal" Nullable="false" Precision="18" Scale="4" />
+          <Property Name="BaseAmount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="VatAmount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="TotalAmount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
           <Property Name="DaysLate" Type="Int32" />
-          <Property Name="LateAmount" Type="Decimal" Precision="18" Scale="4" />
-          <Property Name="Status" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="LateAmount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Status" Type="Int32" Nullable="false" />
           <Property Name="Locked" Type="Boolean" Nullable="false" />
+          <Property Name="LateFeeAmount" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="NotifiedDueSoonAt" Type="DateTime" Precision="7" />
+          <Property Name="NotifiedOverdueAt" Type="DateTime" Precision="7" />
+          <Property Name="NotifiedPreJudicialAt" Type="DateTime" Precision="7" />
+          <Property Name="NotifiedJudicialAt" Type="DateTime" Precision="7" />
+          <NavigationProperty Name="Contracts" Relationship="Model1.FK_ObligationMonths_Contracts" FromRole="ObligationMonths" ToRole="Contracts" />
+        </EntityType>
+        <EntityType Name="Plazas">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="contracts" Relationship="Model1.FK_ObligationMonths_contracts_ContractId" FromRole="ObligationMonths" ToRole="contracts" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="Location" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Establishments" Relationship="Model1.FK_Establishments_Plazas" FromRole="Plazas" ToRole="Establishments" />
         </EntityType>
-        <EntityType Name="PasswordResetCodes">
+        <EntityType Name="PremisesLeaseds">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Active" Type="Boolean" Nullable="false" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="ContractId" Type="Int32" Nullable="false" />
+          <Property Name="EstablishmentId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Contracts" Relationship="Model1.FK_PremisesLeaseds_Contracts" FromRole="PremisesLeaseds" ToRole="Contracts" />
+          <NavigationProperty Name="Establishments" Relationship="Model1.FK_PremisesLeaseds_Establishments" FromRole="PremisesLeaseds" ToRole="Establishments" />
+        </EntityType>
+        <EntityType Name="DATABASECHANGELOGLOCK">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" />
+          <Property Name="LOCKED" Type="Boolean" Nullable="false" />
+          <Property Name="LOCKGRANTED" Type="DateTime" Precision="3" />
+          <Property Name="LOCKEDBY" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="Cities">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -306,8 +1201,12 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="DepartmentId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Departments" Relationship="Model1.FK_Cities_Departments" FromRole="Cities" ToRole="Departments" />
+          <NavigationProperty Name="Persons" Relationship="Model1.FK_Persons_Cities" FromRole="Cities" ToRole="Persons" />
         </EntityType>
-        <EntityType Name="Permissions">
+        <EntityType Name="Departments">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -316,29 +1215,28 @@
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
           <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Description" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="RolFormPermissions" Relationship="Model1.FK_RolFormPermissions_Permissions_PermissionId" FromRole="Permissions" ToRole="RolFormPermissions" />
+          <NavigationProperty Name="Cities" Relationship="Model1.FK_Cities_Departments" FromRole="Departments" ToRole="Cities" />
         </EntityType>
         <EntityType Name="Persons">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Active" Type="Boolean" Nullable="false" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
           <Property Name="FirstName" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
           <Property Name="LastName" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
           <Property Name="Document" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
           <Property Name="Address" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="Phone" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
           <Property Name="CityId" Type="Int32" Nullable="false" />
-          <Property Name="Active" Type="Boolean" Nullable="false" />
-          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
-          <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="Appointments" Relationship="Model1.FK_Appointments_Persons_PersonId" FromRole="Persons" ToRole="Appointments" />
-          <NavigationProperty Name="Cities" Relationship="Model1.FK_Persons_Cities_CityId" FromRole="Persons" ToRole="Cities" />
-          <NavigationProperty Name="contracts" Relationship="Model1.FK_contracts_Persons_PersonId" FromRole="Persons" ToRole="contracts" />
-          <NavigationProperty Name="Users" Relationship="Model1.FK_Users_Persons_PersonId" FromRole="Persons" ToRole="Users" />
+          <NavigationProperty Name="Appointments" Relationship="Model1.FK_Appointments_Persons" FromRole="Persons" ToRole="Appointments" />
+          <NavigationProperty Name="Contracts" Relationship="Model1.FK_Contracts_Persons" FromRole="Persons" ToRole="Contracts" />
+          <NavigationProperty Name="Cities" Relationship="Model1.FK_Persons_Cities" FromRole="Persons" ToRole="Cities" />
+          <NavigationProperty Name="Users" Relationship="Model1.FK_Users_Persons" FromRole="Persons" ToRole="Users" />
         </EntityType>
-        <EntityType Name="plaza">
+        <EntityType Name="PasswordResetCodes">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -347,11 +1245,12 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <Property Name="Name" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="Establishments" Relationship="Model1.FK_Establishments_plaza_PlazaId" FromRole="plaza" ToRole="Establishments" />
+          <Property Name="Email" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="Expiration" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="IsUsed" Type="Boolean" Nullable="false" />
         </EntityType>
-        <EntityType Name="premisesLeaseds">
+        <EntityType Name="Permissions">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -361,7 +1260,9 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="contracts" Relationship="Model1.FK_premisesLeaseds_contracts_ContractId" FromRole="premisesLeaseds" ToRole="contracts" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="RolFormPermissions" Relationship="Model1.FK_RolFormPermissions_Permissions" FromRole="Permissions" ToRole="RolFormPermissions" />
         </EntityType>
         <EntityType Name="RefreshToken">
           <Key>
@@ -369,11 +1270,12 @@
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="UserId" Type="Int32" Nullable="false" />
-          <Property Name="TokenHash" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="TokenHash" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
           <Property Name="ExpiresAt" Type="DateTime" Nullable="false" Precision="7" />
           <Property Name="IsRevoked" Type="Boolean" Nullable="false" />
-          <Property Name="ReplacedByTokenHash" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="ReplacedByTokenHash" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="Users" Relationship="Model1.FK_RefreshToken_Users" FromRole="RefreshToken" ToRole="Users" />
         </EntityType>
         <EntityType Name="Roles">
           <Key>
@@ -384,9 +1286,9 @@
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
           <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="Description" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="RolFormPermissions" Relationship="Model1.FK_RolFormPermissions_Roles_RolId" FromRole="Roles" ToRole="RolFormPermissions" />
-          <NavigationProperty Name="RolUsers" Relationship="Model1.FK_RolUsers_Roles_RolId" FromRole="Roles" ToRole="RolUsers" />
+          <Property Name="Description" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="RolFormPermissions" Relationship="Model1.FK_RolFormPermissions_Roles" FromRole="Roles" ToRole="RolFormPermissions" />
+          <NavigationProperty Name="RolUsers" Relationship="Model1.FK_RolUsers_Roles" FromRole="Roles" ToRole="RolUsers" />
         </EntityType>
         <EntityType Name="RolFormPermissions">
           <Key>
@@ -399,9 +1301,12 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="Permissions" Relationship="Model1.FK_RolFormPermissions_Permissions_PermissionId" FromRole="RolFormPermissions" ToRole="Permissions" />
-          <NavigationProperty Name="Roles" Relationship="Model1.FK_RolFormPermissions_Roles_RolId" FromRole="RolFormPermissions" ToRole="Roles" />
-          <NavigationProperty Name="Forms" Relationship="Model1.FK_RolFormPermissions_Forms_FormId" FromRole="RolFormPermissions" ToRole="Forms" />
+          <Property Name="RolId" Type="Int32" Nullable="false" />
+          <Property Name="FormId" Type="Int32" Nullable="false" />
+          <Property Name="PermissionId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Forms" Relationship="Model1.FK_RolFormPermissions_Forms" FromRole="RolFormPermissions" ToRole="Forms" />
+          <NavigationProperty Name="Permissions" Relationship="Model1.FK_RolFormPermissions_Permissions" FromRole="RolFormPermissions" ToRole="Permissions" />
+          <NavigationProperty Name="Roles" Relationship="Model1.FK_RolFormPermissions_Roles" FromRole="RolFormPermissions" ToRole="Roles" />
         </EntityType>
         <EntityType Name="RolUsers">
           <Key>
@@ -413,10 +1318,12 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="Roles" Relationship="Model1.FK_RolUsers_Roles_RolId" FromRole="RolUsers" ToRole="Roles" />
-          <NavigationProperty Name="Users" Relationship="Model1.FK_RolUsers_Users_UserId" FromRole="RolUsers" ToRole="Users" />
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="RolId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Roles" Relationship="Model1.FK_RolUsers_Roles" FromRole="RolUsers" ToRole="Roles" />
+          <NavigationProperty Name="Users" Relationship="Model1.FK_RolUsers_Users" FromRole="RolUsers" ToRole="Users" />
         </EntityType>
-        <EntityType Name="systemParameters">
+        <EntityType Name="TwoFactorCodes">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
@@ -428,130 +1335,70 @@
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="16" FixedLength="false" Unicode="true" />
+          <Property Name="ExpiresAt" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="IsUsed" Type="Boolean" Nullable="false" />
+          <Property Name="UsedAt" Type="DateTime" Precision="7" />
+          <NavigationProperty Name="Users" Relationship="Model1.FK_TwoFactorCodes_Users" FromRole="TwoFactorCodes" ToRole="Users" />
         </EntityType>
         <EntityType Name="Users">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Email" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
-          <Property Name="Password" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
-          <Property Name="PersonId" Type="Int32" Nullable="false" />
           <Property Name="Active" Type="Boolean" Nullable="false" />
           <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
           <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
-          <NavigationProperty Name="Persons" Relationship="Model1.FK_Users_Persons_PersonId" FromRole="Users" ToRole="Persons" />
-          <NavigationProperty Name="RolUsers" Relationship="Model1.FK_RolUsers_Users_UserId" FromRole="Users" ToRole="RolUsers" />
+          <Property Name="Email" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="Password" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="PersonId" Type="Int32" Nullable="false" />
+          <Property Name="TwoFactorEnabled" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="Notifications" Relationship="Model1.FK_Notifications_Users" FromRole="Users" ToRole="Notifications" />
+          <NavigationProperty Name="Persons" Relationship="Model1.FK_Users_Persons" FromRole="Users" ToRole="Persons" />
+          <NavigationProperty Name="RefreshToken" Relationship="Model1.FK_RefreshToken_Users" FromRole="Users" ToRole="RefreshToken" />
+          <NavigationProperty Name="RolUsers" Relationship="Model1.FK_RolUsers_Users" FromRole="Users" ToRole="RolUsers" />
+          <NavigationProperty Name="TwoFactorCodes" Relationship="Model1.FK_TwoFactorCodes_Users" FromRole="Users" ToRole="TwoFactorCodes" />
         </EntityType>
-        <Association Name="FK_Appointments_Establishments_EstablishmentId">
-          <End Type="Model1.Establishments" Role="Establishments" Multiplicity="1" />
-          <End Type="Model1.Appointments" Role="Appointments" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Establishments">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Appointments">
-              <PropertyRef Name="EstablishmentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Appointments_Persons_PersonId">
-          <End Type="Model1.Persons" Role="Persons" Multiplicity="1" />
-          <End Type="Model1.Appointments" Role="Appointments" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Persons">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Appointments">
-              <PropertyRef Name="PersonId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Cities_Departments_DepartmentId">
-          <End Type="Model1.Departments" Role="Departments" Multiplicity="1" />
-          <End Type="Model1.Cities" Role="Cities" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Departments">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Cities">
-              <PropertyRef Name="DepartmentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Persons_Cities_CityId">
-          <End Type="Model1.Cities" Role="Cities" Multiplicity="1" />
-          <End Type="Model1.Persons" Role="Persons" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Cities">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Persons">
-              <PropertyRef Name="CityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_contractClauses_clauses_ClauseId">
-          <End Type="Model1.clauses" Role="clauses" Multiplicity="1" />
-          <End Type="Model1.contractClauses" Role="contractClauses" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="clauses">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="contractClauses">
-              <PropertyRef Name="ClauseId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_contractClauses_contracts_ContractId">
-          <End Type="Model1.contracts" Role="contracts" Multiplicity="1" />
-          <End Type="Model1.contractClauses" Role="contractClauses" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="contracts">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="contractClauses">
-              <PropertyRef Name="ContractId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_contracts_Persons_PersonId">
-          <End Type="Model1.Persons" Role="Persons" Multiplicity="1" />
-          <End Type="Model1.contracts" Role="contracts" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Persons">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="contracts">
-              <PropertyRef Name="PersonId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ObligationMonths_contracts_ContractId">
-          <End Type="Model1.contracts" Role="contracts" Multiplicity="1" />
-          <End Type="Model1.ObligationMonths" Role="ObligationMonths" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="contracts">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ObligationMonths">
-              <PropertyRef Name="ContractId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_premisesLeaseds_contracts_ContractId">
-          <End Type="Model1.contracts" Role="contracts" Multiplicity="1" />
-          <End Type="Model1.premisesLeaseds" Role="premisesLeaseds" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="contracts">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="premisesLeaseds">
-              <PropertyRef Name="ContractId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_FormModules_Forms_FormId">
+        <EntityType Name="Images">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Active" Type="Boolean" Nullable="false" />
+          <Property Name="IsDeleted" Type="Boolean" Nullable="false" />
+          <Property Name="CreatedAt" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="FileName" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="FilePath" Type="String" Nullable="false" MaxLength="512" FixedLength="false" Unicode="true" />
+          <Property Name="PublicId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="EntityType" Type="Int32" Nullable="false" />
+          <Property Name="EntityId" Type="Int32" Nullable="false" />
+        </EntityType>
+        <EntityType Name="DATABASECHANGELOG">
+          <Key>
+            <PropertyRef Name="ID" />
+            <PropertyRef Name="AUTHOR" />
+            <PropertyRef Name="FILENAME" />
+            <PropertyRef Name="DATEEXECUTED" />
+            <PropertyRef Name="ORDEREXECUTED" />
+            <PropertyRef Name="EXECTYPE" />
+          </Key>
+          <Property Name="ID" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="AUTHOR" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="FILENAME" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="DATEEXECUTED" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ORDEREXECUTED" Type="Int32" Nullable="false" />
+          <Property Name="EXECTYPE" Type="String" Nullable="false" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="MD5SUM" Type="String" MaxLength="35" FixedLength="false" Unicode="true" />
+          <Property Name="DESCRIPTION" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="COMMENTS" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="TAG" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="LIQUIBASE" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="CONTEXTS" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="LABELS" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="DEPLOYMENT_ID" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <Association Name="FK_FormModules_Forms">
           <End Type="Model1.Forms" Role="Forms" Multiplicity="1" />
           <End Type="Model1.FormModules" Role="FormModules" Multiplicity="*" />
           <ReferentialConstraint>
@@ -563,7 +1410,7 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_FormModules_Modules_ModuleId">
+        <Association Name="FK_FormModules_Modules">
           <End Type="Model1.Modules" Role="Modules" Multiplicity="1" />
           <End Type="Model1.FormModules" Role="FormModules" Multiplicity="*" />
           <ReferentialConstraint>
@@ -575,68 +1422,10 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_Images_Establishments_EstablishmentId">
-          <End Type="Model1.Establishments" Role="Establishments" Multiplicity="1" />
-          <End Type="Model1.Images" Role="Images" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Establishments">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Images">
-              <PropertyRef Name="EstablishmentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RolFormPermissions_Permissions_PermissionId">
-          <End Type="Model1.Permissions" Role="Permissions" Multiplicity="1" />
-          <End Type="Model1.RolFormPermissions" Role="RolFormPermissions" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Permissions">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RolFormPermissions">
-              <PropertyRef Name="PermissionId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Establishments_plaza_PlazaId">
-          <End Type="Model1.plaza" Role="plaza" Multiplicity="1" />
-          <End Type="Model1.Establishments" Role="Establishments" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="plaza">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Establishments">
-              <PropertyRef Name="PlazaId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RolFormPermissions_Roles_RolId">
-          <End Type="Model1.Roles" Role="Roles" Multiplicity="1" />
-          <End Type="Model1.RolFormPermissions" Role="RolFormPermissions" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Roles">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RolFormPermissions">
-              <PropertyRef Name="RolId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RolUsers_Roles_RolId">
-          <End Type="Model1.Roles" Role="Roles" Multiplicity="1" />
-          <End Type="Model1.RolUsers" Role="RolUsers" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Roles">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RolUsers">
-              <PropertyRef Name="RolId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RolFormPermissions_Forms_FormId">
-          <End Type="Model1.Forms" Role="Forms" Multiplicity="1" />
+        <Association Name="FK_RolFormPermissions_Forms">
+          <End Type="Model1.Forms" Role="Forms" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Type="Model1.RolFormPermissions" Role="RolFormPermissions" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="Forms">
@@ -647,7 +1436,159 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_Users_Persons_PersonId">
+        <Association Name="FK_Notifications_Users">
+          <End Type="Model1.Users" Role="Users" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="Model1.Notifications" Role="Notifications" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Notifications">
+              <PropertyRef Name="RecipientUserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Appointments_Establishments">
+          <End Type="Model1.Establishments" Role="Establishments" Multiplicity="1" />
+          <End Type="Model1.Appointments" Role="Appointments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Establishments">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Appointments">
+              <PropertyRef Name="EstablishmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Appointments_Persons">
+          <End Type="Model1.Persons" Role="Persons" Multiplicity="1" />
+          <End Type="Model1.Appointments" Role="Appointments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Persons">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Appointments">
+              <PropertyRef Name="PersonId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ContractClauses_Clauses">
+          <End Type="Model1.Clauses" Role="Clauses" Multiplicity="1" />
+          <End Type="Model1.ContractClauses" Role="ContractClauses" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Clauses">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ContractClauses">
+              <PropertyRef Name="ClauseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ContractClauses_Contracts">
+          <End Type="Model1.Contracts" Role="Contracts" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="Model1.ContractClauses" Role="ContractClauses" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Contracts">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ContractClauses">
+              <PropertyRef Name="ContractId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Contracts_Persons">
+          <End Type="Model1.Persons" Role="Persons" Multiplicity="1" />
+          <End Type="Model1.Contracts" Role="Contracts" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Persons">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Contracts">
+              <PropertyRef Name="PersonId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ObligationMonths_Contracts">
+          <End Type="Model1.Contracts" Role="Contracts" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="Model1.ObligationMonths" Role="ObligationMonths" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Contracts">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ObligationMonths">
+              <PropertyRef Name="ContractId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PremisesLeaseds_Contracts">
+          <End Type="Model1.Contracts" Role="Contracts" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="Model1.PremisesLeaseds" Role="PremisesLeaseds" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Contracts">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PremisesLeaseds">
+              <PropertyRef Name="ContractId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Establishments_Plazas">
+          <End Type="Model1.Plazas" Role="Plazas" Multiplicity="1" />
+          <End Type="Model1.Establishments" Role="Establishments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Plazas">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Establishments">
+              <PropertyRef Name="PlazaId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PremisesLeaseds_Establishments">
+          <End Type="Model1.Establishments" Role="Establishments" Multiplicity="1" />
+          <End Type="Model1.PremisesLeaseds" Role="PremisesLeaseds" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Establishments">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="PremisesLeaseds">
+              <PropertyRef Name="EstablishmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Cities_Departments">
+          <End Type="Model1.Departments" Role="Departments" Multiplicity="1" />
+          <End Type="Model1.Cities" Role="Cities" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Departments">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Cities">
+              <PropertyRef Name="DepartmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Persons_Cities">
+          <End Type="Model1.Cities" Role="Cities" Multiplicity="1" />
+          <End Type="Model1.Persons" Role="Persons" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Cities">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Persons">
+              <PropertyRef Name="CityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Users_Persons">
           <End Type="Model1.Persons" Role="Persons" Multiplicity="1" />
           <End Type="Model1.Users" Role="Users" Multiplicity="*" />
           <ReferentialConstraint>
@@ -659,14 +1600,82 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_RolUsers_Users_UserId">
-          <End Type="Model1.Users" Role="Users" Multiplicity="1" />
+        <Association Name="FK_RolFormPermissions_Permissions">
+          <End Type="Model1.Permissions" Role="Permissions" Multiplicity="1" />
+          <End Type="Model1.RolFormPermissions" Role="RolFormPermissions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Permissions">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RolFormPermissions">
+              <PropertyRef Name="PermissionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RefreshToken_Users">
+          <End Type="Model1.Users" Role="Users" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="Model1.RefreshToken" Role="RefreshToken" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RefreshToken">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RolFormPermissions_Roles">
+          <End Type="Model1.Roles" Role="Roles" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="Model1.RolFormPermissions" Role="RolFormPermissions" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Roles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RolFormPermissions">
+              <PropertyRef Name="RolId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RolUsers_Roles">
+          <End Type="Model1.Roles" Role="Roles" Multiplicity="1" />
+          <End Type="Model1.RolUsers" Role="RolUsers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Roles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RolUsers">
+              <PropertyRef Name="RolId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RolUsers_Users">
+          <End Type="Model1.Users" Role="Users" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Type="Model1.RolUsers" Role="RolUsers" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="Users">
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="RolUsers">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TwoFactorCodes_Users">
+          <End Type="Model1.Users" Role="Users" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="Model1.TwoFactorCodes" Role="TwoFactorCodes" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TwoFactorCodes">
               <PropertyRef Name="UserId" />
             </Dependent>
           </ReferentialConstraint>
@@ -678,7 +1687,409 @@
       <Mapping xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs" Space="C-S">
         <Alias Key="Model" Value="Model1" />
         <Alias Key="Target" Value="Model1.Store" />
-        <EntityContainerMapping CdmEntityContainer="Model1Container" StorageEntityContainer="Model1TargetContainer">
+        <EntityContainerMapping CdmEntityContainer="Model1Container" StorageEntityContainer="Model1StoreContainer">
+          <EntitySetMapping Name="CollectionSettings">
+            <EntityTypeMapping TypeName="Model1.CollectionSettings">
+              <MappingFragment StoreEntitySet="CollectionSettings">
+                <ScalarProperty Name="TimeUnit" ColumnName="TimeUnit" />
+                <ScalarProperty Name="Value" ColumnName="Value" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FormModules">
+            <EntityTypeMapping TypeName="Model1.FormModules">
+              <MappingFragment StoreEntitySet="FormModules">
+                <ScalarProperty Name="ModuleId" ColumnName="ModuleId" />
+                <ScalarProperty Name="FormId" ColumnName="FormId" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Forms">
+            <EntityTypeMapping TypeName="Model1.Forms">
+              <MappingFragment StoreEntitySet="Forms">
+                <ScalarProperty Name="Route" ColumnName="Route" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Modules">
+            <EntityTypeMapping TypeName="Model1.Modules">
+              <MappingFragment StoreEntitySet="Modules">
+                <ScalarProperty Name="Icon" ColumnName="Icon" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Notifications">
+            <EntityTypeMapping TypeName="Model1.Notifications">
+              <MappingFragment StoreEntitySet="Notifications">
+                <ScalarProperty Name="ExpiresAt" ColumnName="ExpiresAt" />
+                <ScalarProperty Name="ReadAt" ColumnName="ReadAt" />
+                <ScalarProperty Name="ActionRoute" ColumnName="ActionRoute" />
+                <ScalarProperty Name="RecipientUserId" ColumnName="RecipientUserId" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="Priority" ColumnName="Priority" />
+                <ScalarProperty Name="Type" ColumnName="Type" />
+                <ScalarProperty Name="Message" ColumnName="Message" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SystemParameters">
+            <EntityTypeMapping TypeName="Model1.SystemParameters">
+              <MappingFragment StoreEntitySet="SystemParameters">
+                <ScalarProperty Name="EffectiveTo" ColumnName="EffectiveTo" />
+                <ScalarProperty Name="EffectiveFrom" ColumnName="EffectiveFrom" />
+                <ScalarProperty Name="Value" ColumnName="Value" />
+                <ScalarProperty Name="Key" ColumnName="Key" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Appointments">
+            <EntityTypeMapping TypeName="Model1.Appointments">
+              <MappingFragment StoreEntitySet="Appointments">
+                <ScalarProperty Name="EstablishmentId" ColumnName="EstablishmentId" />
+                <ScalarProperty Name="PersonId" ColumnName="PersonId" />
+                <ScalarProperty Name="Observation" ColumnName="Observation" />
+                <ScalarProperty Name="DateTimeAssigned" ColumnName="DateTimeAssigned" />
+                <ScalarProperty Name="RequestDate" ColumnName="RequestDate" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Clauses">
+            <EntityTypeMapping TypeName="Model1.Clauses">
+              <MappingFragment StoreEntitySet="Clauses">
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ContractClauses">
+            <EntityTypeMapping TypeName="Model1.ContractClauses">
+              <MappingFragment StoreEntitySet="ContractClauses">
+                <ScalarProperty Name="ClauseId" ColumnName="ClauseId" />
+                <ScalarProperty Name="ContractId" ColumnName="ContractId" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Contracts">
+            <EntityTypeMapping TypeName="Model1.Contracts">
+              <MappingFragment StoreEntitySet="Contracts">
+                <ScalarProperty Name="AccumulatedFirstMonth" ColumnName="AccumulatedFirstMonth" />
+                <ScalarProperty Name="TotalUvtQtyAgreed" ColumnName="TotalUvtQtyAgreed" />
+                <ScalarProperty Name="TotalBaseRentAgreed" ColumnName="TotalBaseRentAgreed" />
+                <ScalarProperty Name="PersonId" ColumnName="PersonId" />
+                <ScalarProperty Name="EndDate" ColumnName="EndDate" />
+                <ScalarProperty Name="StartDate" ColumnName="StartDate" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Establishments">
+            <EntityTypeMapping TypeName="Model1.Establishments">
+              <MappingFragment StoreEntitySet="Establishments">
+                <ScalarProperty Name="PlazaId" ColumnName="PlazaId" />
+                <ScalarProperty Name="UvtQty" ColumnName="UvtQty" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="RentValueBase" ColumnName="RentValueBase" />
+                <ScalarProperty Name="AreaM2" ColumnName="AreaM2" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ObligationMonths">
+            <EntityTypeMapping TypeName="Model1.ObligationMonths">
+              <MappingFragment StoreEntitySet="ObligationMonths">
+                <ScalarProperty Name="NotifiedJudicialAt" ColumnName="NotifiedJudicialAt" />
+                <ScalarProperty Name="NotifiedPreJudicialAt" ColumnName="NotifiedPreJudicialAt" />
+                <ScalarProperty Name="NotifiedOverdueAt" ColumnName="NotifiedOverdueAt" />
+                <ScalarProperty Name="NotifiedDueSoonAt" ColumnName="NotifiedDueSoonAt" />
+                <ScalarProperty Name="LateFeeAmount" ColumnName="LateFeeAmount" />
+                <ScalarProperty Name="Locked" ColumnName="Locked" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+                <ScalarProperty Name="LateAmount" ColumnName="LateAmount" />
+                <ScalarProperty Name="DaysLate" ColumnName="DaysLate" />
+                <ScalarProperty Name="TotalAmount" ColumnName="TotalAmount" />
+                <ScalarProperty Name="VatAmount" ColumnName="VatAmount" />
+                <ScalarProperty Name="BaseAmount" ColumnName="BaseAmount" />
+                <ScalarProperty Name="VatRateApplied" ColumnName="VatRateApplied" />
+                <ScalarProperty Name="UvtValueApplied" ColumnName="UvtValueApplied" />
+                <ScalarProperty Name="UvtQtyApplied" ColumnName="UvtQtyApplied" />
+                <ScalarProperty Name="PaymentDate" ColumnName="PaymentDate" />
+                <ScalarProperty Name="DueDate" ColumnName="DueDate" />
+                <ScalarProperty Name="Month" ColumnName="Month" />
+                <ScalarProperty Name="Year" ColumnName="Year" />
+                <ScalarProperty Name="ContractId" ColumnName="ContractId" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Plazas">
+            <EntityTypeMapping TypeName="Model1.Plazas">
+              <MappingFragment StoreEntitySet="Plazas">
+                <ScalarProperty Name="Location" ColumnName="Location" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PremisesLeaseds">
+            <EntityTypeMapping TypeName="Model1.PremisesLeaseds">
+              <MappingFragment StoreEntitySet="PremisesLeaseds">
+                <ScalarProperty Name="EstablishmentId" ColumnName="EstablishmentId" />
+                <ScalarProperty Name="ContractId" ColumnName="ContractId" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DATABASECHANGELOGLOCK">
+            <EntityTypeMapping TypeName="Model1.DATABASECHANGELOGLOCK">
+              <MappingFragment StoreEntitySet="DATABASECHANGELOGLOCK">
+                <ScalarProperty Name="LOCKEDBY" ColumnName="LOCKEDBY" />
+                <ScalarProperty Name="LOCKGRANTED" ColumnName="LOCKGRANTED" />
+                <ScalarProperty Name="LOCKED" ColumnName="LOCKED" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Cities">
+            <EntityTypeMapping TypeName="Model1.Cities">
+              <MappingFragment StoreEntitySet="Cities">
+                <ScalarProperty Name="DepartmentId" ColumnName="DepartmentId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Departments">
+            <EntityTypeMapping TypeName="Model1.Departments">
+              <MappingFragment StoreEntitySet="Departments">
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Persons">
+            <EntityTypeMapping TypeName="Model1.Persons">
+              <MappingFragment StoreEntitySet="Persons">
+                <ScalarProperty Name="CityId" ColumnName="CityId" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="Document" ColumnName="Document" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PasswordResetCodes">
+            <EntityTypeMapping TypeName="Model1.PasswordResetCodes">
+              <MappingFragment StoreEntitySet="PasswordResetCodes">
+                <ScalarProperty Name="IsUsed" ColumnName="IsUsed" />
+                <ScalarProperty Name="Expiration" ColumnName="Expiration" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Permissions">
+            <EntityTypeMapping TypeName="Model1.Permissions">
+              <MappingFragment StoreEntitySet="Permissions">
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RefreshToken">
+            <EntityTypeMapping TypeName="Model1.RefreshToken">
+              <MappingFragment StoreEntitySet="RefreshToken">
+                <ScalarProperty Name="ReplacedByTokenHash" ColumnName="ReplacedByTokenHash" />
+                <ScalarProperty Name="IsRevoked" ColumnName="IsRevoked" />
+                <ScalarProperty Name="ExpiresAt" ColumnName="ExpiresAt" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="TokenHash" ColumnName="TokenHash" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Roles">
+            <EntityTypeMapping TypeName="Model1.Roles">
+              <MappingFragment StoreEntitySet="Roles">
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RolFormPermissions">
+            <EntityTypeMapping TypeName="Model1.RolFormPermissions">
+              <MappingFragment StoreEntitySet="RolFormPermissions">
+                <ScalarProperty Name="PermissionId" ColumnName="PermissionId" />
+                <ScalarProperty Name="FormId" ColumnName="FormId" />
+                <ScalarProperty Name="RolId" ColumnName="RolId" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RolUsers">
+            <EntityTypeMapping TypeName="Model1.RolUsers">
+              <MappingFragment StoreEntitySet="RolUsers">
+                <ScalarProperty Name="RolId" ColumnName="RolId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TwoFactorCodes">
+            <EntityTypeMapping TypeName="Model1.TwoFactorCodes">
+              <MappingFragment StoreEntitySet="TwoFactorCodes">
+                <ScalarProperty Name="UsedAt" ColumnName="UsedAt" />
+                <ScalarProperty Name="IsUsed" ColumnName="IsUsed" />
+                <ScalarProperty Name="ExpiresAt" ColumnName="ExpiresAt" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Users">
+            <EntityTypeMapping TypeName="Model1.Users">
+              <MappingFragment StoreEntitySet="Users">
+                <ScalarProperty Name="TwoFactorEnabled" ColumnName="TwoFactorEnabled" />
+                <ScalarProperty Name="PersonId" ColumnName="PersonId" />
+                <ScalarProperty Name="Password" ColumnName="Password" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Images">
+            <EntityTypeMapping TypeName="Model1.Images">
+              <MappingFragment StoreEntitySet="Images">
+                <ScalarProperty Name="EntityId" ColumnName="EntityId" />
+                <ScalarProperty Name="EntityType" ColumnName="EntityType" />
+                <ScalarProperty Name="PublicId" ColumnName="PublicId" />
+                <ScalarProperty Name="FilePath" ColumnName="FilePath" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+                <ScalarProperty Name="CreatedAt" ColumnName="CreatedAt" />
+                <ScalarProperty Name="IsDeleted" ColumnName="IsDeleted" />
+                <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DATABASECHANGELOG">
+            <EntityTypeMapping TypeName="Model1.DATABASECHANGELOG">
+              <MappingFragment StoreEntitySet="DATABASECHANGELOG">
+                <ScalarProperty Name="DEPLOYMENT_ID" ColumnName="DEPLOYMENT_ID" />
+                <ScalarProperty Name="LABELS" ColumnName="LABELS" />
+                <ScalarProperty Name="CONTEXTS" ColumnName="CONTEXTS" />
+                <ScalarProperty Name="LIQUIBASE" ColumnName="LIQUIBASE" />
+                <ScalarProperty Name="TAG" ColumnName="TAG" />
+                <ScalarProperty Name="COMMENTS" ColumnName="COMMENTS" />
+                <ScalarProperty Name="DESCRIPTION" ColumnName="DESCRIPTION" />
+                <ScalarProperty Name="MD5SUM" ColumnName="MD5SUM" />
+                <ScalarProperty Name="EXECTYPE" ColumnName="EXECTYPE" />
+                <ScalarProperty Name="ORDEREXECUTED" ColumnName="ORDEREXECUTED" />
+                <ScalarProperty Name="DATEEXECUTED" ColumnName="DATEEXECUTED" />
+                <ScalarProperty Name="FILENAME" ColumnName="FILENAME" />
+                <ScalarProperty Name="AUTHOR" ColumnName="AUTHOR" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
@@ -695,6 +2106,8 @@
         <DesignerProperty Name="ValidateOnBuild" Value="true" />
         <DesignerProperty Name="EnablePluralization" Value="False" />
         <DesignerProperty Name="CodeGenerationStrategy" Value="Ninguno" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+        <DesignerProperty Name="UseLegacyProvider" Value="False" />
       </DesignerInfoPropertySet>
     </edmx:Options>
     <!-- Diagram content (shape and connector positions) -->

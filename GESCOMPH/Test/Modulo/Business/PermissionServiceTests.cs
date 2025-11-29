@@ -20,10 +20,12 @@ public class PermissionServiceTests
     }
 
     [Fact]
-    public async Task GetAll_WrapsExceptions_AsBusinessException()
+    public async Task GetAllWrapsExceptionsAsBusinessException()
     {
         _repo.Setup(r => r.GetAllAsync()).ThrowsAsync(new Exception("db"));
+
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.GetAllAsync());
+
         Assert.Contains("Error al obtener todos los registros", ex.Message);
     }
 }

@@ -1,4 +1,6 @@
-﻿using Business.Services.Business;
+﻿using Business.Interfaces.Implements.Business;
+using Business.Services.Business;
+using Data.Interfaz.DataBasic;
 using Data.Interfaz.IDataImplement.Business;
 using Data.Interfaz.DataBasic;
 using Entity.Domain.Models.Implements.AdministrationSystem;
@@ -12,6 +14,7 @@ public class ObligationMonthServiceTests
     private readonly Mock<IObligationMonthRepository> _obligationRepo = new();
     private readonly Mock<IContractRepository> _contractRepo = new();
     private readonly Mock<IDataGeneric<SystemParameter>> _systemParamRepo = new();
+    private readonly Mock<IObligationNotifier> _notifier = new();
     private readonly Mock<IMapper> _mapper = new();
 
     private readonly ObligationMonthService _service;
@@ -22,15 +25,20 @@ public class ObligationMonthServiceTests
             _obligationRepo.Object,
             _contractRepo.Object,
             _systemParamRepo.Object,
+            _notifier.Object,
             _mapper.Object
         );
     }
 
+    // ---------------------------------------------------------
+    // TOTAL PAGADO POR DÍA
+    // ---------------------------------------------------------
     [Fact]
-    public async Task GetTotalObligationsPaidByDayAsync_ReturnsExpected()
+    public async Task GetTotalObligationsPaidByDayAsyncReturnsExpected()
     {
         // Arrange
         var date = new DateTime(2024, 10, 1);
+
         _obligationRepo.Setup(r => r.GetTotalObligationsPaidByDayAsync(date))
                        .ReturnsAsync(1500m);
 
@@ -42,11 +50,15 @@ public class ObligationMonthServiceTests
         _obligationRepo.Verify(r => r.GetTotalObligationsPaidByDayAsync(date), Times.Once);
     }
 
+    // ---------------------------------------------------------
+    // TOTAL PAGADO POR MES
+    // ---------------------------------------------------------
     [Fact]
-    public async Task GetTotalObligationsPaidByMonthAsync_ReturnsExpected()
+    public async Task GetTotalObligationsPaidByMonthAsyncReturnsExpected()
     {
         // Arrange
         int year = 2024, month = 10;
+
         _obligationRepo.Setup(r => r.GetTotalObligationsPaidByMonthAsync(year, month))
                        .ReturnsAsync(5000m);
 

@@ -22,16 +22,19 @@ namespace Business.Services.Business
         private readonly IObligationMonthRepository _obligationRepository;
         private readonly IContractRepository _contractRepository;
         private readonly IDataGeneric<SystemParameter> _systemParamRepository;
+        private readonly IObligationNotifier _notifier;
 
         public ObligationMonthService(
             IObligationMonthRepository obligationRepository,
             IContractRepository contractRepository,
             IDataGeneric<SystemParameter> systemParamRepository,
+            IObligationNotifier notifier,
             IMapper mapper) : base(obligationRepository, mapper)
         {
             _obligationRepository = obligationRepository;
             _contractRepository = contractRepository;
             _systemParamRepository = systemParamRepository;
+            _notifier = notifier;
         }
 
         public async Task GenerateMonthlyAsync(int year, int month)
@@ -86,57 +89,220 @@ namespace Business.Services.Business
             var existing = await _obligationRepository.GetByIdAsync(id)
                 ?? throw new BusinessException($"No existe obligación mensual con Id {id}.");
 
+            // Validación de idempotencia: si ya está pagada, no hacer nada
+            if (existing.Status == Status.Aprobada && existing.Locked)
+            {
+                // Ya está pagada, comportamiento idempotente (evita duplicados)
+                return;
+            }
+
             existing.PaymentDate = DateTime.UtcNow;
             existing.Status = Status.Aprobada;
             existing.Locked = true;
 
             await _obligationRepository.UpdateAsync(existing);
+
+            // Notificar actualización en tiempo real
+            await _notifier.NotifyObligationsUpdatedAsync();
         }
 
         private async Task UpsertObligationAsync(Contract contract, DateTime periodDate, decimal uvtValue, decimal vatRate)
         {
-            var existing = await _obligationRepository
-                .GetByContractYearMonthAsync(contract.Id, periodDate.Year, periodDate.Month);
-
+            var existing = await GetExistingObligationAsync(contract.Id, periodDate);
+            
             if (existing != null && existing.Locked)
                 return;
 
-            var (baseAmount, vatAmount, totalAmount) = CalculateAmounts(contract, uvtValue, vatRate);
-            var dueDate = new DateTime(periodDate.Year, periodDate.Month, DateTime.DaysInMonth(periodDate.Year, periodDate.Month));
+            var (effectiveDays, totalDaysInMonth) = CalculateEffectiveDays(contract, periodDate);
+            var proportionalAmount = CalculateProportionalAmount(contract, periodDate, uvtValue, effectiveDays, totalDaysInMonth);
+            
+            // Manejar acumulación del primer mes parcial
+            if (await ShouldAccumulateFirstMonthAsync(contract, periodDate, effectiveDays, totalDaysInMonth, proportionalAmount))
+                return;
+            
+            // Calcular monto base con acumulado si aplica
+            var baseAmount = await CalculateBaseAmountWithAccumulatedAsync(contract, periodDate, proportionalAmount);
+            
+            // Calcular totales
+            var (vatAmount, totalAmount) = CalculateTaxAndTotal(baseAmount, vatRate);
+            
+            // Calcular fecha límite
+            var dueDate = await CalculateDueDateAsync(periodDate);
+            
+            // Crear o actualizar obligación
+            await SaveOrUpdateObligationAsync(existing, contract, periodDate, uvtValue, vatRate, baseAmount, vatAmount, totalAmount, dueDate);
+        }
 
+        /// <summary>
+        /// Obtiene obligación existente para el contrato y período.
+        /// </summary>
+        private async Task<ObligationMonth?> GetExistingObligationAsync(int contractId, DateTime periodDate)
+        {
+            return await _obligationRepository
+                .GetByContractYearMonthAsync(contractId, periodDate.Year, periodDate.Month);
+        }
+
+        /// <summary>
+        /// Calcula el monto proporcional basado en días efectivos.
+        /// </summary>
+        private decimal CalculateProportionalAmount(Contract contract, DateTime periodDate, decimal uvtValue, int effectiveDays, int totalDaysInMonth)
+        {
+            decimal monthlyBase = contract.TotalBaseRentAgreed > 0m
+                ? contract.TotalBaseRentAgreed
+                : contract.TotalUvtQtyAgreed * uvtValue;
+            
+            return (monthlyBase / totalDaysInMonth) * effectiveDays;
+        }
+
+        /// <summary>
+        /// Determina si se debe acumular el primer mes parcial y lo guarda si es necesario.
+        /// </summary>
+        private async Task<bool> ShouldAccumulateFirstMonthAsync(
+            Contract contract, 
+            DateTime periodDate, 
+            int effectiveDays, 
+            int totalDaysInMonth, 
+            decimal proportionalAmount)
+        {
+            bool isFirstMonth = IsFirstMonthOfContract(contract, periodDate);
+            bool isPartialMonth = effectiveDays < totalDaysInMonth;
+            
+            if (isFirstMonth && isPartialMonth)
+            {
+                contract.AccumulatedFirstMonth = proportionalAmount;
+                await _contractRepository.UpdateAsync(contract);
+                return true; // Indicar que se acumuló y NO se debe generar obligación
+            }
+            
+            return false;
+        }
+
+        /// <summary>
+        /// Calcula monto base incluyendo acumulado del primer mes si aplica.
+        /// </summary>
+        private async Task<decimal> CalculateBaseAmountWithAccumulatedAsync(
+            Contract contract, 
+            DateTime periodDate, 
+            decimal proportionalAmount)
+        {
+            decimal baseAmount = proportionalAmount;
+            
+            if (IsSecondMonthOfContract(contract, periodDate) && contract.AccumulatedFirstMonth.HasValue)
+            {
+                baseAmount += contract.AccumulatedFirstMonth.Value;
+                
+                // Limpiar acumulado
+                contract.AccumulatedFirstMonth = null;
+                await _contractRepository.UpdateAsync(contract);
+            }
+            
+            return baseAmount;
+        }
+
+        /// <summary>
+        /// Calcula IVA y monto total.
+        /// </summary>
+        private (decimal VatAmount, decimal TotalAmount) CalculateTaxAndTotal(decimal baseAmount, decimal vatRate)
+        {
+            decimal vatAmount = baseAmount * vatRate;
+            decimal totalAmount = baseAmount + vatAmount;
+            return (vatAmount, totalAmount);
+        }
+
+        /// <summary>
+        /// Calcula fecha límite de pago basada en parámetro configurable.
+        /// </summary>
+        private async Task<DateTime> CalculateDueDateAsync(DateTime periodDate)
+        {
+            var paymentDueDay = await GetParameterIntAsync("DIA_LIMITE_PAGO", 5);
+            var nextMonth = periodDate.AddMonths(1);
+            var maxDay = DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month);
+            var dueDay = Math.Min(paymentDueDay, maxDay);
+            
+            return new DateTime(nextMonth.Year, nextMonth.Month, dueDay);
+        }
+
+        /// <summary>
+        /// Guarda nueva obligación o actualiza existente.
+        /// </summary>
+        private async Task SaveOrUpdateObligationAsync(
+            ObligationMonth? existing,
+            Contract contract,
+            DateTime periodDate,
+            decimal uvtValue,
+            decimal vatRate,
+            decimal baseAmount,
+            decimal vatAmount,
+            decimal totalAmount,
+            DateTime dueDate)
+        {
             if (existing == null)
             {
-                var obligation = new ObligationMonth
-                {
-                    ContractId = contract.Id,
-                    Year = periodDate.Year,
-                    Month = periodDate.Month,
-                    DueDate = dueDate,
-                    UvtQtyApplied = contract.TotalUvtQtyAgreed,
-                    UvtValueApplied = uvtValue,
-                    VatRateApplied = vatRate,
-                    BaseAmount = baseAmount,
-                    VatAmount = vatAmount,
-                    TotalAmount = totalAmount,
-                    Status = Status.Pendiente
-                };
-
-                await _obligationRepository.AddAsync(obligation);
+                await CreateNewObligationAsync(contract, periodDate, uvtValue, vatRate, baseAmount, vatAmount, totalAmount, dueDate);
             }
             else
             {
-                existing.UvtQtyApplied = contract.TotalUvtQtyAgreed;
-                existing.UvtValueApplied = uvtValue;
-                existing.VatRateApplied = vatRate;
-                existing.BaseAmount = baseAmount;
-                existing.VatAmount = vatAmount;
-                existing.TotalAmount = totalAmount;
-
-                if (existing.Status == Status.Rechazada)
-                    existing.Status = Status.Pendiente;
-
-                await _obligationRepository.UpdateAsync(existing);
+                await UpdateExistingObligationAsync(existing, contract, uvtValue, vatRate, baseAmount, vatAmount, totalAmount, dueDate);
             }
+        }
+
+        /// <summary>
+        /// Crea nueva obligación.
+        /// </summary>
+        private async Task CreateNewObligationAsync(
+            Contract contract,
+            DateTime periodDate,
+            decimal uvtValue,
+            decimal vatRate,
+            decimal baseAmount,
+            decimal vatAmount,
+            decimal totalAmount,
+            DateTime dueDate)
+        {
+            var obligation = new ObligationMonth
+            {
+                ContractId = contract.Id,
+                Year = periodDate.Year,
+                Month = periodDate.Month,
+                DueDate = dueDate,
+                UvtQtyApplied = contract.TotalUvtQtyAgreed,
+                UvtValueApplied = uvtValue,
+                VatRateApplied = vatRate,
+                BaseAmount = baseAmount,
+                VatAmount = vatAmount,
+                TotalAmount = totalAmount,
+                Status = Status.Pendiente
+            };
+
+            await _obligationRepository.AddAsync(obligation);
+        }
+
+        /// <summary>
+        /// Actualiza obligación existente.
+        /// </summary>
+        private async Task UpdateExistingObligationAsync(
+            ObligationMonth existing,
+            Contract contract,
+            decimal uvtValue,
+            decimal vatRate,
+            decimal baseAmount,
+            decimal vatAmount,
+            decimal totalAmount,
+            DateTime dueDate)
+        {
+            existing.UvtQtyApplied = contract.TotalUvtQtyAgreed;
+            existing.UvtValueApplied = uvtValue;
+            existing.VatRateApplied = vatRate;
+            existing.BaseAmount = baseAmount;
+            existing.VatAmount = vatAmount;
+            existing.TotalAmount = totalAmount;
+            existing.DueDate = dueDate;
+
+            if (existing.Status == Status.Rechazada)
+                existing.Status = Status.Pendiente;
+
+            await _obligationRepository.UpdateAsync(existing);
+        }
         }
 
         private (DateTime MonthStart, DateTime MonthEnd, DateTime DueDate) GetPeriodDates(int year, int month)
@@ -190,6 +356,79 @@ namespace Business.Services.Business
             var es = CultureInfo.GetCultureInfo("es-CO");
             if (decimal.TryParse(raw, NumberStyles.Any, es, out value)) return true;
             return decimal.TryParse(raw, NumberStyles.Any, CultureInfo.CurrentCulture, out value);
+        }
+
+        /// <summary>
+        /// Obtiene un parámetro entero del sistema con valor por defecto.
+        /// </summary>
+        private async Task<int> GetParameterIntAsync(string key, int defaultValue)
+        {
+            try
+            {
+                var param = await _systemParamRepository.GetAllQueryable()
+                    .Where(p => p.Key == key 
+                        && p.EffectiveFrom <= DateTime.UtcNow 
+                        && (p.EffectiveTo == null || p.EffectiveTo >= DateTime.UtcNow))
+                    .OrderByDescending(p => p.EffectiveFrom)
+                    .FirstOrDefaultAsync();
+
+                if (param == null)
+                    return defaultValue;
+
+                if (!int.TryParse(param.Value, out var value))
+                    return defaultValue;
+
+                return value;
+            }
+            catch
+            {
+                return defaultValue;
+            }
+        }
+
+        /// <summary>
+        /// Calcula los días efectivos del contrato en un mes específico.
+        /// </summary>
+        private (int effectiveDays, int totalDaysInMonth) CalculateEffectiveDays(
+            Contract contract, 
+            DateTime periodDate)
+        {
+            var monthStart = new DateTime(periodDate.Year, periodDate.Month, 1);
+            var monthEnd = monthStart.AddMonths(1);
+            int totalDaysInMonth = DateTime.DaysInMonth(periodDate.Year, periodDate.Month);
+
+            // Día inicial efectivo: mayor entre inicio del mes e inicio del contrato
+            var effectiveStart = contract.StartDate > monthStart 
+                ? contract.StartDate 
+                : monthStart;
+
+            // Día final efectivo: menor entre fin del mes y fin del contrato
+            var effectiveEnd = contract.EndDate < monthEnd 
+                ? contract.EndDate.AddDays(1) // Incluir el último día
+                : monthEnd;
+
+            int effectiveDays = (effectiveEnd - effectiveStart).Days;
+
+            return (effectiveDays, totalDaysInMonth);
+        }
+
+        /// <summary>
+        /// Determina si periodDate es el primer mes del contrato.
+        /// </summary>
+        private bool IsFirstMonthOfContract(Contract contract, DateTime periodDate)
+        {
+            return contract.StartDate.Year == periodDate.Year 
+                && contract.StartDate.Month == periodDate.Month;
+        }
+
+        /// <summary>
+        /// Determina si periodDate es el segundo mes del contrato.
+        /// </summary>
+        private bool IsSecondMonthOfContract(Contract contract, DateTime periodDate)
+        {
+            var secondMonth = contract.StartDate.AddMonths(1);
+            return secondMonth.Year == periodDate.Year 
+                && secondMonth.Month == periodDate.Month;
         }
 
         public async Task<decimal> GetTotalObligationsPaidByDayAsync(DateTime date)

@@ -3,6 +3,7 @@ using Data.Interfaz.IDataImplement.Business;
 using Entity.Domain.Models.Implements.Business;
 using Entity.DTOs.Implements.Business.Appointment;
 using Entity.DTOs.Implements.Persons.Person;
+using Entity.DTOs.Implements.SecurityAuthentication.Auth;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,8 @@ using Utilities.Exceptions;
 using Utilities.Messaging.Interfaces;
 using Business.Interfaces.Implements.SecurityAuthentication;
 using Business.Interfaces.Implements.Persons;
-using Entity.Infrastructure.Context;
+using Utilities.Messaging.Interfaces;
+using Business.Interfaces;
 
 namespace Test.Modulo.Business;
 
@@ -22,6 +24,8 @@ public class AppointmentServiceTests
     private readonly Mock<IPersonService> _personService = new();
     private readonly Mock<IUserService> _userService = new();
     private readonly Mock<ISendCode> _emailService = new();
+    private readonly Mock<IAuthService> _authService = new();
+    private readonly Mock<IUnitOfWork> _uow = new();
     private readonly Mock<ILogger<AppointmentService>> _logger = new();
 
     private readonly AppointmentService _service;
@@ -40,13 +44,17 @@ public class AppointmentServiceTests
             _personService.Object,
             _userService.Object,
             _emailService.Object,
-            context,
+            _authService.Object,
+            _uow.Object,
             _logger.Object
         );
     }
 
+    // ------------------------------------------------------------
+    // Caso 2: Crea cita cuando persona NO existe
+    // ------------------------------------------------------------
     [Fact]
-    public async Task Create_Throws_WhenDtoNull()
+    public async Task CreateCreatesAppointmentWhenPersonDoesNotExist()
     {
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.CreateAsync(null!));
         Assert.Contains("no puede ser nulo", ex.Message);
@@ -59,41 +67,51 @@ public class AppointmentServiceTests
         {
             FirstName = "A",
             LastName = "B",
-            Document = "1",
-            Address = "X",
-            Phone = "Y",
-            Description = "d",
+            Document = "123",
+            Email = "a@b.com",
             RequestDate = DateTime.UtcNow,
-            DateTimeAssigned = DateTime.UtcNow,
-            EstablishmentId = 1,
-            CityId = 1,
-            Email = "a@b.com"
+            DateTimeAssigned = DateTime.UtcNow
         };
 
-        // Simular que el servicio de personas devuelve un objeto con Id
-        _personService.Setup(s => s.GetOrCreateByDocumentAsync(It.IsAny<PersonDto>()))
-            .ReturnsAsync(new PersonSelectDto { Id = 10, FirstName = "A", LastName = "B" });
+        _personService
+            .Setup(p => p.GetByDocumentAsync("123"))
+            .ReturnsAsync((PersonSelectDto?)null);
 
-        // Simular creación/obtención de usuario
-        _userService.Setup(u => u.EnsureUserForPersonAsync(10, "a@b.com"))
-            .ReturnsAsync((1, true, "temp123"));
+        _mapper
+            .Setup(m => m.Map<RegisterDto>(dto))
+            .Returns(new RegisterDto());
 
-        // Simular persistencia de la cita
-        _repo.Setup(r => r.AddAsync(It.IsAny<Appointment>()))
+        _authService
+            .Setup(a => a.RegisterInternalAsync(
+                It.IsAny<RegisterDto>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new RegisterResultDto { PersonId = 99 });
+
+        _mapper
+            .Setup(m => m.Map<Appointment>(dto))
+            .Returns(new Appointment());
+
+        _repo
+            .Setup(r => r.AddAsync(It.IsAny<Appointment>()))
             .ReturnsAsync((Appointment a) =>
             {
-                a.Id = 7;
+                a.Id = 5;
                 return a;
             });
 
-        _mapper.Setup(m => m.Map<Appointment>(dto))
-            .Returns(new Appointment { PersonId = 10 });
-
-        _mapper.Setup(m => m.Map<AppointmentSelectDto>(It.IsAny<Appointment>()))
+        _mapper
+            .Setup(m => m.Map<AppointmentSelectDto>(It.IsAny<Appointment>()))
             .Returns<Appointment>(a => new AppointmentSelectDto { Id = a.Id });
+
+        _uow
+            .Setup(u => u.ExecuteAsync(
+                It.IsAny<Func<CancellationToken, Task<AppointmentSelectDto>>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns((Func<CancellationToken, Task<AppointmentSelectDto>> action, CancellationToken _) =>
+                action(CancellationToken.None));
 
         var result = await _service.CreateAsync(dto);
 
-        Assert.Equal(7, result.Id);
+        Assert.Equal(5, result.Id);
     }
 }

@@ -20,26 +20,32 @@ public class ContractClauseServiceGenericTests
     }
 
     [Fact]
-    public async Task Delete_Throws_WhenIdZero()
+    public async Task DeleteThrowsWhenIdZero()
     {
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.DeleteAsync(0));
         Assert.Contains("mayor que cero", ex.InnerException!.Message);
     }
 
     [Fact]
-    public async Task DeleteLogic_Throws_WhenIdZero()
+    public async Task DeleteLogicThrowsWhenIdZero()
     {
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.DeleteLogicAsync(0));
         Assert.Contains("mayor que cero", ex.InnerException!.Message);
     }
 
     [Fact]
-    public async Task UpdateActiveStatus_Updates_WhenFound()
+    public async Task UpdateActiveStatusUpdatesWhenFound()
     {
         var entity = new ContractClause { Id = 4, ContractId = 1, ClauseId = 1, Active = false };
+
         _repo.Setup(r => r.GetByIdAsync(4)).ReturnsAsync(entity);
+
         await _service.UpdateActiveStatusAsync(4, true);
-        _repo.Verify(r => r.UpdateAsync(It.Is<ContractClause>(m => m.Id == 4 && m.Active == true)), Times.Once);
+
+        _repo.Verify(
+            r => r.UpdateAsync(It.Is<ContractClause>(m => m.Id == 4 && m.Active == true)),
+            Times.Once
+        );
     }
 }
 

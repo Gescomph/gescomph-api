@@ -20,10 +20,20 @@ public class ClauseServiceTests
     }
 
     [Fact]
-    public async Task Delete_ThrowsBusiness_OnDbUpdate()
+    public async Task DeleteThrowsBusinessOnDbUpdate()
     {
-        _repo.Setup(r => r.DeleteAsync(1)).ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException("fk"));
+        _repo.Setup(r => r.GetByIdAsync(1))
+             .ReturnsAsync(new Clause
+             {
+                 Id = 1,
+                 Active = false
+             });
+
+        _repo.Setup(r => r.DeleteAsync(1))
+             .ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException("fk"));
+
         var ex = await Assert.ThrowsAsync<BusinessException>(() => _service.DeleteAsync(1));
+
         Assert.Contains("restricciones de datos", ex.Message);
     }
 }

@@ -1,7 +1,10 @@
 using WebGESCOMPH.Extensions.Composition;
 using WebGESCOMPH.Extensions.Infrastructure;
+using WebGESCOMPH.Extensions.Payments;
 using WebGESCOMPH.Extensions.Presentation;
 using WebGESCOMPH.Extensions.RealTime;
+using Business.Interfaces.Implements.Business;
+using WebGESCOMPH.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +21,8 @@ builder.Services.AddApplicationServices();
 
 // Infraestructura transversal (CORS, JWT, DB, Cloudinary, Hangfire, SignalR, Validations, Proxy/HTTPS, PDF warmup deps)
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddMercadoPagoServices(builder.Configuration);
+builder.Services.AddScoped<IObligationNotifier, SignalRObligationNotifier>();
 
 var app = builder.Build();
 
