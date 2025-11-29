@@ -15,7 +15,7 @@ public class DepartmentControllerTests
     private DepartmentController CreateController() => new(_service.Object, _logger.Object);
 
     [Fact]
-    public async Task Get_ReturnsOk()
+    public async Task GetReturnsOk()
     {
         _service.Setup(s => s.GetAllAsync()).ReturnsAsync(new List<DepartmentSelectDto> { new() { Id = 1, Name = "Huila" } });
         var res = await CreateController().Get();
@@ -23,7 +23,7 @@ public class DepartmentControllerTests
     }
 
     [Fact]
-    public async Task GetById_NotFound()
+    public async Task GetByIdNotFound()
     {
         _service.Setup(s => s.GetByIdAsync(7)).ReturnsAsync((DepartmentSelectDto?)null);
         var controller = CreateController();
@@ -33,7 +33,7 @@ public class DepartmentControllerTests
     }
 
     [Fact]
-    public async Task Post_CreatedAt()
+    public async Task PostCreatedAt()
     {
         var input = new DepartmentCreateDto { Name = "Huila" };
         var created = new DepartmentSelectDto { Id = 1, Name = "Huila", Active = true };
@@ -47,16 +47,17 @@ public class DepartmentControllerTests
     }
 
     [Fact]
-    public async Task Put_NotFound_WhenServiceReturnsNull()
+    public async Task PutNotFoundWhenServiceReturnsNull()
     {
         _service.Setup(s => s.UpdateAsync(It.IsAny<DepartmentUpdateDto>()))
                 .ReturnsAsync((DepartmentSelectDto?)null);
+
         var res = await CreateController().Put(9, new DepartmentUpdateDto { Id = 9, Name = "X" });
         Assert.IsType<NotFoundResult>(res.Result);
     }
 
     [Fact]
-    public async Task Delete_NoContent_WhenDeleted()
+    public async Task DeleteNoContentWhenDeleted()
     {
         _service.Setup(s => s.DeleteAsync(3)).ReturnsAsync(true);
         var res = await CreateController().Delete(3);
@@ -64,7 +65,7 @@ public class DepartmentControllerTests
     }
 
     [Fact]
-    public async Task DeleteLogic_NoContent_WhenDeleted()
+    public async Task DeleteLogicNoContentWhenDeleted()
     {
         _service.Setup(s => s.DeleteLogicAsync(4)).ReturnsAsync(true);
         var res = await CreateController().DeleteLogic(4);
@@ -72,9 +73,12 @@ public class DepartmentControllerTests
     }
 
     [Fact]
-    public async Task ChangeActiveStatus_NoContent()
+    public async Task ChangeActiveStatusNoContent()
     {
-        var res = await CreateController().ChangeActiveStatus(5, new WebGESCOMPH.Contracts.Requests.ChangeActiveStatusRequest { Active = true });
+        var res = await CreateController().ChangeActiveStatus(
+            5, 
+            new WebGESCOMPH.Contracts.Requests.ChangeActiveStatusRequest { Active = true }
+        );
         Assert.IsType<NoContentResult>(res);
     }
 }
