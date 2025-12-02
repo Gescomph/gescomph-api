@@ -8,7 +8,8 @@ namespace Entity.DTOs.Implements.Business.Appointment
     {
         public string Description { get; set; }
         public DateTime RequestDate { get; set; }
-        public DateTime DateTimeAssigned { get; set; }
+        public DateTime? DateTimeAssigned { get; set; }
+        public string? Observation { get; set; }
 
         public bool Active { get; set; }
 
@@ -21,9 +22,9 @@ namespace Entity.DTOs.Implements.Business.Appointment
         public int EstablishmentId { get; set; }
         public string EstablishmentName { get; set; } = null!;
 
-        // Enum de estado
-        //public int Status { get; set; }
-        //public string StatusName => ((Status)Status).ToString();
+        // Estado de la cita
+        public Status Status { get; set; }
+        public string StatusName => Status.ToString();
 
     }
 }

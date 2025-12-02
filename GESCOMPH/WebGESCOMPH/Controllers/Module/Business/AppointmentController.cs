@@ -76,5 +76,65 @@ namespace WebGESCOMPH.Controllers.Module.Business
             return Ok();
         }
 
+        [HttpPost("{id:int}/accept")]
+        public async Task<ActionResult<AppointmentSelectDto>> AcceptAppointment(int id)
+        {
+            try
+            {
+                var appointment = await _appointmentService.UpdateStatusAsync(id, Status.Aprobada, null);
+                return Ok(appointment);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al aceptar la cita: {ex.Message}");
+            }
+        }
+
+        [HttpPost("{id:int}/reject")]
+        public async Task<ActionResult<AppointmentSelectDto>> RejectAppointment(int id, [FromBody] AppointmentRejectDto dto)
+        {
+            try
+            {
+                if (id != dto.Id)
+                    return BadRequest("ID en URL no coincide con el DTO");
+
+                var appointment = await _appointmentService.UpdateStatusAsync(id, Status.Rechazada, dto.Observation);
+                return Ok(appointment);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al rechazar la cita: {ex.Message}");
+            }
+        }
+
+        [HttpPost("{id:int}/status")]
+        public async Task<ActionResult<AppointmentSelectDto>> UpdateStatus(int id, [FromBody] AppointmentStatusDto dto)
+        {
+            if (id != dto.Id)
+                return BadRequest("ID en URL no coincide con el DTO");
+
+            try
+            {
+                var appointment = await _appointmentService.UpdateStatusAsync(id, dto.Status, dto.Observation);
+                return Ok(appointment);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al actualizar el estado de la cita: {ex.Message}");
+            }
+        }
+
     }
 }

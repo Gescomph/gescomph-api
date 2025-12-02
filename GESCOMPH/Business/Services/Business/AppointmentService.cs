@@ -1,5 +1,6 @@
 using Business.Interfaces;
 using Business.Interfaces.Implements.Business;
+using Business.Interfaces.Implements.AdministrationSystem;
 using Business.Interfaces.Implements.Persons;
 using Business.Interfaces.Implements.SecurityAuthentication;
 using Business.Repository;
@@ -10,7 +11,8 @@ using Entity.DTOs.Implements.Business.Appointment;
 using Entity.DTOs.Implements.Persons.Person;
 using Entity.DTOs.Implements.SecurityAuthentication.Auth;
 using Entity.Infrastructure.Context;
-using Humanizer;
+using Entity.DTOs.Implements.Utilities;
+using Entity.Enum;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,7 +20,6 @@ using System.Linq.Expressions;
 using Utilities.Exceptions;
 using Utilities.Helpers.Business;
 using Utilities.Messaging.Interfaces;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Business.Services.Business
 {
@@ -35,6 +36,7 @@ namespace Business.Services.Business
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AppointmentService> _logger;
         private readonly IUnitOfWork _uow;
+        private readonly INotificationService _notificationService;
 
         public AppointmentService(
             IAppointmentRepository data,
@@ -44,7 +46,8 @@ namespace Business.Services.Business
             ISendCode emailService,
             IAuthService authService,
             IUnitOfWork uow,
-            ILogger<AppointmentService> logger
+            ILogger<AppointmentService> logger,
+            INotificationService notificationService
         ) : base(data, mapper)
         {
             _data = data;
@@ -55,6 +58,7 @@ namespace Business.Services.Business
             _authService = authService;
             _uow = uow;
             _logger = logger;
+            _notificationService = notificationService;
         }
 
         public override async Task<AppointmentSelectDto> CreateAsync(AppointmentCreateDto dto)
@@ -124,7 +128,6 @@ namespace Business.Services.Business
         {
             try
             {
-                // Validación: la fecha no puede ser la fecha por defecto
                 if (date == default)
                 {
                     _logger.LogWarning("Se intentó buscar citas con una fecha inválida");
@@ -212,5 +215,111 @@ namespace Business.Services.Business
                 [nameof(Appointment.Active)] = v => e => e.Active == bool.Parse(v),
                 [nameof(Appointment.RequestDate)] = v => e => e.RequestDate == DateTime.Parse(v)
             };
+
+        public async Task<AppointmentSelectDto> AcceptAppointmentAsync(int appointmentId)
+        {
+            return await UpdateStatusAsync(appointmentId, Entity.Enum.Status.Aprobada, null);
+        }
+
+        public async Task<AppointmentSelectDto> RejectAppointmentAsync(int appointmentId, string? observation)
+        {
+            return await UpdateStatusAsync(appointmentId, Entity.Enum.Status.Rechazada, observation);
+        }
+
+        public async Task<AppointmentSelectDto> UpdateStatusAsync(int appointmentId, Entity.Enum.Status status, string? observation)
+        {
+            try
+            {
+                if (appointmentId <= 0)
+                {
+                    _logger.LogWarning("Se intentó actualizar una cita con un ID inválido: {appointmentId}", appointmentId);
+                    throw new ArgumentException("El ID de la cita debe ser mayor a 0", nameof(appointmentId));
+                }
+
+                var appointment = await _data.GetByIdAsync(appointmentId);
+
+                if (appointment == null)
+                {
+                    _logger.LogWarning("No se encontró la cita con ID: {appointmentId}", appointmentId);
+                    throw new BusinessException($"No se encontró la cita con ID {appointmentId}");
+                }
+
+                if (appointment.Status != Entity.Enum.Status.Pendiente)
+                {
+                    _logger.LogWarning("Se intentó actualizar una cita que no está en estado Pendiente. ID: {appointmentId}, Estado actual: {status}", appointmentId, appointment.Status);
+                    throw new BusinessException($"Solo se pueden gestionar citas en estado Pendiente. Estado actual: {appointment.Status}");
+                }
+
+                if (status != Entity.Enum.Status.Aprobada && status != Entity.Enum.Status.Rechazada)
+                {
+                    _logger.LogWarning("Se intentó asignar un estado no permitido: {status}", status);
+                    throw new BusinessException("Solo se permite actualizar a Aprobada o Rechazada.");
+                }
+
+                appointment.Status = status;
+
+                if (status == Entity.Enum.Status.Rechazada && !string.IsNullOrWhiteSpace(observation))
+                {
+                    appointment.Observation = observation;
+                }
+
+                await _data.UpdateAsync(appointment);
+
+                _logger.LogInformation("Estado de la cita actualizado. ID: {appointmentId}, Nuevo estado: {status}", appointmentId, status);
+
+                // Notificar al usuario (si existe) después del commit
+                var recipientUserId = appointment.Person?.User?.Id;
+                var personFullName = $"{appointment.Person?.FirstName} {appointment.Person?.LastName}".Trim();
+                var actionRoute = "/appointments";
+                var dateLabel = appointment.DateTimeAssigned.HasValue
+                    ? appointment.DateTimeAssigned.Value.ToString("yyyy-MM-dd HH:mm")
+                    : "por programar";
+                var message = status == Status.Aprobada
+                    ? $"Tu cita #{appointment.Id} fue aprobada. Fecha/hora: {dateLabel}."
+                    : $"Tu cita #{appointment.Id} fue rechazada. Motivo: {(string.IsNullOrWhiteSpace(observation) ? "Sin motivo especificado" : observation)}.";
+                var title = status == Status.Aprobada ? "Cita aprobada" : "Cita rechazada";
+                var priority = status == Status.Aprobada ? NotificationPriority.Info : NotificationPriority.Warning;
+
+                if (recipientUserId.HasValue && recipientUserId.Value > 0)
+                {
+                    _uow.RegisterPostCommit(async _ =>
+                    {
+                        try
+                        {
+                            var notificationDto = new NotificationCreateDto
+                            {
+                                Title = title,
+                                Message = message,
+                                Type = NotificationType.System,
+                                Priority = priority,
+                                RecipientUserId = recipientUserId.Value,
+                                ActionRoute = actionRoute
+                            };
+
+                            await _notificationService.CreateAsync(notificationDto);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error creando notificaci�n de cita {AppointmentId}", appointmentId);
+                        }
+                    });
+                }
+
+                return _mapper.Map<AppointmentSelectDto>(appointment);
+            }
+            catch (ArgumentException)
+            {
+                throw;
+            }
+            catch (BusinessException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar la cita con ID: {appointmentId}", appointmentId);
+                throw;
+            }
+        }
     }
 }
