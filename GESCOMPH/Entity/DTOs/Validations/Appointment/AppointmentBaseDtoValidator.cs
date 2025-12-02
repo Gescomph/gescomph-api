@@ -22,12 +22,6 @@ namespace Entity.DTOs.Validations.Appointment
             RuleFor(x => x.RequestDate)
                 .NotEqual(default(DateTime))
                     .WithMessage("La fecha de solicitud es obligatoria.");
-
-            RuleFor(x => x.DateTimeAssigned)
-                .NotEqual(default(DateTime))
-                    .WithMessage("La fecha y hora asignada es obligatoria.")
-                .GreaterThan(x => x.RequestDate)
-                    .WithMessage("La fecha y hora asignada debe ser posterior a la fecha de solicitud.");
         }
     }
 }

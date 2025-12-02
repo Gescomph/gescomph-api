@@ -10,6 +10,6 @@ namespace Entity.DTOs.Implements.Business.Appointment
         public int EstablishmentId { get; set; }
         public string Description { get; set; } = null!;
         public DateTime RequestDate { get; set; }
-        public DateTime DateTimeAssigned { get; set; }
+        public DateTime? DateTimeAssigned { get; set; }
     }
 }

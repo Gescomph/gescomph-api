@@ -25,7 +25,7 @@ namespace Entity.DTOs.Implements.Business.Appointment
 
         public DateTime RequestDate { get; set; }
 
-        public DateTime DateTimeAssigned { get; set; }
+        public DateTime? DateTimeAssigned { get; set; }
 
         //public int PersonId { get; set; }
 

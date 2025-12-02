@@ -16,12 +16,14 @@ namespace Business.Mapping.Registers
         public void Register(TypeAdapterConfig config)
         {
             // ==========================================================
-            // Appointment ? AppointmentSelectDto
+            // Appointment → AppointmentSelectDto
             // ==========================================================
             config.NewConfig<Appointment, AppointmentSelectDto>()
                 .Map(dest => dest.EstablishmentName, src => src.Establishment.Name)
                 .Map(dest => dest.PersonName, src => src.Person.FirstName + " " + src.Person.LastName)
-                .Map(dest => dest.Phone, src => src.Person.Phone);
+                .Map(dest => dest.Phone, src => src.Person.Phone)
+                .Map(dest => dest.Status, src => src.Status)
+                .Map(dest => dest.StatusName, src => src.Status.ToString());
 
             // ==========================================================
             // Person ? AppointmentCreateDto

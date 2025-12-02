@@ -26,6 +26,10 @@ namespace Entity.Infrastructure.Configurations.Business
             builder.Property(a => a.Observation)
                 .HasMaxLength(500);
 
+            builder.Property(a => a.Status)
+                .IsRequired()
+                .HasDefaultValue(Entity.Enum.Status.Pendiente);
+
             builder.HasOne(a => a.Person)
                 .WithMany(p => p.Appointments)
                 .HasForeignKey(a => a.PersonId)

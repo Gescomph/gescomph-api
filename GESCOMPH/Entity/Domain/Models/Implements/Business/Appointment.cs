@@ -1,5 +1,6 @@
 using Entity.Domain.Models.Implements.Persons;
 using Entity.Domain.Models.ModelBase;
+using Entity.Enum;
 
 namespace Entity.Domain.Models.Implements.Business
 {
@@ -9,6 +10,7 @@ namespace Entity.Domain.Models.Implements.Business
         public DateTime RequestDate { get; set; } 
         public DateTime? DateTimeAssigned { get; set; }
         public string? Observation { get; set; }
+        public Status Status { get; set; } = Status.Pendiente;
 
         // Ralacion con Persona
         public int PersonId { get; set; }
@@ -21,7 +23,6 @@ namespace Entity.Domain.Models.Implements.Business
   
         public bool Active { get; set; }
 
-        //public int Status { get; set; }
 
     }
 }
